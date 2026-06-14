@@ -7,13 +7,13 @@ import java.util.List;
 
 public interface HorseService {
 
-    HorseResponse createHorse(HorseRequest request);
+    //HorseResponse createHorse(HorseRequest request);
 
     List<HorseResponse> getAllHorses();
 
     HorseResponse getHorseById(Integer id);
 
-    HorseResponse updateHorse(Integer id, HorseRequest request);
+   // HorseResponse updateHorse(Integer id, HorseRequest request);
 
     void deleteHorse(Integer id);
 }

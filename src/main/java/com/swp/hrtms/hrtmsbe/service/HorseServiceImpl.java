@@ -23,15 +23,7 @@ public class HorseServiceImpl implements HorseService {
         this.horseOwnerRepository = horseOwnerRepository;
     }
 
-    @Override
-    @Transactional
-    public HorseResponse createHorse(HorseRequest request) {
-        Horse horse = new Horse();
-        applyRequestToHorse(horse, request);
-
-        Horse savedHorse = horseRepository.save(horse);
-        return toResponse(savedHorse);
-    }
+    
 
     @Override
     @Transactional(readOnly = true)
@@ -49,16 +41,7 @@ public class HorseServiceImpl implements HorseService {
         return toResponse(horse);
     }
 
-    @Override
-    @Transactional
-    public HorseResponse updateHorse(Integer id, HorseRequest request) {
-        Horse horse = findHorseById(id);
-        applyRequestToHorse(horse, request);
-
-        Horse updatedHorse = horseRepository.save(horse);
-        return toResponse(updatedHorse);
-    }
-
+    
     @Override
     @Transactional
     public void deleteHorse(Integer id) {
@@ -66,16 +49,7 @@ public class HorseServiceImpl implements HorseService {
         horseRepository.delete(horse);
     }
 
-    private void applyRequestToHorse(Horse horse, HorseRequest request) {
-        HorseOwner owner = horseOwnerRepository.findById(request.getOwnerId())
-                .orElseThrow(() -> new ResourceNotFoundException("Horse owner not found with id: " + request.getOwnerId()));
-
-        horse.setOwner(owner);
-        horse.setName(request.getName());
-        horse.setAge(request.getAge());
-        horse.setBreed(request.getBreed());
-        horse.setStatus(request.getStatus());
-    }
+   
 
     private Horse findHorseById(Integer id) {
         return horseRepository.findById(id)
