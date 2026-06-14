@@ -23,4 +23,6 @@ public interface RaceRepository extends JpaRepository<Race, Integer> {
                                         @Param("date") LocalDate date, 
                                         @Param("startTime") LocalTime startTime, 
                                         @Param("endTime") LocalTime endTime);
+
+    java.util.List<Race> findByTournamentId(Integer tournamentId);
 }

@@ -40,4 +40,7 @@ public class Tournament {
     private Integer allowedHorseAge;
 
     private String status; // "UPCOMING", "ONGOING", "COMPLETED", "CANCELED"
+
+    @Column(name = "cancel_reason")
+    private String cancelReason;
 }

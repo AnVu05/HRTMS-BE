@@ -1,12 +1,16 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCreateRequest;
+import com.swp.hrtms.hrtmsbe.dto.response.ActiveTournamentResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.TournamentDashboardResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentResponse;
 import com.swp.hrtms.hrtmsbe.service.TournamentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/tournaments")
@@ -19,5 +23,23 @@ public class TournamentController {
     public ResponseEntity<TournamentResponse> createTournament(@RequestBody TournamentCreateRequest request) {
         TournamentResponse response = tournamentService.createTournament(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<List<TournamentDashboardResponse>> getTournamentsForDashboard() {
+        List<TournamentDashboardResponse> tournaments = tournamentService.getTournamentsForDashboard();
+        return ResponseEntity.ok(tournaments);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<ActiveTournamentResponse>> getActiveTournaments() {
+        List<ActiveTournamentResponse> tournaments = tournamentService.getActiveTournaments();
+        return ResponseEntity.ok(tournaments);
+    }
+
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<String> cancelTournament(@PathVariable("id") Integer id, @RequestBody com.swp.hrtms.hrtmsbe.dto.request.TournamentCancelRequest request) {
+        String response = tournamentService.cancelTournament(id, request);
+        return ResponseEntity.ok(response);
     }
 }

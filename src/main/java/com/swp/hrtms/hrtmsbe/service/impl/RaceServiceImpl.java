@@ -2,7 +2,9 @@ package com.swp.hrtms.hrtmsbe.service.impl;
 
 import com.swp.hrtms.hrtmsbe.dto.request.RaceBatchCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.RaceCreateRequest;
+import com.swp.hrtms.hrtmsbe.dto.response.RaceDashboardItem;
 import com.swp.hrtms.hrtmsbe.dto.response.RaceResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse;
 import com.swp.hrtms.hrtmsbe.entity.Race;
 import com.swp.hrtms.hrtmsbe.entity.Referee;
 import com.swp.hrtms.hrtmsbe.entity.Tournament;
@@ -29,7 +31,8 @@ public class RaceServiceImpl implements RaceService {
     @Transactional
     public List<RaceResponse> createRacesBatch(RaceBatchCreateRequest request) {
         Tournament tournament = tournamentRepository.findById(request.getTournamentId())
-                .orElseThrow(() -> new IllegalArgumentException("Tournament not found with id: " + request.getTournamentId()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Tournament not found with id: " + request.getTournamentId()));
 
         List<Race> racesToSave = new ArrayList<>();
 
@@ -37,27 +40,32 @@ public class RaceServiceImpl implements RaceService {
             RaceCreateRequest raceReq = request.getRaces().get(i);
 
             // 1. Validation: Overlap in DB (Tournament)
-            if (raceRepository.existsOverlappingInTournament(tournament.getId(), raceReq.getDate(), raceReq.getStartTime(), raceReq.getEndTime())) {
-                throw new IllegalArgumentException("Race '" + raceReq.getName() + "' overlaps with an existing race in the tournament.");
+            if (raceRepository.existsOverlappingInTournament(tournament.getId(), raceReq.getDate(),
+                    raceReq.getStartTime(), raceReq.getEndTime())) {
+                throw new IllegalArgumentException(
+                        "Race '" + raceReq.getName() + "' overlaps with an existing race in the tournament.");
             }
 
             // 2. Validation: Overlap within the incoming list (Tournament)
             for (int j = 0; j < i; j++) {
                 RaceCreateRequest previousReq = request.getRaces().get(j);
-                if (raceReq.getDate().equals(previousReq.getDate()) && 
-                    raceReq.getStartTime().isBefore(previousReq.getEndTime()) && 
-                    raceReq.getEndTime().isAfter(previousReq.getStartTime())) {
-                    throw new IllegalArgumentException("Race '" + raceReq.getName() + "' overlaps with another race in the same request payload.");
+                if (raceReq.getDate().equals(previousReq.getDate()) &&
+                        raceReq.getStartTime().isBefore(previousReq.getEndTime()) &&
+                        raceReq.getEndTime().isAfter(previousReq.getStartTime())) {
+                    throw new IllegalArgumentException(
+                            "Race '" + raceReq.getName() + "' overlaps with another race in the same request payload.");
                 }
             }
 
             Referee referee = null;
             if (raceReq.getRefereeId() != null) {
                 referee = refereeRepository.findById(raceReq.getRefereeId())
-                        .orElseThrow(() -> new IllegalArgumentException("Referee not found with id: " + raceReq.getRefereeId()));
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Referee not found with id: " + raceReq.getRefereeId()));
 
                 // 3. Validation: Overlap in DB (Referee)
-                if (raceRepository.existsOverlappingForReferee(referee.getId(), raceReq.getDate(), raceReq.getStartTime(), raceReq.getEndTime())) {
+                if (raceRepository.existsOverlappingForReferee(referee.getId(), raceReq.getDate(),
+                        raceReq.getStartTime(), raceReq.getEndTime())) {
                     throw new IllegalArgumentException("Referee is already assigned to another overlapping race.");
                 }
 
@@ -65,10 +73,11 @@ public class RaceServiceImpl implements RaceService {
                 for (int j = 0; j < i; j++) {
                     RaceCreateRequest previousReq = request.getRaces().get(j);
                     if (raceReq.getRefereeId().equals(previousReq.getRefereeId()) &&
-                        raceReq.getDate().equals(previousReq.getDate()) && 
-                        raceReq.getStartTime().isBefore(previousReq.getEndTime()) && 
-                        raceReq.getEndTime().isAfter(previousReq.getStartTime())) {
-                        throw new IllegalArgumentException("Referee is assigned to overlapping races in the same request payload.");
+                            raceReq.getDate().equals(previousReq.getDate()) &&
+                            raceReq.getStartTime().isBefore(previousReq.getEndTime()) &&
+                            raceReq.getEndTime().isAfter(previousReq.getStartTime())) {
+                        throw new IllegalArgumentException(
+                                "Referee is assigned to overlapping races in the same request payload.");
                     }
                 }
             }
@@ -84,7 +93,7 @@ public class RaceServiceImpl implements RaceService {
                     .referee(referee)
                     .status("PENDING_REFEREE")
                     .build();
-            
+
             racesToSave.add(race);
         }
 
@@ -107,5 +116,39 @@ public class RaceServiceImpl implements RaceService {
         }
 
         return responses;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TournamentRaceDetailsResponse getRaceDetailsByTournament(Integer tournamentId) {
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new RuntimeException("Tournament not found"));
+
+        List<Race> races = raceRepository.findByTournamentId(tournamentId);
+
+        long totalEntries = 0;
+        List<RaceDashboardItem> raceItems = new ArrayList<>();
+
+        for (Race race : races) {
+            if (race.getNumHorse() != null) {
+                totalEntries += race.getNumHorse();
+            }
+
+            RaceDashboardItem item = RaceDashboardItem.builder()
+                    .id(race.getId())
+                    .name(race.getName())
+                    .startTime(race.getStartTime())
+                    .endTime(race.getEndTime())
+                    .laps(race.getLaps())
+                    .status(race.getStatus())
+                    .build();
+            raceItems.add(item);
+        }
+
+        return TournamentRaceDetailsResponse.builder()
+                .tournamentStatus(tournament.getStatus())
+                .totalEntries(totalEntries)
+                .races(raceItems)
+                .build();
     }
 }
