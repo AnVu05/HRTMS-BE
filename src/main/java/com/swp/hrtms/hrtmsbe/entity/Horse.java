@@ -11,9 +11,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "horses")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Horse {
 
     @Id
@@ -33,55 +41,4 @@ public class Horse {
 
     @Enumerated(EnumType.STRING)
     private HorseStatus status;
-
-    public Horse() {
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public HorseOwner getOwner() {
-        return owner;
-    }
-
-    public void setOwner(HorseOwner owner) {
-        this.owner = owner;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getAge() {
-        return age;
-    }
-
-    public void setAge(Integer age) {
-        this.age = age;
-    }
-
-    public String getBreed() {
-        return breed;
-    }
-
-    public void setBreed(String breed) {
-        this.breed = breed;
-    }
-
-    public HorseStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(HorseStatus status) {
-        this.status = status;
-    }
 }
