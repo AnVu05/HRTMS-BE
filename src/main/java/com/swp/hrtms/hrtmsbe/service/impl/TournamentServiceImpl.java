@@ -1,6 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCreateRequest;
+import com.swp.hrtms.hrtmsbe.dto.response.TournamentDashboardResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentResponse;
 import com.swp.hrtms.hrtmsbe.entity.Admin;
 import com.swp.hrtms.hrtmsbe.entity.Tournament;
@@ -10,6 +11,8 @@ import com.swp.hrtms.hrtmsbe.service.TournamentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -58,5 +61,11 @@ public class TournamentServiceImpl implements TournamentService {
                 .allowedHorseAge(tournament.getAllowedHorseAge())
                 .status(tournament.getStatus())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TournamentDashboardResponse> getTournamentsForDashboard() {
+        return tournamentRepository.getTournamentsForDashboard();
     }
 }

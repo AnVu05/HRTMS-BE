@@ -13,4 +13,10 @@ public interface TournamentRepository extends JpaRepository<Tournament, Integer>
 
     @Query("SELECT COUNT(t) > 0 FROM Tournament t WHERE t.startDate <= :endDate AND t.endDate >= :startDate AND t.status != 'CANCELED'")
     boolean existsOverlappingTournament(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT new com.swp.hrtms.hrtmsbe.dto.response.TournamentDashboardResponse(t.id, t.name, t.startDate, t.endDate, COUNT(r.id), t.status) " +
+           "FROM Tournament t LEFT JOIN Race r ON r.tournament.id = t.id " +
+           "GROUP BY t.id, t.name, t.startDate, t.endDate, t.status " +
+           "ORDER BY t.startDate DESC")
+    java.util.List<com.swp.hrtms.hrtmsbe.dto.response.TournamentDashboardResponse> getTournamentsForDashboard();
 }

@@ -22,4 +22,10 @@ public class RaceController {
         List<RaceResponse> responses = raceService.createRacesBatch(request);
         return new ResponseEntity<>(responses, HttpStatus.CREATED);
     }
+
+    @GetMapping("/tournament/{tournamentId}")
+    public ResponseEntity<com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse> getRaceDetailsByTournament(@PathVariable Integer tournamentId) {
+        com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse response = raceService.getRaceDetailsByTournament(tournamentId);
+        return ResponseEntity.ok(response);
+    }
 }
