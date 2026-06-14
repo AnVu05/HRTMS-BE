@@ -1,0 +1,43 @@
+package com.swp.hrtms.hrtmsbe.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "tournaments")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Tournament {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", nullable = false)
+    private Admin admin;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Column(name = "allowed_breed")
+    private String allowedBreed;
+
+    @Column(name = "allowed_horse_age")
+    private Integer allowedHorseAge;
+
+    private String status; // "UPCOMING", "ONGOING", "COMPLETED", "CANCELED"
+}
