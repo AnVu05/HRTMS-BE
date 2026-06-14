@@ -34,4 +34,7 @@ public class TournamentResponse {
     private Integer allowedHorseAge;
 
     private String status;
+
+    @JsonProperty("cancel_reason")
+    private String cancelReason;
 }

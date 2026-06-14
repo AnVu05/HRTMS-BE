@@ -19,4 +19,6 @@ public interface TournamentRepository extends JpaRepository<Tournament, Integer>
            "GROUP BY t.id, t.name, t.startDate, t.endDate, t.status " +
            "ORDER BY t.startDate DESC")
     java.util.List<com.swp.hrtms.hrtmsbe.dto.response.TournamentDashboardResponse> getTournamentsForDashboard();
+
+    java.util.List<Tournament> findByStatus(String status);
 }
