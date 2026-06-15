@@ -26,11 +26,11 @@ public class HorseController {
         this.horseService = horseService;
     }
 
-    // @PostMapping
-    // public ResponseEntity<HorseResponse> createHorse(@RequestBody HorseRequest request) {
-    //     HorseResponse response = horseService.createHorse(request);
-    //     return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    // }
+    @PostMapping
+    public ResponseEntity<HorseResponse> createHorse(@RequestBody HorseRequest request) {
+        HorseResponse response = horseService.createHorse(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     @GetMapping
     public ResponseEntity<List<HorseResponse>> getAllHorses() {
@@ -42,10 +42,10 @@ public class HorseController {
         return ResponseEntity.ok(horseService.getHorseById(id));
     }
 
-    // @PutMapping("/{id}")
-    // public ResponseEntity<HorseResponse> updateHorse(@PathVariable Integer id, @RequestBody HorseRequest request) {
-    //     return ResponseEntity.ok(horseService.updateHorse(id, request));
-    // }
+    @PutMapping("/{id}")
+    public ResponseEntity<HorseResponse> updateHorse(@PathVariable Integer id, @RequestBody HorseRequest request) {
+        return ResponseEntity.ok(horseService.updateHorse(id, request));
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHorse(@PathVariable Integer id) {
