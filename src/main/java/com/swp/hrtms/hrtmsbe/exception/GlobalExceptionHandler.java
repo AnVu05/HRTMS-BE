@@ -13,13 +13,20 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException exception) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.NOT_FOUND.value());
-        body.put("error", HttpStatus.NOT_FOUND.getReasonPhrase());
-        body.put("message", exception.getMessage());
+    public ResponseEntity<com.swp.hrtms.hrtmsbe.dto.response.ApiResponse<Object>> handleResourceNotFound(ResourceNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(com.swp.hrtms.hrtmsbe.dto.response.ApiResponse.error(exception.getMessage()));
+    }
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<com.swp.hrtms.hrtmsbe.dto.response.ApiResponse<Object>> handleIllegalArgumentException(IllegalArgumentException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(com.swp.hrtms.hrtmsbe.dto.response.ApiResponse.error(exception.getMessage()));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<com.swp.hrtms.hrtmsbe.dto.response.ApiResponse<Object>> handleGlobalException(Exception exception) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(com.swp.hrtms.hrtmsbe.dto.response.ApiResponse.error("System error: " + exception.getMessage()));
     }
 }
