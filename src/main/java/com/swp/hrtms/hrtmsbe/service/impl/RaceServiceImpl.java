@@ -176,4 +176,51 @@ public class RaceServiceImpl implements RaceService {
 
         return "Race has been successfully cancelled.";
     }
+    @Override
+    @Transactional
+    public String updateRaceTime(Integer raceId, com.swp.hrtms.hrtmsbe.dto.request.RaceUpdateTimeRequest request) {
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new RuntimeException("Race not found"));
+
+        if ("CANCELLED".equals(race.getStatus()) || "FINISHED".equals(race.getStatus())) {
+            throw new IllegalArgumentException("Cannot update time for a cancelled or finished race.");
+        }
+
+        if (request.getDate() == null || request.getStartTime() == null || request.getEndTime() == null) {
+            throw new IllegalArgumentException("Race date, start time, and end time are required.");
+        }
+
+        if (request.getStartTime().isAfter(request.getEndTime())) {
+            throw new IllegalArgumentException("Start time cannot be after end time.");
+        }
+
+        // Check overlap in tournament excluding this race
+        if (raceRepository.existsOverlappingInTournamentExcludingRace(
+                race.getTournament().getId(), race.getId(), request.getDate(), request.getStartTime(), request.getEndTime())) {
+            throw new IllegalArgumentException("Updated time overlaps with another race in the tournament.");
+        }
+
+        // Check overlap for referee excluding this race
+        if (race.getReferee() != null) {
+            if (raceRepository.existsOverlappingForRefereeExcludingRace(
+                race.getReferee().getId(), race.getId(), request.getDate(), request.getStartTime(), request.getEndTime())) {
+                throw new IllegalArgumentException("Referee is already assigned to another overlapping race.");
+            }
+        }
+
+        // Update fields
+        race.setDate(request.getDate());
+        race.setStartTime(request.getStartTime());
+        race.setEndTime(request.getEndTime());
+
+        raceRepository.save(race);
+
+        return "Race time has been successfully updated.";
+    }
+
+    @Override
+    public void predictScheduleUpdate() {
+        // Tớ muốn cậu viết một hàm cập nhật lịch dự đoán nhưng để trống code ta sẽ phát triễn chức năng đấy sau
+        // TODO: Implement schedule prediction logic
+    }
 }

@@ -35,4 +35,10 @@ public class RaceController {
         String response = raceService.cancelRace(id, request);
         return ResponseEntity.ok(ApiResponse.success(null, response));
     }
+    @PutMapping("/{id}/time")
+    public ResponseEntity<ApiResponse<String>> updateRaceTime(@PathVariable("id") Integer id,
+            @RequestBody com.swp.hrtms.hrtmsbe.dto.request.RaceUpdateTimeRequest request) {
+        String response = raceService.updateRaceTime(id, request);
+        return ResponseEntity.ok(ApiResponse.success(null, response));
+    }
 }
