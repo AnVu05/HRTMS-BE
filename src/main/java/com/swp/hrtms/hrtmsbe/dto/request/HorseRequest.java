@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,10 +16,11 @@ import lombok.NoArgsConstructor;
 public class HorseRequest {
     @JsonProperty("owner_id")
     private Integer ownerId;
-
+    
     private String name;
     private Integer age;
     private String breed;
     private HorseStatus status;
 
+    
 }
