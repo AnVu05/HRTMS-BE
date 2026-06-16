@@ -22,9 +22,9 @@ public class MockData {
     private final RaceRepository raceRepository;
 
     public MockData(UserRepository userRepository,
-                    AdminRepository adminRepository,
-                    TournamentRepository tournamentRepository,
-                    RaceRepository raceRepository) {
+            AdminRepository adminRepository,
+            TournamentRepository tournamentRepository,
+            RaceRepository raceRepository) {
         this.userRepository = userRepository;
         this.adminRepository = adminRepository;
         this.tournamentRepository = tournamentRepository;
@@ -46,7 +46,6 @@ public class MockData {
         admin.setPassword("password123");
         admin.setEmail("admin1@test.com");
         admin.setRole(UserRole.ADMIN.name());
-        admin.setEmployeeCode("EMP-ADMIN-001");
         adminRepository.save(admin);
 
         // 2. Create Tournaments for Dashboard (Various Statuses)
