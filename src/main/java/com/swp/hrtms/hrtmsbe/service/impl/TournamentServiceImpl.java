@@ -34,13 +34,12 @@ public class TournamentServiceImpl implements TournamentService {
         Admin admin = adminRepository.findById(request.getAdminId())
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found with id: " + request.getAdminId()));
 
-        // Check for overlapping tournaments
-        if (request.getStartDate() != null && request.getEndDate() != null) {
-            boolean isOverlapping = tournamentRepository.existsOverlappingTournament(request.getStartDate(),
-                    request.getEndDate());
-            if (isOverlapping) {
-                throw new IllegalArgumentException("Tournament dates overlap with an existing tournament");
-            }
+        // Validate dates
+        if (request.getStartDate() == null || request.getEndDate() == null) {
+            throw new IllegalArgumentException("Start date and end date are required");
+        }
+        if (request.getStartDate().isAfter(request.getEndDate())) {
+            throw new IllegalArgumentException("Start date cannot be after end date");
         }
 
         // Create Tournament entity
