@@ -137,6 +137,7 @@ public class RaceServiceImpl implements RaceService {
             RaceDashboardItem item = RaceDashboardItem.builder()
                     .id(race.getId())
                     .name(race.getName())
+                    .date(race.getDate())
                     .startTime(race.getStartTime())
                     .endTime(race.getEndTime())
                     .laps(race.getLaps())

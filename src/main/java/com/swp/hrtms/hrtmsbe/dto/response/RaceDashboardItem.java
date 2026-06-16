@@ -14,6 +14,7 @@ import java.time.LocalTime;
 public class RaceDashboardItem {
     private Integer id;
     private String name;
+    private java.time.LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
     private Integer laps;

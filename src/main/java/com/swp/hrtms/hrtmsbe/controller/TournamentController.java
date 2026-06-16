@@ -20,9 +20,11 @@ public class TournamentController {
     private final TournamentService tournamentService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<TournamentResponse>> createTournament(@RequestBody TournamentCreateRequest request) {
+    public ResponseEntity<ApiResponse<TournamentResponse>> createTournament(
+            @RequestBody TournamentCreateRequest request) {
         TournamentResponse response = tournamentService.createTournament(request);
-        return new ResponseEntity<>(ApiResponse.success(response, "Tournament created successfully"), HttpStatus.CREATED);
+        return new ResponseEntity<>(ApiResponse.success(response, "Tournament created successfully"),
+                HttpStatus.CREATED);
     }
 
     @GetMapping("/dashboard")
@@ -38,8 +40,8 @@ public class TournamentController {
     }
 
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<ApiResponse<String>> cancelTournament(@PathVariable("id") Integer id, @RequestBody com.swp.hrtms.hrtmsbe.dto.request.TournamentCancelRequest request) {
-        String response = tournamentService.cancelTournament(id, request);
+    public ResponseEntity<ApiResponse<String>> cancelTournament(@PathVariable("id") Integer id,
+            @RequestBody com.swp.hrtms.hrtmsbe.dto.request.TournamentCancelRequest request) {
         return ResponseEntity.ok(ApiResponse.success(null, "Tournament cancelled successfully"));
     }
 }
