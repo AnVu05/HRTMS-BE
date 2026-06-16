@@ -133,6 +133,39 @@ public class MockData {
         tournament2.setStatus("UPCOMING");
         tournamentRepository.save(tournament2);
 
+        // Test Tournament 1: Trong tương lai (Để test tự động đổi thành UPCOMING)
+        Tournament testTournamentFuture = new Tournament();
+        testTournamentFuture.setAdmin(admin);
+        testTournamentFuture.setName("Future Tournament (Test)");
+        testTournamentFuture.setStartDate(LocalDate.now().plusDays(5));
+        testTournamentFuture.setEndDate(LocalDate.now().plusDays(10));
+        testTournamentFuture.setAllowedBreed("Any");
+        testTournamentFuture.setAllowedHorseAge(5);
+        testTournamentFuture.setStatus("PUBLIC");
+        tournamentRepository.save(testTournamentFuture);
+
+        // Test Tournament 2: Đã kết thúc (Để test tự động đổi thành FINISHED)
+        Tournament testTournamentPast = new Tournament();
+        testTournamentPast.setAdmin(admin);
+        testTournamentPast.setName("Past Tournament (Test)");
+        testTournamentPast.setStartDate(LocalDate.now().minusDays(10));
+        testTournamentPast.setEndDate(LocalDate.now().minusDays(5));
+        testTournamentPast.setAllowedBreed("Any");
+        testTournamentPast.setAllowedHorseAge(5);
+        testTournamentPast.setStatus("PUBLIC");
+        tournamentRepository.save(testTournamentPast);
+
+        // Test Tournament 3: Đang diễn ra (Để test giữ nguyên PUBLIC)
+        Tournament testTournamentOngoing = new Tournament();
+        testTournamentOngoing.setAdmin(admin);
+        testTournamentOngoing.setName("Ongoing Tournament (Test)");
+        testTournamentOngoing.setStartDate(LocalDate.now().minusDays(2));
+        testTournamentOngoing.setEndDate(LocalDate.now().plusDays(2));
+        testTournamentOngoing.setAllowedBreed("Any");
+        testTournamentOngoing.setAllowedHorseAge(5);
+        testTournamentOngoing.setStatus("PUBLIC");
+        tournamentRepository.save(testTournamentOngoing);
+
         // 6. Create Races
         Race race1 = new Race();
         race1.setTournament(tournament1);
