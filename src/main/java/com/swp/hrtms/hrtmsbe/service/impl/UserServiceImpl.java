@@ -1,0 +1,92 @@
+package com.swp.hrtms.hrtmsbe.service.impl;
+
+import com.swp.hrtms.hrtmsbe.dto.request.RegisterRequest;
+import com.swp.hrtms.hrtmsbe.dto.response.UserResponse;
+import com.swp.hrtms.hrtmsbe.entity.HorseOwner;
+import com.swp.hrtms.hrtmsbe.entity.Jockey;
+import com.swp.hrtms.hrtmsbe.entity.Spectator;
+import com.swp.hrtms.hrtmsbe.entity.User;
+import com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository;
+import com.swp.hrtms.hrtmsbe.repository.UserRepository;
+import com.swp.hrtms.hrtmsbe.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+    private final UserRepository userRepository;
+    private final HorseOwnerRepository horseOwnerRepository;
+
+    @Override
+    @Transactional
+    public UserResponse register(RegisterRequest request) {
+        // 1. Kiểm tra tính hợp lệ của tham số đầu vào
+        if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+            throw new IllegalArgumentException("Username cannot be empty");
+        }
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email cannot be empty");
+        }
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be empty");
+        }
+        if (request.getRole() == null || request.getRole().trim().isEmpty()) {
+            throw new IllegalArgumentException("Role cannot be empty");
+        }
+
+        String role = request.getRole().trim().toUpperCase();
+        if (!role.equals("SPECTATOR") && !role.equals("HORSE_OWNER") && !role.equals("JOCKEY")) {
+            throw new IllegalArgumentException("Registration is not allowed for role: " + role);
+        }
+
+        // 2. Kiểm tra trùng lặp tài khoản
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new IllegalArgumentException("Username is already taken");
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email is already registered");
+        }
+
+        // 3. Tiến hành lưu thực thể tương ứng với từng vai trò
+        User savedUser;
+        if (role.equals("HORSE_OWNER")) {
+            User user = new User();
+            user.setUsername(request.getUsername());
+            user.setEmail(request.getEmail());
+            user.setPassword(request.getPassword()); // plaintext theo yêu cầu
+            user.setRole("HORSE_OWNER");
+            savedUser = userRepository.save(user);
+
+            HorseOwner horseOwner = HorseOwner.builder()
+                    .user(savedUser)
+                    .build();
+            horseOwnerRepository.save(horseOwner);
+        } else if (role.equals("SPECTATOR")) {
+            Spectator spectator = new Spectator();
+            spectator.setUsername(request.getUsername());
+            spectator.setEmail(request.getEmail());
+            spectator.setPassword(request.getPassword());
+            spectator.setRole("SPECTATOR");
+            savedUser = userRepository.save(spectator);
+        } else { // JOCKEY
+            Jockey jockey = new Jockey();
+            jockey.setUsername(request.getUsername());
+            jockey.setEmail(request.getEmail());
+            jockey.setPassword(request.getPassword());
+            jockey.setRole("JOCKEY");
+            savedUser = userRepository.save(jockey);
+        }
+
+        // 4. Trả về kết quả sau khi đăng ký thành công
+        return UserResponse.builder()
+                .id(savedUser.getId())
+                .username(savedUser.getUsername())
+                .email(savedUser.getEmail())
+                .role(savedUser.getRole())
+                .createdAt(savedUser.getCreatedAt())
+                .build();
+    }
+}

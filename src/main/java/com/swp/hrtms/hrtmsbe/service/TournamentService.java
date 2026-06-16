@@ -10,7 +10,12 @@ import java.util.List;
 
 public interface TournamentService {
     TournamentResponse createTournament(TournamentCreateRequest request);
+
     List<TournamentDashboardResponse> getTournamentsForDashboard();
+
     List<ActiveTournamentResponse> getActiveTournaments();
+
     String cancelTournament(Integer tournamentId, TournamentCancelRequest request);
+
+    void updateTournamentStatuses();
 }

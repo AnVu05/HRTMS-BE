@@ -34,12 +34,12 @@ public class TournamentServiceImpl implements TournamentService {
         Admin admin = adminRepository.findById(request.getAdminId())
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found with id: " + request.getAdminId()));
 
-        // Check for overlapping tournaments
-        if (request.getStartDate() != null && request.getEndDate() != null) {
-            boolean isOverlapping = tournamentRepository.existsOverlappingTournament(request.getStartDate(), request.getEndDate());
-            if (isOverlapping) {
-                throw new IllegalArgumentException("Tournament dates overlap with an existing tournament");
-            }
+        // Validate dates
+        if (request.getStartDate() == null || request.getEndDate() == null) {
+            throw new IllegalArgumentException("Start date and end date are required");
+        }
+        if (request.getStartDate().isAfter(request.getEndDate())) {
+            throw new IllegalArgumentException("Start date cannot be after end date");
         }
 
         // Create Tournament entity
@@ -52,12 +52,48 @@ public class TournamentServiceImpl implements TournamentService {
                 .allowedHorseAge(request.getAllowedHorseAge())
                 .status(request.getStatus() != null ? request.getStatus() : "PUBLIC")
                 .build();
-        
+
         // Save to DB
         tournament = tournamentRepository.save(tournament);
 
         // Map to Response DTO
         return mapToResponse(tournament);
+    }
+
+    @Override
+    @Transactional
+    // Chạy mỗi 5 giây để test: "*/5 * * * * ?"
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 0 * * ?")
+    public void updateTournamentStatuses() {
+        java.time.LocalDate now = java.time.LocalDate.now();
+        // Chỉ lấy các giải đấu đang ở trạng thái PUBLIC theo yêu cầu
+        List<Tournament> tournaments = tournamentRepository.findByStatus("PUBLIC");
+
+        boolean updated = false;
+        for (Tournament tournament : tournaments) {
+            if (tournament.getStartDate() == null || tournament.getEndDate() == null)
+                continue;
+
+            String currentStatus = tournament.getStatus();
+            String newStatus = currentStatus;
+
+            if (now.isBefore(tournament.getStartDate())) {
+                newStatus = "UPCOMING";
+            } else if (now.isAfter(tournament.getEndDate())) {
+                newStatus = "FINISHED";
+            }
+            // Nếu nằm trong khoảng đang diễn ra thì giữ nguyên (không đổi sang ONGOING)
+
+            if (currentStatus == null || !currentStatus.equals(newStatus)) {
+                tournament.setStatus(newStatus);
+                updated = true;
+            }
+        }
+
+        if (updated) {
+            tournamentRepository.saveAll(tournaments);
+        }
+        System.out.println("Done update status");
     }
 
     @Override

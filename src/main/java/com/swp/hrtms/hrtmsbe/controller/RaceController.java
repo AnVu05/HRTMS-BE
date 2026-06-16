@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import java.util.List;
 
 @RestController
@@ -18,14 +19,26 @@ public class RaceController {
     private final RaceService raceService;
 
     @PostMapping("/batch")
-    public ResponseEntity<List<RaceResponse>> createRacesBatch(@RequestBody RaceBatchCreateRequest request) {
+    public ResponseEntity<ApiResponse<List<RaceResponse>>> createRacesBatch(@RequestBody RaceBatchCreateRequest request) {
         List<RaceResponse> responses = raceService.createRacesBatch(request);
-        return new ResponseEntity<>(responses, HttpStatus.CREATED);
+        return new ResponseEntity<>(ApiResponse.success(responses, "Races created successfully"), HttpStatus.CREATED);
     }
 
     @GetMapping("/tournament/{tournamentId}")
-    public ResponseEntity<com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse> getRaceDetailsByTournament(@PathVariable Integer tournamentId) {
+    public ResponseEntity<ApiResponse<com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse>> getRaceDetailsByTournament(@PathVariable Integer tournamentId) {
         com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse response = raceService.getRaceDetailsByTournament(tournamentId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, null));
+    }
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<String>> cancelRace(@PathVariable("id") Integer id,
+            @RequestBody com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest request) {
+        String response = raceService.cancelRace(id, request);
+        return ResponseEntity.ok(ApiResponse.success(null, response));
+    }
+    @PutMapping("/{id}/time")
+    public ResponseEntity<ApiResponse<String>> updateRaceTime(@PathVariable("id") Integer id,
+            @RequestBody com.swp.hrtms.hrtmsbe.dto.request.RaceUpdateTimeRequest request) {
+        String response = raceService.updateRaceTime(id, request);
+        return ResponseEntity.ok(ApiResponse.success(null, response));
     }
 }
