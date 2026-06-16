@@ -1,12 +1,15 @@
-package com.swp.hrtms.hrtmsbe.service;
+package com.swp.hrtms.hrtmsbe.service.impl;
 
 import com.swp.hrtms.hrtmsbe.dto.request.HorseRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.HorseResponse;
 import com.swp.hrtms.hrtmsbe.entity.Horse;
 import com.swp.hrtms.hrtmsbe.entity.HorseOwner;
+import com.swp.hrtms.hrtmsbe.entity.HorseStatus;
 import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
 import com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository;
 import com.swp.hrtms.hrtmsbe.repository.HorseRepository;
+import com.swp.hrtms.hrtmsbe.service.HorseService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +46,8 @@ public class HorseServiceImpl implements HorseService {
     @Transactional
     public void deleteHorse(Integer id) {
         Horse horse = findHorseById(id);
-        horseRepository.delete(horse);
+        horse.setStatus(HorseStatus.RETIRED);
+        horseRepository.save(horse);
     }
 
     private Horse findHorseById(Integer id) {
@@ -54,7 +58,7 @@ public class HorseServiceImpl implements HorseService {
     private HorseResponse toResponse(Horse horse) {
         HorseOwner owner = horse.getOwner();
         Integer ownerId = owner != null ? owner.getUserId() : null;
-        String ownerName = owner != null ? owner.getOwnerName() : null;
+        String ownerName = owner != null ? owner.getUser().getUsername() : null;//xóa field ownerName trong entity HorseOwner rồi lấy username từ user để trả về response
 
         return new HorseResponse(
                 horse.getId(),

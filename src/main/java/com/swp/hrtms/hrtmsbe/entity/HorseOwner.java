@@ -29,8 +29,8 @@ public class HorseOwner {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "owner_name", nullable = false)
-    private String ownerName;
+    // @Column(name = "owner_name", nullable = false)
+    // private String ownerName;
 
-    private String phone;
+    // private String phone;
 }
