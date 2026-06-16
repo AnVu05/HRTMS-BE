@@ -39,6 +39,14 @@ public class RaceServiceImpl implements RaceService {
         for (int i = 0; i < request.getRaces().size(); i++) {
             RaceCreateRequest raceReq = request.getRaces().get(i);
 
+            // Validation: Null checks and StartTime <= EndTime
+            if (raceReq.getDate() == null || raceReq.getStartTime() == null || raceReq.getEndTime() == null) {
+                throw new IllegalArgumentException("Race date, start time, and end time are required.");
+            }
+            if (raceReq.getStartTime().isAfter(raceReq.getEndTime())) {
+                throw new IllegalArgumentException("Start time cannot be after end time for race '" + raceReq.getName() + "'.");
+            }
+
             // 1. Validation: Overlap in DB (Tournament)
             if (raceRepository.existsOverlappingInTournament(tournament.getId(), raceReq.getDate(),
                     raceReq.getStartTime(), raceReq.getEndTime())) {
@@ -151,5 +159,21 @@ public class RaceServiceImpl implements RaceService {
                 .totalEntries(totalEntries)
                 .races(raceItems)
                 .build();
+    }
+    @Override
+    @Transactional
+    public String cancelRace(Integer raceId, com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest request) {
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new RuntimeException("Race not found"));
+
+        if ("CANCELLED".equals(race.getStatus())) {
+            throw new IllegalArgumentException("Race is already cancelled");
+        }
+
+        race.setStatus("CANCELLED");
+        race.setReason(request.getReason());
+        raceRepository.save(race);
+
+        return "Race has been successfully cancelled.";
     }
 }

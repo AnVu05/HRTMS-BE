@@ -63,7 +63,7 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     @Transactional
     // Chạy mỗi 5 giây để test: "*/5 * * * * ?"
-    @org.springframework.scheduling.annotation.Scheduled(cron = "*/30 * * * * ?")
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 0 * * ?")
     public void updateTournamentStatuses() {
         java.time.LocalDate now = java.time.LocalDate.now();
         // Chỉ lấy các giải đấu đang ở trạng thái PUBLIC theo yêu cầu

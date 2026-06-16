@@ -46,4 +46,7 @@ public class Race {
     private Referee referee;
 
     private String status;
+
+    @Column(name = "reason")
+    private String reason;
 }

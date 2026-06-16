@@ -29,4 +29,10 @@ public class RaceController {
         com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse response = raceService.getRaceDetailsByTournament(tournamentId);
         return ResponseEntity.ok(ApiResponse.success(response, null));
     }
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<String>> cancelRace(@PathVariable("id") Integer id,
+            @RequestBody com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest request) {
+        String response = raceService.cancelRace(id, request);
+        return ResponseEntity.ok(ApiResponse.success(null, response));
+    }
 }

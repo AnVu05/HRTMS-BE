@@ -1,7 +1,6 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCreateRequest;
-import com.swp.hrtms.hrtmsbe.dto.response.ActiveTournamentResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentDashboardResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentResponse;
 import com.swp.hrtms.hrtmsbe.service.TournamentService;
@@ -33,11 +32,13 @@ public class TournamentController {
         return ResponseEntity.ok(ApiResponse.success(tournaments, null));
     }
 
-    @GetMapping("/active")
-    public ResponseEntity<ApiResponse<List<ActiveTournamentResponse>>> getActiveTournaments() {
-        List<ActiveTournamentResponse> tournaments = tournamentService.getActiveTournaments();
-        return ResponseEntity.ok(ApiResponse.success(tournaments, null));
-    }
+    // @GetMapping("/active")
+    // public ResponseEntity<ApiResponse<List<ActiveTournamentResponse>>>
+    // getActiveTournaments() {
+    // List<ActiveTournamentResponse> tournaments =
+    // tournamentService.getActiveTournaments();
+    // return ResponseEntity.ok(ApiResponse.success(tournaments, null));
+    // }
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse<String>> cancelTournament(@PathVariable("id") Integer id,

@@ -191,6 +191,64 @@ public class MockData {
         race2.setStatus("SCHEDULED");
         raceRepository.save(race2);
 
+        // --- MOCK DATA ĐỂ THỂ HIỆN LOGIC CHỒNG CHÉO ---
+        // 1. Giải đấu được phép trùng lịch nhau
+        Tournament overlapTournament1 = new Tournament();
+        overlapTournament1.setAdmin(admin);
+        overlapTournament1.setName("Overlapping Tournament A");
+        overlapTournament1.setStartDate(LocalDate.now().plusDays(20));
+        overlapTournament1.setEndDate(LocalDate.now().plusDays(25));
+        overlapTournament1.setAllowedBreed("Any");
+        overlapTournament1.setAllowedHorseAge(4);
+        overlapTournament1.setStatus("PUBLIC");
+        tournamentRepository.save(overlapTournament1);
+
+        Tournament overlapTournament2 = new Tournament();
+        overlapTournament2.setAdmin(admin);
+        overlapTournament2.setName("Overlapping Tournament B");
+        overlapTournament2.setStartDate(LocalDate.now().plusDays(20)); // Trùng ngày bắt đầu với Tournament A
+        overlapTournament2.setEndDate(LocalDate.now().plusDays(25));   // Trùng ngày kết thúc với Tournament A
+        overlapTournament2.setAllowedBreed("Any");
+        overlapTournament2.setAllowedHorseAge(4);
+        overlapTournament2.setStatus("PUBLIC");
+        tournamentRepository.save(overlapTournament2);
+
+        // 2. Cuộc đua trong CÙNG 1 giải đấu thì KHÔNG được trùng lịch
+        Race raceT1_1 = new Race();
+        raceT1_1.setTournament(overlapTournament1);
+        raceT1_1.setName("Race 1 (Tournament A)");
+        raceT1_1.setDate(LocalDate.now().plusDays(21));
+        raceT1_1.setStartTime(LocalTime.of(8, 0));
+        raceT1_1.setEndTime(LocalTime.of(9, 0));
+        raceT1_1.setLaps(5);
+        raceT1_1.setNumHorse(8);
+        raceT1_1.setStatus("SCHEDULED");
+        raceRepository.save(raceT1_1);
+
+        Race raceT1_2 = new Race();
+        raceT1_2.setTournament(overlapTournament1);
+        raceT1_2.setName("Race 2 (Tournament A)");
+        raceT1_2.setDate(LocalDate.now().plusDays(21));
+        raceT1_2.setStartTime(LocalTime.of(9, 30)); // 9:30 đến 10:30 -> KHÔNG trùng với Race 1 (8:00 - 9:00)
+        raceT1_2.setEndTime(LocalTime.of(10, 30));
+        raceT1_2.setLaps(5);
+        raceT1_2.setNumHorse(8);
+        raceT1_2.setStatus("SCHEDULED");
+        raceRepository.save(raceT1_2);
+
+        // 3. Cuộc đua ở HAI GIẢI KHÁC NHAU thì ĐƯỢC PHÉP trùng lịch
+        Race raceT2_1 = new Race();
+        raceT2_1.setTournament(overlapTournament2);
+        raceT2_1.setName("Race 1 (Tournament B)");
+        raceT2_1.setDate(LocalDate.now().plusDays(21));
+        raceT2_1.setStartTime(LocalTime.of(8, 0)); // 8:00 đến 9:00 -> TRÙNG LỊCH hoàn toàn với Race 1 của Tournament A
+        raceT2_1.setEndTime(LocalTime.of(9, 0));
+        raceT2_1.setLaps(5);
+        raceT2_1.setNumHorse(8);
+        raceT2_1.setStatus("SCHEDULED");
+        raceRepository.save(raceT2_1);
+        // -------------------------------------------------------------
+
         System.out.println("Test data generated successfully!");
     }
 }
