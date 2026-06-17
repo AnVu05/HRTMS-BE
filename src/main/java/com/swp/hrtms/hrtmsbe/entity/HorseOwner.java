@@ -32,7 +32,5 @@ public class HorseOwner {
     // @Column(name = "owner_name", nullable = false)
     // private String ownerName;
 
-    // cai nay hong can thiet - Thien xoa
     // private String phone;
-
 }
