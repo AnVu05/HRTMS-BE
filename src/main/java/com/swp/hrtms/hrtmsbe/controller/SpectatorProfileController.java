@@ -27,5 +27,17 @@ public class SpectatorProfileController {
         return ResponseEntity.ok(spectatorProfileService.getProfile(spectatorId));
     }
 
-    
+    @PutMapping("/{spectatorId}/profile")
+    public ResponseEntity<SpectatorProfileResponse> updateProfile(
+            @PathVariable Integer spectatorId,
+            @RequestBody SpectatorProfileUpdateRequest request) {
+        return ResponseEntity.ok(spectatorProfileService.updateProfile(spectatorId, request));
+    }
+
+    @PutMapping("/{spectatorId}/profile/avatar")
+    public ResponseEntity<SpectatorProfileResponse> updateAvatar(
+            @PathVariable Integer spectatorId,
+            @RequestBody SpectatorAvatarUpdateRequest request) {
+        return ResponseEntity.ok(spectatorProfileService.updateAvatar(spectatorId, request));
+    }
 }
