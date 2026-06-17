@@ -12,7 +12,7 @@ public class HrtmsBeApplication {
 
     public static void main(String[] args) {
         ApplicationContext context = SpringApplication.run(HrtmsBeApplication.class, args);
-        MockData mockData = context.getBean(MockData.class);
-        mockData.generateData();
+        // MockData mockData = context.getBean(MockData.class);
+        // mockData.generateData();
     }
 }
