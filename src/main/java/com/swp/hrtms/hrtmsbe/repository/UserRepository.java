@@ -8,7 +8,16 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
+
     boolean existsByUsername(String username);
+
     boolean existsByEmail(String email);
-    Optional<User> findByEmail(String email);
+
+    boolean existsByUsernameAndIdNot(String username, Integer id); //khai
+
+    boolean existsByEmailAndIdNot(String email, Integer id);//khai
+
+    Optional<User> findByEmail(String email);//thien
+    //e Thien them method (xu li conflict-giu nguyen method cua 2 nhanh)
+
 }
