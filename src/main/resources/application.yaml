@@ -14,9 +14,16 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update #e Thien chinh lai de test Login/Logout
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.SQLServerDialect
+
+app:
+  jwt:
+    secret: "YourSuperSecretKeyForJWTGenerationHRTMSProject2026"
+    expiration: 86400000 # 1 day in milliseconds
+  otp:
+    mock: true # set to false to send real emails
