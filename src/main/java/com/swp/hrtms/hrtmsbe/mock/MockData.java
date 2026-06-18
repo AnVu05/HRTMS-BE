@@ -20,15 +20,24 @@ public class MockData {
     private final AdminRepository adminRepository;
     private final TournamentRepository tournamentRepository;
     private final RaceRepository raceRepository;
+    private final com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository jockeyCertRepository;
+    private final com.swp.hrtms.hrtmsbe.repository.NotificationRepository notificationRepository;
+    private final com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository notificationRecipientRepository;
 
     public MockData(UserRepository userRepository,
             AdminRepository adminRepository,
             TournamentRepository tournamentRepository,
-            RaceRepository raceRepository) {
+            RaceRepository raceRepository,
+            com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository jockeyCertRepository,
+            com.swp.hrtms.hrtmsbe.repository.NotificationRepository notificationRepository,
+            com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository notificationRecipientRepository) {
         this.userRepository = userRepository;
         this.adminRepository = adminRepository;
         this.tournamentRepository = tournamentRepository;
         this.raceRepository = raceRepository;
+        this.jockeyCertRepository = jockeyCertRepository;
+        this.notificationRepository = notificationRepository;
+        this.notificationRecipientRepository = notificationRecipientRepository;
     }
 
     public void generateData() {
@@ -112,6 +121,43 @@ public class MockData {
         r3.setNumHorse(12);
         r3.setStatus("SCHEDULED");
         raceRepository.save(r3);
+
+        // 4. Create Jockey and Verification Requests
+        com.swp.hrtms.hrtmsbe.entity.Jockey jockey = new com.swp.hrtms.hrtmsbe.entity.Jockey();
+        jockey.setUsername("jockey1");
+        jockey.setPassword("pass123");
+        jockey.setEmail("jockey1@test.com");
+        jockey.setRole("JOCKEY");
+        jockey.setJockeyName("John Doe");
+        jockey.setYearOfExperience(5);
+        jockey.setAge(28);
+        jockey.setStatus(true);
+        jockey = (com.swp.hrtms.hrtmsbe.entity.Jockey) userRepository.save(jockey); // save as user
+
+        com.swp.hrtms.hrtmsbe.entity.JockeyCert cert1 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
+        cert1.setCertName("Health Certificate 2024");
+        cert1.setStatus("PENDING");
+        cert1.setJockey(jockey);
+        jockeyCertRepository.save(cert1);
+
+        com.swp.hrtms.hrtmsbe.entity.JockeyCert cert2 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
+        cert2.setCertName("Pro License Level B");
+        cert2.setStatus("PENDING");
+        cert2.setJockey(jockey);
+        jockeyCertRepository.save(cert2);
+
+        com.swp.hrtms.hrtmsbe.entity.Notification notification = new com.swp.hrtms.hrtmsbe.entity.Notification();
+        notification.setSender(jockey);
+        notification.setTitle("New Certificate Verification Request");
+        notification.setContent("Jockey John Doe has submitted new certificates for verification.");
+        notification.setType("VERIFY_CERTIFICATE");
+        notification = notificationRepository.save(notification);
+
+        com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+        recipient.setNotification(notification);
+        recipient.setRecipient(admin);
+        recipient.setStatus("None");
+        notificationRecipientRepository.save(recipient);
 
         System.out.println("Test data generated successfully!");
     }

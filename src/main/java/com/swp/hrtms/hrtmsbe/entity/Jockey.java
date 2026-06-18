@@ -44,7 +44,7 @@ public class Jockey extends User {
         this.status = status;
         if (Boolean.FALSE.equals(status) && this.jockeyCerts != null) {
             for (JockeyCert cert : this.jockeyCerts) {
-                cert.setStatus(false);
+                cert.setStatus("REJECTED");
             }
         }
     }
