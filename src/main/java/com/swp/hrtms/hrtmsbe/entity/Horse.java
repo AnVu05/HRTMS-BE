@@ -40,5 +40,5 @@ public class Horse {
     private String breed;
 
     @Enumerated(EnumType.STRING)
-    private HorseStatus status;
+    private HorseStatus status; //thêm class HorseStatus để ko bao giờ gõ sai status của ngựa
 }

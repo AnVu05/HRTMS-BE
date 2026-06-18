@@ -84,6 +84,7 @@ public class UserServiceImpl implements UserService {
             spectator.setEmail(request.getEmail());
             spectator.setPassword(request.getPassword());
             spectator.setRole("SPECTATOR");
+            spectator.setDisplayName(request.getUsername());
             savedUser = userRepository.save(spectator);
         } else { // JOCKEY
             Jockey jockey = new Jockey();
