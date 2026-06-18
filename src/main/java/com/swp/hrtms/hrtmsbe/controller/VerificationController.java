@@ -1,9 +1,11 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
+import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyVerificationRequestResponse;
 import com.swp.hrtms.hrtmsbe.service.VerificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,4 +33,22 @@ public class VerificationController {
         List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> responses = verificationService.getPendingCertificateImages(jockeyId);
         return ResponseEntity.ok(ApiResponse.success(responses, "Fetched certificate images successfully"));
     }
+
+    // Khai: Save a Base64 certificate image as bytes with PENDING status.
+    @PostMapping("/jockey-certs/{jockeyId}")
+    public ResponseEntity<ApiResponse<Integer>> createJockeyCertificate(
+            @PathVariable Integer jockeyId,
+            @RequestBody JockeyCertCreateRequest request) {
+        Integer certificateId = verificationService.createJockeyCertificate(jockeyId, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(certificateId, "Certificate created successfully"));
+    }
+
+    // Khai: Create one verification notification and deliver it to every admin.
+    // @PostMapping("/jockey-certs/{jockeyId}/request-verification")
+    // public ResponseEntity<ApiResponse<Integer>> requestVerificationForAll(@PathVariable Integer jockeyId) {
+    //     Integer notificationId = verificationService.requestVerificationForAll(jockeyId);
+    //     return ResponseEntity.ok(
+    //             ApiResponse.success(notificationId, "Certificate verification requested successfully"));
+    // }
 }
