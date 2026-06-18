@@ -23,4 +23,12 @@ public class VerificationController {
         List<JockeyVerificationRequestResponse> responses = verificationService.getJockeyVerificationRequests(recipientId);
         return ResponseEntity.ok(ApiResponse.success(responses, "Fetched verification requests successfully"));
     }
+
+    @GetMapping("/jockey-certs/{jockeyId}/images")
+    public ResponseEntity<ApiResponse<List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse>>> getPendingCertImages(
+            @PathVariable("jockeyId") Integer jockeyId) {
+        
+        List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> responses = verificationService.getPendingCertificateImages(jockeyId);
+        return ResponseEntity.ok(ApiResponse.success(responses, "Fetched certificate images successfully"));
+    }
 }

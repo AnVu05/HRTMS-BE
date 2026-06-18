@@ -13,4 +13,7 @@ public interface JockeyCertRepository extends JpaRepository<JockeyCert, Integer>
 
     @Query("SELECT jc.certName FROM JockeyCert jc WHERE jc.jockey.id = :jockeyId AND (jc.status = 'PENDING' OR jc.status IS NULL)")
     List<String> findPendingCertificateNamesByJockeyId(@Param("jockeyId") Integer jockeyId);
+
+    @Query("SELECT jc FROM JockeyCert jc WHERE jc.jockey.id = :jockeyId AND (jc.status = 'PENDING' OR jc.status IS NULL)")
+    List<JockeyCert> findPendingCertificatesByJockeyId(@Param("jockeyId") Integer jockeyId);
 }

@@ -138,12 +138,14 @@ public class MockData {
         cert1.setCertName("Health Certificate 2024");
         cert1.setStatus("PENDING");
         cert1.setJockey(jockey);
+        cert1.setCertImg("mock-image-data-1".getBytes());
         jockeyCertRepository.save(cert1);
 
         com.swp.hrtms.hrtmsbe.entity.JockeyCert cert2 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
         cert2.setCertName("Pro License Level B");
         cert2.setStatus("PENDING");
         cert2.setJockey(jockey);
+        cert2.setCertImg("mock-image-data-2".getBytes());
         jockeyCertRepository.save(cert2);
 
         com.swp.hrtms.hrtmsbe.entity.Notification notification = new com.swp.hrtms.hrtmsbe.entity.Notification();

@@ -23,7 +23,8 @@ public class VerificationServiceImpl implements VerificationService {
     @Override
     @Transactional(readOnly = true)
     public List<JockeyVerificationRequestResponse> getJockeyVerificationRequests(Integer recipientId) {
-        List<NotificationRecipient> recipients = notificationRecipientRepository.findPendingVerificationRequests(recipientId);
+        List<NotificationRecipient> recipients = notificationRecipientRepository
+                .findPendingVerificationRequests(recipientId);
         List<JockeyVerificationRequestResponse> responses = new ArrayList<>();
 
         for (NotificationRecipient nr : recipients) {
@@ -43,6 +44,28 @@ public class VerificationServiceImpl implements VerificationService {
                     responses.add(response);
                 }
             }
+        }
+
+        return responses;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> getPendingCertificateImages(
+            Integer jockeyId) {
+        List<com.swp.hrtms.hrtmsbe.entity.JockeyCert> certs = jockeyCertRepository
+                .findPendingCertificatesByJockeyId(jockeyId);
+        List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> responses = new ArrayList<>();
+
+        for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : certs) {
+            String base64Image = null;
+            if (cert.getCertImg() != null) {
+                base64Image = java.util.Base64.getEncoder().encodeToString(cert.getCertImg());
+            }
+
+            responses.add(com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse.builder()
+                    .certImageBase64(base64Image)
+                    .build());
         }
 
         return responses;
