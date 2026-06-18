@@ -40,4 +40,14 @@ public class VerificationController {
         verificationService.acceptJockeyCertificates(jockeyId, adminId);
         return ResponseEntity.ok(ApiResponse.success(null, "Certificates accepted successfully"));
     }
+
+    @PutMapping("/jockey-certs/{jockeyId}/reject")
+    public ResponseEntity<ApiResponse<Void>> rejectJockeyCertificates(
+            @PathVariable("jockeyId") Integer jockeyId,
+            @RequestParam("adminId") Integer adminId,
+            @org.springframework.web.bind.annotation.RequestBody com.swp.hrtms.hrtmsbe.dto.request.RejectVerificationRequest request) {
+
+        verificationService.rejectJockeyCertificates(jockeyId, adminId, request.getReason());
+        return ResponseEntity.ok(ApiResponse.success(null, "Certificates rejected successfully"));
+    }
 }

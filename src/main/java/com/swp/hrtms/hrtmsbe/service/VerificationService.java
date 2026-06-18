@@ -9,4 +9,5 @@ public interface VerificationService {
     List<JockeyVerificationRequestResponse> getJockeyVerificationRequests(Integer recipientId);
     List<JockeyCertImageResponse> getPendingCertificateImages(Integer jockeyId);
     void acceptJockeyCertificates(Integer jockeyId, Integer adminId);
+    void rejectJockeyCertificates(Integer jockeyId, Integer adminId, String reason);
 }
