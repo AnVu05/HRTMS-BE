@@ -33,6 +33,9 @@ public class TournamentResponse {
     @JsonProperty("allowed_horse_age")
     private Integer allowedHorseAge;
 
+    @JsonProperty("tournament_description")
+    private String description;
+
     private String status;
 
     @JsonProperty("cancel_reason")

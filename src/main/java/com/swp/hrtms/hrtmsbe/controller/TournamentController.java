@@ -38,11 +38,18 @@ public class TournamentController {
     // List<ActiveTournamentResponse> tournaments =
     // tournamentService.getActiveTournaments();
     // return ResponseEntity.ok(ApiResponse.success(tournaments, null));
-    // }
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<TournamentResponse>> updateTournament(
+            @PathVariable("id") Integer id,
+            @RequestBody com.swp.hrtms.hrtmsbe.dto.request.TournamentUpdateRequest request) {
+        TournamentResponse response = tournamentService.updateTournament(id, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Tournament updated successfully"));
+    }
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse<String>> cancelTournament(@PathVariable("id") Integer id,
             @RequestBody com.swp.hrtms.hrtmsbe.dto.request.TournamentCancelRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(null, "Tournament cancelled successfully"));
+        String response = tournamentService.cancelTournament(id, request);
+        return ResponseEntity.ok(ApiResponse.success(null, response));
     }
 }

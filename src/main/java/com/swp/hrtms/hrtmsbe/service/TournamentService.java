@@ -13,6 +13,8 @@ public interface TournamentService {
 
     List<TournamentDashboardResponse> getTournamentsForDashboard();
 
+    TournamentResponse updateTournament(Integer id, com.swp.hrtms.hrtmsbe.dto.request.TournamentUpdateRequest request);
+
     List<ActiveTournamentResponse> getActiveTournaments();
 
     String cancelTournament(Integer tournamentId, TournamentCancelRequest request);

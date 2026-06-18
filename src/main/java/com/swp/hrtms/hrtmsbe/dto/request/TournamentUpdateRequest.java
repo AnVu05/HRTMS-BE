@@ -12,11 +12,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TournamentCreateRequest {
+public class TournamentUpdateRequest {
 
-    @JsonProperty("admin_id")
-    private Integer adminId;
-
+    @JsonProperty("tournament_name")
     private String name;
 
     @JsonProperty("start_date")
@@ -25,10 +23,10 @@ public class TournamentCreateRequest {
     @JsonProperty("end_date")
     private LocalDate endDate;
 
-    @JsonProperty("allowed_breed")
+    @JsonProperty("allowed_horse_breed")
     private String allowedBreed;
 
-    @JsonProperty("allowed_horse_age")
+    @JsonProperty("horse_age_requirement")
     private Integer allowedHorseAge;
 
     @JsonProperty("tournament_description")
