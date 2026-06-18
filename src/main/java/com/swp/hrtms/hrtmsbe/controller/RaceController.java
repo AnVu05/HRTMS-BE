@@ -24,11 +24,26 @@ public class RaceController {
         return new ResponseEntity<>(ApiResponse.success(responses, "Races created successfully"), HttpStatus.CREATED);
     }
 
+    @PostMapping
+    public ResponseEntity<ApiResponse<RaceResponse>> createSingleRace(@RequestBody com.swp.hrtms.hrtmsbe.dto.request.SingleRaceCreateRequest request) {
+        RaceResponse response = raceService.createSingleRace(request);
+        return new ResponseEntity<>(ApiResponse.success(response, "Race created successfully"), HttpStatus.CREATED);
+    }
+
+
     @GetMapping("/tournament/{tournamentId}")
     public ResponseEntity<ApiResponse<com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse>> getRaceDetailsByTournament(@PathVariable Integer tournamentId) {
         com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse response = raceService.getRaceDetailsByTournament(tournamentId);
         return ResponseEntity.ok(ApiResponse.success(response, null));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<RaceResponse>> updateRace(@PathVariable("id") Integer id,
+            @RequestBody com.swp.hrtms.hrtmsbe.dto.request.RaceUpdateRequest request) {
+        RaceResponse response = raceService.updateRace(id, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Race updated successfully"));
+    }
+
     @PutMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse<String>> cancelRace(@PathVariable("id") Integer id,
             @RequestBody com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest request) {

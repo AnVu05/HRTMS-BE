@@ -127,6 +127,112 @@ public class RaceServiceImpl implements RaceService {
     }
 
     @Override
+    @Transactional
+    public RaceResponse createSingleRace(com.swp.hrtms.hrtmsbe.dto.request.SingleRaceCreateRequest request) {
+        if (request.getTournamentId() == null || request.getDate() == null ||
+            request.getStartTime() == null || request.getEndTime() == null || request.getRaceName() == null) {
+            throw new IllegalArgumentException("Tournament ID, race name, date, start time, and end time are required.");
+        }
+
+        if (!request.getStartTime().isBefore(request.getEndTime())) {
+            throw new IllegalArgumentException("Start time must be before end time for race '" + request.getRaceName() + "'.");
+        }
+
+        Tournament tournament = tournamentRepository.findById(request.getTournamentId())
+                .orElseThrow(() -> new IllegalArgumentException("Tournament not found with id: " + request.getTournamentId()));
+
+        if (raceRepository.existsOverlappingInTournament(tournament.getId(), request.getDate(),
+                request.getStartTime(), request.getEndTime())) {
+            throw new IllegalArgumentException("Race '" + request.getRaceName() + "' overlaps with an existing race in the tournament.");
+        }
+
+        Referee referee = null;
+        if (request.getRefereeId() != null) {
+            referee = refereeRepository.findById(request.getRefereeId())
+                    .orElseThrow(() -> new IllegalArgumentException("Referee not found with id: " + request.getRefereeId()));
+
+            if (raceRepository.existsOverlappingForReferee(referee.getId(), request.getDate(),
+                    request.getStartTime(), request.getEndTime())) {
+                throw new IllegalArgumentException("Referee is already assigned to another overlapping race.");
+            }
+        }
+
+        Race race = Race.builder()
+                .tournament(tournament)
+                .name(request.getRaceName())
+                .date(request.getDate())
+                .startTime(request.getStartTime())
+                .endTime(request.getEndTime())
+                .laps(request.getLaps())
+                .numHorse(request.getNumHorse())
+                .referee(referee)
+                .status("PENDING_REFEREE")
+                .build();
+
+        race = raceRepository.save(race);
+
+        return RaceResponse.builder()
+                .id(race.getId())
+                .tournamentId(race.getTournament().getId())
+                .name(race.getName())
+                .date(race.getDate())
+                .startTime(race.getStartTime())
+                .endTime(race.getEndTime())
+                .laps(race.getLaps())
+                .numHorse(race.getNumHorse())
+                .refereeId(race.getReferee() != null ? race.getReferee().getId() : null)
+                .status(race.getStatus())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public RaceResponse updateRace(Integer raceId, com.swp.hrtms.hrtmsbe.dto.request.RaceUpdateRequest request) {
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new RuntimeException("Race not found"));
+
+        if (request.getLaps() != null) {
+            if (request.getLaps() <= 0) {
+                throw new IllegalArgumentException("Laps must be greater than 0");
+            }
+            race.setLaps(request.getLaps());
+        }
+
+        if (request.getNumHorse() != null) {
+            if (request.getNumHorse() <= 0) {
+                throw new IllegalArgumentException("Number of horses must be greater than 0");
+            }
+            race.setNumHorse(request.getNumHorse());
+        }
+
+        if (request.getRefereeId() != null) {
+            Referee referee = refereeRepository.findById(request.getRefereeId())
+                    .orElseThrow(() -> new IllegalArgumentException("Referee not found with id: " + request.getRefereeId()));
+            
+            race.setReferee(referee);
+            
+            if (!"CANCELLED".equals(race.getStatus())) {
+                race.setStatus("PENDING_REFEREE");
+            }
+        }
+
+        race = raceRepository.save(race);
+
+        return RaceResponse.builder()
+                .id(race.getId())
+                .tournamentId(race.getTournament().getId())
+                .name(race.getName())
+                .date(race.getDate())
+                .startTime(race.getStartTime())
+                .endTime(race.getEndTime())
+                .laps(race.getLaps())
+                .numHorse(race.getNumHorse())
+                .refereeId(race.getReferee() != null ? race.getReferee().getId() : null)
+                .status(race.getStatus())
+                .build();
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public TournamentRaceDetailsResponse getRaceDetailsByTournament(Integer tournamentId) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
