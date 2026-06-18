@@ -31,4 +31,13 @@ public class VerificationController {
         List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> responses = verificationService.getPendingCertificateImages(jockeyId);
         return ResponseEntity.ok(ApiResponse.success(responses, "Fetched certificate images successfully"));
     }
+
+    @PutMapping("/jockey-certs/{jockeyId}/accept")
+    public ResponseEntity<ApiResponse<Void>> acceptJockeyCertificates(
+            @PathVariable("jockeyId") Integer jockeyId,
+            @RequestParam("adminId") Integer adminId) {
+
+        verificationService.acceptJockeyCertificates(jockeyId, adminId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Certificates accepted successfully"));
+    }
 }

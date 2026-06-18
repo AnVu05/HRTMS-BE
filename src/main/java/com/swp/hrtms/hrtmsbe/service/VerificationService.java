@@ -8,4 +8,5 @@ import java.util.List;
 public interface VerificationService {
     List<JockeyVerificationRequestResponse> getJockeyVerificationRequests(Integer recipientId);
     List<JockeyCertImageResponse> getPendingCertificateImages(Integer jockeyId);
+    void acceptJockeyCertificates(Integer jockeyId, Integer adminId);
 }
