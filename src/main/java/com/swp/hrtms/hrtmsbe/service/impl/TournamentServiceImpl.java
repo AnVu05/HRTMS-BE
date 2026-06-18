@@ -50,7 +50,8 @@ public class TournamentServiceImpl implements TournamentService {
                 .endDate(request.getEndDate())
                 .allowedBreed(request.getAllowedBreed())
                 .allowedHorseAge(request.getAllowedHorseAge())
-                .status(request.getStatus() != null ? request.getStatus() : "PUBLIC")
+                .description(request.getDescription())
+                .status(request.getStatus() != null ? request.getStatus() : "DRAFT")
                 .build();
 
         // Save to DB
@@ -115,6 +116,43 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @Transactional
+    public TournamentResponse updateTournament(Integer id, com.swp.hrtms.hrtmsbe.dto.request.TournamentUpdateRequest request) {
+        Tournament tournament = tournamentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tournament not found"));
+
+        if (request.getStartDate() != null) {
+            tournament.setStartDate(request.getStartDate());
+        }
+        if (request.getEndDate() != null) {
+            tournament.setEndDate(request.getEndDate());
+        }
+
+        if (tournament.getStartDate() != null && tournament.getEndDate() != null && tournament.getStartDate().isAfter(tournament.getEndDate())) {
+            throw new IllegalArgumentException("Start date cannot be after end date");
+        }
+
+        if (request.getName() != null) {
+            tournament.setName(request.getName());
+        }
+        if (request.getAllowedBreed() != null) {
+            tournament.setAllowedBreed(request.getAllowedBreed());
+        }
+        if (request.getAllowedHorseAge() != null) {
+            tournament.setAllowedHorseAge(request.getAllowedHorseAge());
+        }
+        if (request.getDescription() != null) {
+            tournament.setDescription(request.getDescription());
+        }
+        if (request.getStatus() != null) {
+            tournament.setStatus(request.getStatus());
+        }
+
+        tournament = tournamentRepository.save(tournament);
+        return mapToResponse(tournament);
+    }
+
+    @Override
+    @Transactional
     public String cancelTournament(Integer tournamentId, TournamentCancelRequest request) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
@@ -141,6 +179,7 @@ public class TournamentServiceImpl implements TournamentService {
                 .endDate(tournament.getEndDate())
                 .allowedBreed(tournament.getAllowedBreed())
                 .allowedHorseAge(tournament.getAllowedHorseAge())
+                .description(tournament.getDescription())
                 .status(tournament.getStatus())
                 .cancelReason(tournament.getCancelReason())
                 .build();

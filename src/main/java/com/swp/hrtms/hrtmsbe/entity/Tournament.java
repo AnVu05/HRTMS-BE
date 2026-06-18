@@ -39,6 +39,9 @@ public class Tournament {
     @Column(name = "allowed_horse_age")
     private Integer allowedHorseAge;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     private String status; // "PUBLIC", "COMPLETED", "CANCELLED"
 
     @Column(name = "cancel_reason")
