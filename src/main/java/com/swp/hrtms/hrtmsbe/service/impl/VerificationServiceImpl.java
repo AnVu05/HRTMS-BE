@@ -1,24 +1,46 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
+import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyVerificationRequestResponse;
+import com.swp.hrtms.hrtmsbe.entity.Admin;
 import com.swp.hrtms.hrtmsbe.entity.Jockey;
+import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
+import com.swp.hrtms.hrtmsbe.entity.Notification;
 import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
+import com.swp.hrtms.hrtmsbe.entity.User;
+import com.swp.hrtms.hrtmsbe.entity.UserRole;
+import com.swp.hrtms.hrtmsbe.repository.AdminRepository;
 import com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
 import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
+import com.swp.hrtms.hrtmsbe.repository.UserRepository;
 import com.swp.hrtms.hrtmsbe.service.VerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class VerificationServiceImpl implements VerificationService {
 
+    // Khai: Fixed values for the jockey certificate verification workflow.
+    private static final String CERTIFICATE_PENDING_STATUS = "PENDING";
+    private static final String NOTIFICATION_TITLE = "Certificate Verification Request";
+    private static final String NOTIFICATION_CONTENT =
+            "A jockey has requested verification for all pending certificates.";
+    private static final String NOTIFICATION_TYPE = "VERIFY_CERTIFICATE";
+    private static final String RECIPIENT_PENDING_STATUS = "None";
+    private static final String DATA_URL_SEPARATOR = ",";
+
     private final NotificationRecipientRepository notificationRecipientRepository;
     private final JockeyCertRepository jockeyCertRepository;
+    private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -69,5 +91,88 @@ public class VerificationServiceImpl implements VerificationService {
         }
 
         return responses;
+    }
+
+    @Override
+    @Transactional
+    // Khai: Decode the frontend Base64 value before persisting it in VARBINARY(MAX).
+    public Integer createJockeyCertificate(Integer jockeyId, JockeyCertCreateRequest request) {
+        Jockey jockey = findJockeyById(jockeyId);
+
+        if (request == null || request.getCertName() == null || request.getCertName().isBlank()) {
+            throw new IllegalArgumentException("Certificate name cannot be empty");
+        }
+        if (request.getCertImageBase64() == null || request.getCertImageBase64().isBlank()) {
+            throw new IllegalArgumentException("Certificate image cannot be empty");
+        }
+
+        JockeyCert certificate = JockeyCert.builder()
+                .certName(request.getCertName().trim())
+                .certImg(decodeCertificateImage(request.getCertImageBase64()))
+                .status(CERTIFICATE_PENDING_STATUS)
+                .jockey(jockey)
+                .build();
+
+        return jockeyCertRepository.save(certificate).getId();
+    }
+
+    @Override
+    @Transactional
+    // Khai: Create a notification from the jockey and one unread recipient row per admin.
+    public Integer requestVerificationForAll(Integer jockeyId) {
+        Jockey jockey = findJockeyById(jockeyId);
+        if (jockeyCertRepository.findPendingCertificatesByJockeyId(jockeyId).isEmpty()) {
+            throw new IllegalArgumentException("No pending certificates found for this jockey");
+        }
+
+        List<Admin> admins = adminRepository.findAll();
+        if (admins.isEmpty()) {
+            throw new IllegalArgumentException("No admin account is available to receive the request");
+        }
+
+        Notification notification = Notification.builder()
+                .sender(jockey)
+                .title(NOTIFICATION_TITLE)
+                .content(NOTIFICATION_CONTENT)
+                .type(NOTIFICATION_TYPE)
+                .build();
+        Notification savedNotification = notificationRepository.save(notification);
+
+        List<NotificationRecipient> recipients = admins.stream()
+                .map(admin -> NotificationRecipient.builder()
+                        .notification(savedNotification)
+                        .recipient(admin)
+                        .status(RECIPIENT_PENDING_STATUS)
+                        .readAt(null)
+                        .build())
+                .toList();
+        notificationRecipientRepository.saveAll(recipients);
+
+        return savedNotification.getId();
+    }
+
+    private Jockey findJockeyById(Integer jockeyId) {
+        User user = userRepository.findById(jockeyId)
+                .orElseThrow(() -> new IllegalArgumentException("Jockey not found with id: " + jockeyId));
+        Object unproxiedUser = org.hibernate.Hibernate.unproxy(user);
+
+        if (!UserRole.JOCKEY.name().equals(user.getRole()) || !(unproxiedUser instanceof Jockey jockey)) {
+            throw new IllegalArgumentException("User with id " + jockeyId + " is not a jockey");
+        }
+        return jockey;
+    }
+
+    private byte[] decodeCertificateImage(String certificateImageBase64) {
+        String normalizedImage = certificateImageBase64.trim();
+        int separatorIndex = normalizedImage.indexOf(DATA_URL_SEPARATOR);
+        if (separatorIndex >= 0) {
+            normalizedImage = normalizedImage.substring(separatorIndex + 1);
+        }
+
+        try {
+            return Base64.getDecoder().decode(normalizedImage);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("Certificate image must be valid Base64");
+        }
     }
 }
