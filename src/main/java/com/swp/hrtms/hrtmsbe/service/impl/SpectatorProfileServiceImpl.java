@@ -11,12 +11,8 @@ import com.swp.hrtms.hrtmsbe.service.SpectatorProfileService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Base64;
-
 @Service
 public class SpectatorProfileServiceImpl implements SpectatorProfileService {
-
-    private static final String DATA_URL_SEPARATOR = ",";
 
     private final SpectatorRepository spectatorRepository;
     private final UserRepository userRepository;
@@ -55,7 +51,7 @@ public class SpectatorProfileServiceImpl implements SpectatorProfileService {
             throw new IllegalArgumentException("Avatar content type cannot be empty");
         }
 
-        spectator.setAvatarImage(decodeAvatar(request.getAvatarBase64()));
+        spectator.setAvatarImage(request.getAvatarBase64().trim());
         spectator.setAvatarContentType(request.getAvatarContentType().trim());
 
         Spectator updatedSpectator = spectatorRepository.save(spectator);
@@ -96,25 +92,7 @@ public class SpectatorProfileServiceImpl implements SpectatorProfileService {
         }
     }
 
-    private byte[] decodeAvatar(String avatarBase64) {
-        String normalizedAvatar = avatarBase64.trim();
-        int separatorIndex = normalizedAvatar.indexOf(DATA_URL_SEPARATOR);
-        if (separatorIndex >= 0) {
-            normalizedAvatar = normalizedAvatar.substring(separatorIndex + 1);
-        }
-
-        try {
-            return Base64.getDecoder().decode(normalizedAvatar);
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException("Avatar image must be valid Base64");
-        }
-    }
-
     private SpectatorProfileResponse toResponse(Spectator spectator) {
-        String avatarBase64 = spectator.getAvatarImage() == null
-                ? null
-                : Base64.getEncoder().encodeToString(spectator.getAvatarImage());
-
         return new SpectatorProfileResponse(
                 spectator.getId(),
                 spectator.getUsername(),
@@ -122,7 +100,7 @@ public class SpectatorProfileServiceImpl implements SpectatorProfileService {
                 spectator.getEmail(),
                 spectator.getRole(),
                 spectator.getCreatedAt(),
-                avatarBase64,
+                spectator.getAvatarImage(),
                 spectator.getAvatarContentType());
     }
 }

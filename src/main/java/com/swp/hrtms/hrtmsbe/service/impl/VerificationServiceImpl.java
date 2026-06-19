@@ -20,22 +20,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class VerificationServiceImpl implements VerificationService {
 
-    // Khai: Fixed values for the jockey certificate verification workflow.
-    private static final String CERTIFICATE_PENDING_STATUS = "PENDING";
     private static final String NOTIFICATION_TITLE = "Certificate Verification Request";
     private static final String NOTIFICATION_CONTENT =
             "A jockey has requested verification for all pending certificates.";
-    private static final String NOTIFICATION_TYPE = "VERIFY_CERTIFICATE";
-    private static final String RECIPIENT_PENDING_STATUS = "None";
-    private static final String DATA_URL_SEPARATOR = ",";
-
     private final NotificationRecipientRepository notificationRecipientRepository;
     private final JockeyCertRepository jockeyCertRepository;
     private final NotificationRepository notificationRepository;
@@ -82,7 +75,7 @@ public class VerificationServiceImpl implements VerificationService {
         for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : certs) {
             String base64Image = null;
             if (cert.getCertImg() != null) {
-                base64Image = java.util.Base64.getEncoder().encodeToString(cert.getCertImg());
+                base64Image = cert.getCertImg();
             }
 
             responses.add(com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse.builder()
@@ -95,7 +88,7 @@ public class VerificationServiceImpl implements VerificationService {
 
     @Override
     @Transactional
-    // Khai: Decode the frontend Base64 value before persisting it in VARBINARY(MAX).
+    // Khai: Store the frontend Base64 value directly as text.
     public Integer createJockeyCertificate(Integer jockeyId, JockeyCertCreateRequest request) {
         Jockey jockey = findJockeyById(jockeyId);
 
@@ -108,8 +101,7 @@ public class VerificationServiceImpl implements VerificationService {
 
         JockeyCert certificate = JockeyCert.builder()
                 .certName(request.getCertName().trim())
-                .certImg(decodeCertificateImage(request.getCertImageBase64()))
-                .status(CERTIFICATE_PENDING_STATUS)
+                .certImg(request.getCertImageBase64())
                 .jockey(jockey)
                 .build();
 
@@ -134,7 +126,6 @@ public class VerificationServiceImpl implements VerificationService {
                 .sender(jockey)
                 .title(NOTIFICATION_TITLE)
                 .content(NOTIFICATION_CONTENT)
-                .type(NOTIFICATION_TYPE)
                 .build();
         Notification savedNotification = notificationRepository.save(notification);
 
@@ -142,8 +133,6 @@ public class VerificationServiceImpl implements VerificationService {
                 .map(admin -> NotificationRecipient.builder()
                         .notification(savedNotification)
                         .recipient(admin)
-                        .status(RECIPIENT_PENDING_STATUS)
-                        .readAt(null)
                         .build())
                 .toList();
         notificationRecipientRepository.saveAll(recipients);
@@ -160,20 +149,6 @@ public class VerificationServiceImpl implements VerificationService {
             throw new IllegalArgumentException("User with id " + jockeyId + " is not a jockey");
         }
         return jockey;
-    }
-
-    private byte[] decodeCertificateImage(String certificateImageBase64) {
-        String normalizedImage = certificateImageBase64.trim();
-        int separatorIndex = normalizedImage.indexOf(DATA_URL_SEPARATOR);
-        if (separatorIndex >= 0) {
-            normalizedImage = normalizedImage.substring(separatorIndex + 1);
-        }
-
-        try {
-            return Base64.getDecoder().decode(normalizedImage);
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException("Certificate image must be valid Base64");
-        }
     }
 
     @Override

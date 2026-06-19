@@ -70,14 +70,14 @@ public class HorseOwnerProfileServiceImpl implements HorseOwnerProfileService {
     // Khải: Chặn trùng username để tránh lỗi unique constraint từ database.
     private void validateUsernameIsAvailable(String username, Integer userId) {
         if (userRepository.existsByUsernameAndIdNot(username, userId)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
+            throw new IllegalArgumentException("Username already exists");
         }
     }
 
     // Khải: Chặn trùng email để tránh lỗi unique constraint từ database.
     private void validateEmailIsAvailable(String email, Integer userId) {
         if (userRepository.existsByEmailAndIdNot(email, userId)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+            throw new IllegalArgumentException("Email already exists");
         }
     }
 
