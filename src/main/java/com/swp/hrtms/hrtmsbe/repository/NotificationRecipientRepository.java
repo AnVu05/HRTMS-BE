@@ -13,4 +13,12 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
 
     @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :recipientId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE'")
     List<NotificationRecipient> findPendingVerificationRequests(@Param("recipientId") Integer recipientId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE NotificationRecipient nr SET nr.status = 'Accept' WHERE nr.recipient.id = :adminId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE' AND nr.notification.sender.id = :jockeyId")
+    void markVerificationRequestAsAccepted(@Param("adminId") Integer adminId, @Param("jockeyId") Integer jockeyId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE NotificationRecipient nr SET nr.status = 'Reject' WHERE nr.recipient.id = :adminId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE' AND nr.notification.sender.id = :jockeyId")
+    void markVerificationRequestAsRejected(@Param("adminId") Integer adminId, @Param("jockeyId") Integer jockeyId);
 }

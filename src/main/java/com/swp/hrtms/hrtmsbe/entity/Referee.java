@@ -12,5 +12,5 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Referee extends User {
-    // Để trống thông tin theo yêu cầu
+    private String name;
 }

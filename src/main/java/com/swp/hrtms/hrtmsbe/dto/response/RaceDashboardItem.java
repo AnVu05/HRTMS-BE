@@ -19,4 +19,6 @@ public class RaceDashboardItem {
     private LocalTime endTime;
     private Integer laps;
     private String status;
+    private Integer refereeId;
+    private String refereeName;
 }

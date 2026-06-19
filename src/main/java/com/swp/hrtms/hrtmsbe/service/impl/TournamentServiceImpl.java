@@ -116,7 +116,8 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @Transactional
-    public TournamentResponse updateTournament(Integer id, com.swp.hrtms.hrtmsbe.dto.request.TournamentUpdateRequest request) {
+    public TournamentResponse updateTournament(Integer id,
+            com.swp.hrtms.hrtmsbe.dto.request.TournamentUpdateRequest request) {
         Tournament tournament = tournamentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
 
@@ -127,7 +128,8 @@ public class TournamentServiceImpl implements TournamentService {
             tournament.setEndDate(request.getEndDate());
         }
 
-        if (tournament.getStartDate() != null && tournament.getEndDate() != null && tournament.getStartDate().isAfter(tournament.getEndDate())) {
+        if (tournament.getStartDate() != null && tournament.getEndDate() != null
+                && tournament.getStartDate().isAfter(tournament.getEndDate())) {
             throw new IllegalArgumentException("Start date cannot be after end date");
         }
 
