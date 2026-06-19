@@ -21,8 +21,8 @@ public class Spectator extends User {
     private String displayName;
 
     @Lob
-    @Column(name = "avatar_image")
-    private byte[] avatarImage;
+    @Column(name = "avatar_image", columnDefinition = "TEXT")
+    private String avatarImage;
 
     @Column(name = "avatar_content_type")
     private String avatarContentType;

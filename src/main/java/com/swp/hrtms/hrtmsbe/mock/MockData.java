@@ -1,10 +1,17 @@
 package com.swp.hrtms.hrtmsbe.mock;
 
 import com.swp.hrtms.hrtmsbe.entity.Admin;
+import com.swp.hrtms.hrtmsbe.entity.Horse;
+import com.swp.hrtms.hrtmsbe.entity.HorseOwner;
+import com.swp.hrtms.hrtmsbe.entity.HorseStatus;
 import com.swp.hrtms.hrtmsbe.entity.Race;
+import com.swp.hrtms.hrtmsbe.entity.Spectator;
 import com.swp.hrtms.hrtmsbe.entity.Tournament;
+import com.swp.hrtms.hrtmsbe.entity.User;
 import com.swp.hrtms.hrtmsbe.entity.UserRole;
 import com.swp.hrtms.hrtmsbe.repository.AdminRepository;
+import com.swp.hrtms.hrtmsbe.repository.HorseRepository;
+import com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository;
 import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
 import com.swp.hrtms.hrtmsbe.repository.TournamentRepository;
 import com.swp.hrtms.hrtmsbe.repository.UserRepository;
@@ -12,12 +19,15 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Component
 public class MockData {
 
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
+    private final HorseOwnerRepository horseOwnerRepository;
+    private final HorseRepository horseRepository;
     private final TournamentRepository tournamentRepository;
     private final RaceRepository raceRepository;
     private final com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository jockeyCertRepository;
@@ -26,6 +36,8 @@ public class MockData {
 
     public MockData(UserRepository userRepository,
             AdminRepository adminRepository,
+            HorseOwnerRepository horseOwnerRepository,
+            HorseRepository horseRepository,
             TournamentRepository tournamentRepository,
             RaceRepository raceRepository,
             com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository jockeyCertRepository,
@@ -33,6 +45,8 @@ public class MockData {
             com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository notificationRecipientRepository) {
         this.userRepository = userRepository;
         this.adminRepository = adminRepository;
+        this.horseOwnerRepository = horseOwnerRepository;
+        this.horseRepository = horseRepository;
         this.tournamentRepository = tournamentRepository;
         this.raceRepository = raceRepository;
         this.jockeyCertRepository = jockeyCertRepository;
@@ -41,8 +55,14 @@ public class MockData {
     }
 
     public void generateData() {
+        boolean dataAlreadyExists = userRepository.count() > 0;
+
+        generateHorseOwnerProfileData();
+        generateSpectatorProfileData();
+        generateHorseData();
+
         // Check if data already exists to avoid duplicate data on application restart
-        if (userRepository.count() > 0) {
+        if (dataAlreadyExists) {
             System.out.println("Data already exists. Skipping test data generation.");
             return;
         }
@@ -138,14 +158,14 @@ public class MockData {
         cert1.setCertName("Health Certificate 2024");
         cert1.setStatus("PENDING");
         cert1.setJockey(jockey);
-        cert1.setCertImg("mock-image-data-1".getBytes());
+        cert1.setCertImg("mock-image-data-1");
         jockeyCertRepository.save(cert1);
 
         com.swp.hrtms.hrtmsbe.entity.JockeyCert cert2 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
         cert2.setCertName("Pro License Level B");
         cert2.setStatus("PENDING");
         cert2.setJockey(jockey);
-        cert2.setCertImg("mock-image-data-2".getBytes());
+        cert2.setCertImg("mock-image-data-2");
         jockeyCertRepository.save(cert2);
 
         com.swp.hrtms.hrtmsbe.entity.Notification notification = new com.swp.hrtms.hrtmsbe.entity.Notification();
@@ -162,5 +182,89 @@ public class MockData {
         notificationRecipientRepository.save(recipient);
 
         System.out.println("Test data generated successfully!");
+    }
+
+    private void generateHorseOwnerProfileData() {
+        User horseOwnerUser = userRepository.findByUsername("horseowner1")
+                .orElseGet(() -> {
+                    User user = new User();
+                    user.setUsername("horseowner1");
+                    user.setPassword("password123");
+                    user.setEmail("horseowner1@test.com");
+                    user.setRole(UserRole.HORSE_OWNER.name());
+                    return userRepository.save(user);
+                });
+
+        HorseOwner horseOwner = horseOwnerRepository.findById(horseOwnerUser.getId())
+                .orElseGet(() -> horseOwnerRepository.save(HorseOwner.builder()
+                        .user(horseOwnerUser)
+                        .build()));
+
+        System.out.println("Horse owner profile test URL: /api/horse-owners/"
+                + horseOwner.getUserId() + "/profile");
+    }
+
+    private void generateSpectatorProfileData() {
+        if (userRepository.findByUsername("spectator1").isPresent()) {
+            return;
+        }
+
+        Spectator spectator = new Spectator();
+        spectator.setUsername("spectator1");
+        spectator.setPassword("password123");
+        spectator.setEmail("spectator1@test.com");
+        spectator.setRole(UserRole.SPECTATOR.name());
+        spectator.setDisplayName("Test Spectator");
+        userRepository.save(spectator);
+    }
+
+    private void generateHorseData() {
+        if (horseRepository.count() > 0) {
+            return;
+        }
+
+        User ownerUser = userRepository.findByUsername("horseowner1")
+                .orElseThrow(() -> new IllegalStateException("Mock horse owner was not created"));
+        HorseOwner owner = horseOwnerRepository.findById(ownerUser.getId())
+                .orElseThrow(() -> new IllegalStateException("Mock horse owner profile was not created"));
+
+        List<Horse> horses = List.of(
+                Horse.builder()
+                        .owner(owner)
+                        .name("Thunder Bolt")
+                        .age(4)
+                        .breed("Thoroughbred")
+                        .status(HorseStatus.ACTIVE)
+                        .build(),
+                Horse.builder()
+                        .owner(owner)
+                        .name("Silver Wind")
+                        .age(5)
+                        .breed("Arabian")
+                        .status(HorseStatus.ACTIVE)
+                        .build(),
+                Horse.builder()
+                        .owner(owner)
+                        .name("Black Pearl")
+                        .age(3)
+                        .breed("Thoroughbred")
+                        .status(HorseStatus.ACTIVE)
+                        .build(),
+                Horse.builder()
+                        .owner(owner)
+                        .name("Golden Star")
+                        .age(6)
+                        .breed("Quarter Horse")
+                        .status(HorseStatus.INJURED)
+                        .build(),
+                Horse.builder()
+                        .owner(owner)
+                        .name("Old Champion")
+                        .age(10)
+                        .breed("Arabian")
+                        .status(HorseStatus.RETIRED)
+                        .build());
+
+        horseRepository.saveAll(horses);
     }
 }

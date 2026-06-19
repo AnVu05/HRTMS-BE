@@ -32,7 +32,8 @@ public class Notification {
     private String content;
 
     @Column(name = "type")
-    private String type;
+    @Builder.Default
+    private String type = "VERIFY_CERTIFICATE";
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

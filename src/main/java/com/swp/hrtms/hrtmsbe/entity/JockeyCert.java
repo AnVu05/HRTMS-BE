@@ -22,10 +22,11 @@ public class JockeyCert {
     private String certName;
 
     @Lob
-    @Column(name = "cert_img", columnDefinition = "VARBINARY(MAX)")
-    private byte[] certImg;
+    @Column(name = "cert_img", columnDefinition = "TEXT")
+    private String certImg;
 
-    private String status;
+    @Builder.Default
+    private String status = "PENDING";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "jockey_id")
