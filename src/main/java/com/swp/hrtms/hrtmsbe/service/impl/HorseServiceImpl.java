@@ -58,7 +58,9 @@ public class HorseServiceImpl implements HorseService {
     private HorseResponse toResponse(Horse horse) {
         HorseOwner owner = horse.getOwner();
         Integer ownerId = owner != null ? owner.getUserId() : null;
-        String ownerName = owner != null ? owner.getUser().getUsername() : null;//xóa field ownerName trong entity HorseOwner rồi lấy username từ user để trả về response
+        String ownerName = owner != null ? owner.getUser().getUsername() : null;// xóa field ownerName trong entity
+                                                                                // HorseOwner rồi lấy username từ user
+                                                                                // để trả về response
 
         return new HorseResponse(
                 horse.getId(),

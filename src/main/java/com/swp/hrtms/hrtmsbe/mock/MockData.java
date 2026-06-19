@@ -1,6 +1,7 @@
 package com.swp.hrtms.hrtmsbe.mock;
 
 import com.swp.hrtms.hrtmsbe.entity.Admin;
+import com.swp.hrtms.hrtmsbe.entity.User;
 import com.swp.hrtms.hrtmsbe.entity.Race;
 import com.swp.hrtms.hrtmsbe.entity.Tournament;
 import com.swp.hrtms.hrtmsbe.entity.UserRole;
@@ -168,6 +169,25 @@ public class MockData {
         jockey.setAge(28);
         jockey.setStatus(true);
         jockey = (com.swp.hrtms.hrtmsbe.entity.Jockey) userRepository.save(jockey); // save as user
+
+        User userOwner = new User();
+        userOwner.setUsername("owner1");
+        userOwner.setEmail("owner1@test.com");
+        userOwner.setPassword("pass123");
+        userOwner.setRole("HORSE_OWNER");
+        userRepository.save(userOwner);
+
+        com.swp.hrtms.hrtmsbe.entity.HorseOwner owner = new com.swp.hrtms.hrtmsbe.entity.HorseOwner();
+        owner.setUser(userOwner);
+        // Cần dùng horseOwnerRepository.save(owner) thay vì userRepository
+
+        // Add Spectator
+        com.swp.hrtms.hrtmsbe.entity.Spectator spectator = new com.swp.hrtms.hrtmsbe.entity.Spectator();
+        spectator.setUsername("spectator1");
+        spectator.setPassword("pass123");
+        spectator.setEmail("spectator1@test.com");
+        spectator.setRole("SPECTATOR");
+        userRepository.save(spectator);
 
         com.swp.hrtms.hrtmsbe.entity.JockeyCert cert1 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
         cert1.setCertName("Health Certificate 2024");

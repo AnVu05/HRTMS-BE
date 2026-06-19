@@ -12,12 +12,20 @@ import com.swp.hrtms.hrtmsbe.repository.AdminRepository;
 import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
 import com.swp.hrtms.hrtmsbe.repository.TournamentRepository;
 import com.swp.hrtms.hrtmsbe.service.TournamentService;
+import com.swp.hrtms.hrtmsbe.repository.UserRepository;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
+import com.swp.hrtms.hrtmsbe.entity.Notification;
+import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
+import com.swp.hrtms.hrtmsbe.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +34,9 @@ public class TournamentServiceImpl implements TournamentService {
     private final TournamentRepository tournamentRepository;
     private final AdminRepository adminRepository;
     private final RaceRepository raceRepository;
+    private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
+    private final NotificationRecipientRepository notificationRecipientRepository;
 
     @Override
     @Transactional
@@ -67,8 +78,8 @@ public class TournamentServiceImpl implements TournamentService {
     @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 0 * * ?")
     public void updateTournamentStatuses() {
         java.time.LocalDate now = java.time.LocalDate.now();
-        // Chỉ lấy các giải đấu đang ở trạng thái PUBLIC theo yêu cầu
-        List<Tournament> tournaments = tournamentRepository.findByStatus("PUBLIC");
+        // Chỉ lấy các giải đấu đang ở trạng thái PUBLISHED theo yêu cầu
+        List<Tournament> tournaments = tournamentRepository.findByStatus("PUBLISHED");
 
         boolean updated = false;
         for (Tournament tournament : tournaments) {
@@ -106,7 +117,7 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     @Transactional(readOnly = true)
     public List<ActiveTournamentResponse> getActiveTournaments() {
-        return tournamentRepository.findByStatus("PUBLIC").stream()
+        return tournamentRepository.findByStatus("PUBLISHED").stream()
                 .map(t -> ActiveTournamentResponse.builder()
                         .id(t.getId())
                         .name(t.getName())
@@ -145,11 +156,37 @@ public class TournamentServiceImpl implements TournamentService {
         if (request.getDescription() != null) {
             tournament.setDescription(request.getDescription());
         }
+        String oldStatus = tournament.getStatus();
         if (request.getStatus() != null) {
             tournament.setStatus(request.getStatus());
         }
 
         tournament = tournamentRepository.save(tournament);
+
+        if (!"PUBLISHED".equals(oldStatus) && "PUBLISHED".equals(request.getStatus())) {
+            List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
+            if (!targetUsers.isEmpty()) {
+                Notification notification = Notification.builder()
+                        .sender(null) // System notification
+                        .title("New Tournament " + tournament.getName())
+                        .content(tournament.getDescription())
+                        .type("None")
+                        .build();
+                notification = notificationRepository.save(notification);
+
+                List<NotificationRecipient> recipients = new ArrayList<>();
+                for (User user : targetUsers) {
+                    NotificationRecipient recipient = NotificationRecipient.builder()
+                            .notification(notification)
+                            .recipient(user)
+                            .status("None")
+                            .build();
+                    recipients.add(recipient);
+                }
+                notificationRecipientRepository.saveAll(recipients);
+            }
+        }
+
         return mapToResponse(tournament);
     }
 
