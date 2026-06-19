@@ -150,4 +150,72 @@ public class VerificationServiceImpl implements VerificationService {
         }
         return jockey;
     }
+
+    @Override
+    @Transactional
+    public void acceptJockeyCertificates(Integer jockeyId, Integer adminId) {
+        // 1. Fetch pending certificates and update status
+        List<com.swp.hrtms.hrtmsbe.entity.JockeyCert> certs = jockeyCertRepository.findPendingCertificatesByJockeyId(jockeyId);
+        if (certs.isEmpty()) {
+            throw new RuntimeException("No pending certificates found for the given jockey.");
+        }
+        for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : certs) {
+            cert.setStatus("VERIFIED");
+        }
+        jockeyCertRepository.saveAll(certs);
+
+        // 2. Mark original notification as 'Accept'
+        notificationRecipientRepository.markVerificationRequestAsAccepted(adminId, jockeyId);
+
+        // 3. Send acceptance notification to the jockey
+        com.swp.hrtms.hrtmsbe.entity.User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+        com.swp.hrtms.hrtmsbe.entity.User jockey = userRepository.findById(jockeyId)
+                .orElseThrow(() -> new RuntimeException("Jockey not found"));
+
+        com.swp.hrtms.hrtmsbe.entity.Notification notification = com.swp.hrtms.hrtmsbe.entity.Notification.builder()
+                .sender(admin)
+                .title("Certificate Verified")
+                .content("Your certificates have been verified successfully.")
+                .type("ACCEPT_CERTIFICATE")
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
+        notification = notificationRepository.save(notification);
+
+        com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient.builder()
+                .notification(notification)
+                .recipient(jockey)
+                .status("None")
+                .build();
+        notificationRecipientRepository.save(recipient);
+    }
+
+    @Override
+    @Transactional
+    public void rejectJockeyCertificates(Integer jockeyId, Integer adminId, String reason) {
+        // 1. Mark original notification as 'Reject'
+        notificationRecipientRepository.markVerificationRequestAsRejected(adminId, jockeyId);
+
+        // 2. Send rejection notification to the jockey
+        com.swp.hrtms.hrtmsbe.entity.User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+        com.swp.hrtms.hrtmsbe.entity.User jockey = userRepository.findById(jockeyId)
+                .orElseThrow(() -> new RuntimeException("Jockey not found"));
+
+        com.swp.hrtms.hrtmsbe.entity.Notification notification = com.swp.hrtms.hrtmsbe.entity.Notification.builder()
+                .sender(admin)
+                .title("Certificate Verification Rejected")
+                .content(reason)
+                .type("REJECT_CERTIFICATE")
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
+        notification = notificationRepository.save(notification);
+
+        com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient.builder()
+                .notification(notification)
+                .recipient(jockey)
+                .status("None")
+                .build();
+        notificationRecipientRepository.save(recipient);
+    }
 }

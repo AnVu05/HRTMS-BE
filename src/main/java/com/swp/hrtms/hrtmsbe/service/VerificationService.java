@@ -13,4 +13,6 @@ public interface VerificationService {
     // Khai: Jockey certificate submission and verification-request operations.
     Integer createJockeyCertificate(Integer jockeyId, JockeyCertCreateRequest request);
     Integer requestVerificationForAll(Integer jockeyId);
+    void acceptJockeyCertificates(Integer jockeyId, Integer adminId);
+    void rejectJockeyCertificates(Integer jockeyId, Integer adminId, String reason);
 }

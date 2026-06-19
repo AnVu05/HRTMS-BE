@@ -256,6 +256,8 @@ public class RaceServiceImpl implements RaceService {
                     .endTime(race.getEndTime())
                     .laps(race.getLaps())
                     .status(race.getStatus())
+                    .refereeId(race.getReferee() != null ? race.getReferee().getId() : null)
+                    .refereeName(race.getReferee() != null ? race.getReferee().getName() : null)
                     .build();
             raceItems.add(item);
         }
