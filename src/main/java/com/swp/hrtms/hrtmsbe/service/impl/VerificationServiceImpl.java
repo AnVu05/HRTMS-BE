@@ -41,8 +41,6 @@ public class VerificationServiceImpl implements VerificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
-    private final com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository;
-    private final com.swp.hrtms.hrtmsbe.repository.NotificationRepository notificationRepository;
 
     @Override
     @Transactional(readOnly = true)
