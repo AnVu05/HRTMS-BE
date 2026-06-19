@@ -34,7 +34,7 @@ public class VerificationController {
         return ResponseEntity.ok(ApiResponse.success(responses, "Fetched certificate images successfully"));
     }
 
-    // Khai: Save a Base64 certificate image as bytes with PENDING status.
+    // Khai: Save a Base64 certificate image directly as text with PENDING status.
     @PostMapping("/jockey-certs/{jockeyId}")
     public ResponseEntity<ApiResponse<Integer>> createJockeyCertificate(
             @PathVariable Integer jockeyId,
@@ -45,12 +45,12 @@ public class VerificationController {
     }
 
     // Khai: Create one verification notification and deliver it to every admin.
-    // @PostMapping("/jockey-certs/{jockeyId}/request-verification")
-    // public ResponseEntity<ApiResponse<Integer>> requestVerificationForAll(@PathVariable Integer jockeyId) {
-    //     Integer notificationId = verificationService.requestVerificationForAll(jockeyId);
-    //     return ResponseEntity.ok(
-    //             ApiResponse.success(notificationId, "Certificate verification requested successfully"));
-    // }
+    @PostMapping("/jockey-certs/{jockeyId}/request-verification")
+    public ResponseEntity<ApiResponse<Integer>> requestVerificationForAll(@PathVariable Integer jockeyId) {
+        Integer notificationId = verificationService.requestVerificationForAll(jockeyId);
+        return ResponseEntity.ok(
+                ApiResponse.success(notificationId, "Certificate verification requested successfully"));
+    }
 
     @PutMapping("/jockey-certs/{jockeyId}/accept")
     public ResponseEntity<ApiResponse<Void>> acceptJockeyCertificates(
