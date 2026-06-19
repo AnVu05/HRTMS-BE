@@ -40,26 +40,32 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
     }
 
     private void applyRequestToJockey(Jockey jockey, JockeyProfileUpdateRequest request) {
-        if (request.getJockeyName() != null) {
-            jockey.setJockeyName(request.getJockeyName().trim());
+        if (request.getJockeyName() == null || request.getJockeyName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Jockey name is required");
         }
 
-        if (request.getYearOfExperience() != null) {
-            if (request.getYearOfExperience() < 0) {
-                throw new IllegalArgumentException("Years of experience must be greater than or equal to 0");
-            }
-            jockey.setYearOfExperience(request.getYearOfExperience());
+        if (request.getYearOfExperience() == null) {
+            throw new IllegalArgumentException("Years of experience is required");
+        }
+        if (request.getYearOfExperience() < 0) {
+            throw new IllegalArgumentException("Years of experience must be greater than or equal to 0");
         }
 
-        if (request.getAge() != null) {
-            if (request.getAge() < 0) {
-                throw new IllegalArgumentException("Age must be greater than or equal to 0");
-            }
-            jockey.setAge(request.getAge());
+        if (request.getAge() == null) {
+            throw new IllegalArgumentException("Age is required");
         }
+        if (request.getAge() < 0) {
+            throw new IllegalArgumentException("Age must be greater than or equal to 0");
+        }
+
+        jockey.setJockeyName(request.getJockeyName().trim());
+        jockey.setYearOfExperience(request.getYearOfExperience());
+        jockey.setAge(request.getAge());
 
         if (request.getProfessionalBio() != null) {
             jockey.setProfessionalBio(request.getProfessionalBio().trim());
+        } else {
+            jockey.setProfessionalBio(null);
         }
     }
 
