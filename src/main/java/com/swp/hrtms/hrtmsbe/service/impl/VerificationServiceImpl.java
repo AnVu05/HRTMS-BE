@@ -18,6 +18,7 @@ import com.swp.hrtms.hrtmsbe.service.VerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.swp.hrtms.hrtmsbe.repository.JockeyRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,7 @@ public class VerificationServiceImpl implements VerificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
-
+    private final JockeyRepository jockeyRepository;
     @Override
     @Transactional(readOnly = true)
     public List<JockeyVerificationRequestResponse> getJockeyVerificationRequests(Integer recipientId) {
@@ -141,15 +142,10 @@ public class VerificationServiceImpl implements VerificationService {
     }
 
     private Jockey findJockeyById(Integer jockeyId) {
-        User user = userRepository.findById(jockeyId)
-                .orElseThrow(() -> new IllegalArgumentException("Jockey not found with id: " + jockeyId));
-        Object unproxiedUser = org.hibernate.Hibernate.unproxy(user);
-
-        if (!UserRole.JOCKEY.name().equals(user.getRole()) || !(unproxiedUser instanceof Jockey jockey)) {
-            throw new IllegalArgumentException("User with id " + jockeyId + " is not a jockey");
-        }
-        return jockey;
-    }
+    return jockeyRepository.findById(jockeyId)
+            .orElseThrow(() -> new IllegalArgumentException(
+                    "Jockey not found with id: " + jockeyId));
+}
 
     @Override
     @Transactional

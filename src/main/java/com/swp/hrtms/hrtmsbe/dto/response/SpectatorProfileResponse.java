@@ -24,6 +24,4 @@ public class SpectatorProfileResponse {
     private LocalDateTime createdAt;
 
     private String avatarBase64;
-
-    private String avatarContentType;
 }

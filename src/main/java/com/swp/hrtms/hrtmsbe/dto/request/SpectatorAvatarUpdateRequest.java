@@ -10,6 +10,4 @@ import lombok.NoArgsConstructor;
 public class SpectatorAvatarUpdateRequest {
 
     private String avatarBase64;
-
-    private String avatarContentType;
 }
