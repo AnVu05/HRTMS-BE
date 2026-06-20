@@ -7,9 +7,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Collection;
 
 @Repository
 public interface NotificationRecipientRepository extends JpaRepository<NotificationRecipient, Integer> {
+
+    List<NotificationRecipient> findTop3ByRecipient_IdAndNotification_TypeInOrderByNotification_CreatedAtDesc(
+            Integer recipientId,
+            Collection<String> types);
 
     @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :recipientId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE'")
     List<NotificationRecipient> findPendingVerificationRequests(@Param("recipientId") Integer recipientId);

@@ -20,6 +20,7 @@ import com.swp.hrtms.hrtmsbe.repository.RefereeRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -216,7 +217,49 @@ public class MockData {
         recipient.setStatus("None");
         notificationRecipientRepository.save(recipient);
 
+        // Historical certificate results delivered to the jockey. These records
+        // support GET /api/v1/notifications/jockeys/{jockeyId}/certificate-results.
+        createCertificateResultNotification(
+                admin,
+                jockey,
+                "Certificate Verification Rejected",
+                "The certificate image is unclear. Please upload a clearer image.",
+                "REJECT_CERTIFICATE",
+                LocalDateTime.now().minusDays(2));
+
+        createCertificateResultNotification(
+                admin,
+                jockey,
+                "Certificate Verified",
+                "Your certificates have been verified successfully.",
+                "ACCEPT_CERTIFICATE",
+                LocalDateTime.now().minusDays(1));
+
         System.out.println("Test data generated successfully!");
+    }
+
+    private void createCertificateResultNotification(
+            User admin,
+            User jockey,
+            String title,
+            String content,
+            String type,
+            LocalDateTime createdAt) {
+        com.swp.hrtms.hrtmsbe.entity.Notification notification =
+                new com.swp.hrtms.hrtmsbe.entity.Notification();
+        notification.setSender(admin);
+        notification.setTitle(title);
+        notification.setContent(content);
+        notification.setType(type);
+        notification.setCreatedAt(createdAt);
+        notification = notificationRepository.save(notification);
+
+        com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient =
+                new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+        recipient.setNotification(notification);
+        recipient.setRecipient(jockey);
+        recipient.setStatus("None");
+        notificationRecipientRepository.save(recipient);
     }
 
     private void generateHorseOwnerProfileData() {
