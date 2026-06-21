@@ -1,6 +1,7 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,19 +10,10 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SpectatorProfileResponse {
-
-    private Integer userId;
-
-    private String displayName;
-
-    private String username;
-
-    private String email;
-
-    private String role;
-
+@Builder
+public class NotificationResponse {
+    private String title;
+    private String content;
     private LocalDateTime createdAt;
-
-    private String avatarBase64;
+    private String type;
 }

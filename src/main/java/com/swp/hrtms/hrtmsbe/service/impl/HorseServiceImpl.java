@@ -71,6 +71,10 @@ public class HorseServiceImpl implements HorseService {
     }
 
     private void applyRequestToHorse(Horse horse, HorseRequest request) {
+        if (request.getOwnerId() == null) {
+            throw new IllegalArgumentException("Horse owner ID is required");
+        }
+
         HorseOwner owner = horseOwnerRepository.findById(request.getOwnerId())
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Horse owner not found with id: " + request.getOwnerId()));

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/verifications")
@@ -36,20 +37,23 @@ public class VerificationController {
 
     // Khai: Save a Base64 certificate image directly as text with PENDING status.
     @PostMapping("/jockey-certs/{jockeyId}")
-    public ResponseEntity<ApiResponse<Integer>> createJockeyCertificate(
+    public ResponseEntity<Map<String, String>> createJockeyCertificate(
             @PathVariable Integer jockeyId,
             @RequestBody JockeyCertCreateRequest request) {
-        Integer certificateId = verificationService.createJockeyCertificate(jockeyId, request);
+        verificationService.createJockeyCertificate(jockeyId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(certificateId, "Certificate created successfully"));
+                .body(Map.of(
+                        "status", "success",
+                        "message", "Certificate created successfully"));
     }
 
     // Khai: Create one verification notification and deliver it to every admin.
     @PostMapping("/jockey-certs/{jockeyId}/request-verification")
-    public ResponseEntity<ApiResponse<Integer>> requestVerificationForAll(@PathVariable Integer jockeyId) {
-        Integer notificationId = verificationService.requestVerificationForAll(jockeyId);
-        return ResponseEntity.ok(
-                ApiResponse.success(notificationId, "Certificate verification requested successfully"));
+    public ResponseEntity<Map<String, String>> requestVerificationForAll(@PathVariable Integer jockeyId) {
+        verificationService.requestVerificationForAll(jockeyId);
+        return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Certificate verification requested successfully"));
     }
 
     @PutMapping("/jockey-certs/{jockeyId}/accept")

@@ -47,12 +47,8 @@ public class SpectatorProfileServiceImpl implements SpectatorProfileService {
         if (request.getAvatarBase64() == null || request.getAvatarBase64().isBlank()) {
             throw new IllegalArgumentException("Avatar image cannot be empty");
         }
-        if (request.getAvatarContentType() == null || request.getAvatarContentType().isBlank()) {
-            throw new IllegalArgumentException("Avatar content type cannot be empty");
-        }
 
         spectator.setAvatarImage(request.getAvatarBase64().trim());
-        spectator.setAvatarContentType(request.getAvatarContentType().trim());
 
         Spectator updatedSpectator = spectatorRepository.save(spectator);
         return toResponse(updatedSpectator);
@@ -100,7 +96,6 @@ public class SpectatorProfileServiceImpl implements SpectatorProfileService {
                 spectator.getEmail(),
                 spectator.getRole(),
                 spectator.getCreatedAt(),
-                spectator.getAvatarImage(),
-                spectator.getAvatarContentType());
+                spectator.getAvatarImage());
     }
 }
