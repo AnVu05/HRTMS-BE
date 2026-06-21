@@ -27,44 +27,25 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(@RequestBody RegisterRequest request) {
         UserResponse userResponse = userService.register(request);
-        ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
-                .status(String.valueOf(HttpStatus.CREATED.value()))
-                .message("User registered successfully")
-                .data(userResponse)
-                .build();
-        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(userResponse, "User registered successfully"));
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
         LoginResponse loginResponse = userService.login(request);
-        ApiResponse<LoginResponse> apiResponse = ApiResponse.<LoginResponse>builder()
-                .status(String.valueOf(HttpStatus.OK.value()))
-                .message("Verification code sent to your email")
-                .data(loginResponse)
-                .build();
-        return ResponseEntity.ok(apiResponse);
+        return ResponseEntity.ok(ApiResponse.success(loginResponse, "Verification code sent to your email"));
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<ApiResponse<VerifyOtpResponse>> verifyOtp(@RequestBody VerifyOtpRequest request) {
         VerifyOtpResponse verifyOtpResponse = userService.verifyOtp(request);
-        ApiResponse<VerifyOtpResponse> apiResponse = ApiResponse.<VerifyOtpResponse>builder()
-                .status(String.valueOf(HttpStatus.OK.value()))
-                .message("Login successful")
-                .data(verifyOtpResponse)
-                .build();
-        return ResponseEntity.ok(apiResponse);
+        return ResponseEntity.ok(ApiResponse.success(verifyOtpResponse, "Login successful"));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout() {
         SecurityContextHolder.clearContext();
-        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
-                .status(String.valueOf(HttpStatus.OK.value()))
-                .message("Logout successful")
-                .data(null)
-                .build();
-        return ResponseEntity.ok(apiResponse);
+        return ResponseEntity.ok(ApiResponse.success(null, "Logout successful"));
     }
 }

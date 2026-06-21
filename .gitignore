@@ -37,3 +37,7 @@ Thumbs.db
 
 # Postman collections (for local testing only)
 postman/
+
+# Bỏ qua thư mục project info và skills
+info_PROJECT/
+skills/
