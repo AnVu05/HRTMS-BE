@@ -16,6 +16,24 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
             Integer recipientId,
             Collection<String> types);
 
+    @Query("""
+            SELECT nr
+            FROM NotificationRecipient nr
+            JOIN FETCH nr.notification n
+            JOIN FETCH n.sender sender
+            WHERE nr.recipient.id = :ownerId
+              AND (
+                    (sender.role = 'ADMIN' AND n.type IN :adminTypes)
+                    OR
+                    (sender.role = 'JOCKEY' AND n.type IN :jockeyTypes)
+                  )
+            ORDER BY n.createdAt DESC
+            """)
+    List<NotificationRecipient> findHorseOwnerNotifications(
+            @Param("ownerId") Integer ownerId,
+            @Param("adminTypes") Collection<String> adminTypes,
+            @Param("jockeyTypes") Collection<String> jockeyTypes);
+
     @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :recipientId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE'")
     List<NotificationRecipient> findPendingVerificationRequests(@Param("recipientId") Integer recipientId);
 
