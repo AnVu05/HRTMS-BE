@@ -189,10 +189,21 @@ public class VerificationServiceImpl implements VerificationService {
     @Override
     @Transactional
     public void rejectJockeyCertificates(Integer jockeyId, Integer adminId, String reason) {
-        // 1. Mark original notification as 'Reject'
+        // 1. Fetch pending certificates and update status
+        List<com.swp.hrtms.hrtmsbe.entity.JockeyCert> certs = jockeyCertRepository
+                .findPendingCertificatesByJockeyId(jockeyId);
+        if (certs.isEmpty()) {
+            throw new RuntimeException("No pending certificates found for the given jockey.");
+        }
+        for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : certs) {
+            cert.setStatus("REJECTED");
+        }
+        jockeyCertRepository.saveAll(certs);
+
+        // 2. Mark original notification as 'Reject'
         notificationRecipientRepository.markVerificationRequestAsRejected(adminId, jockeyId);
 
-        // 2. Send rejection notification to the jockey
+        // 3. Send rejection notification to the jockey
         com.swp.hrtms.hrtmsbe.entity.User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("Admin not found"));
         com.swp.hrtms.hrtmsbe.entity.User jockey = userRepository.findById(jockeyId)
