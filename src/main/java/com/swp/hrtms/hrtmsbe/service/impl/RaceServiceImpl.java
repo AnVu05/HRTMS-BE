@@ -11,11 +11,17 @@ import com.swp.hrtms.hrtmsbe.entity.Tournament;
 import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
 import com.swp.hrtms.hrtmsbe.repository.RefereeRepository;
 import com.swp.hrtms.hrtmsbe.repository.TournamentRepository;
+import com.swp.hrtms.hrtmsbe.entity.Notification;
+import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
+import com.swp.hrtms.hrtmsbe.entity.User;
 import com.swp.hrtms.hrtmsbe.service.RaceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +32,8 @@ public class RaceServiceImpl implements RaceService {
     private final RaceRepository raceRepository;
     private final TournamentRepository tournamentRepository;
     private final RefereeRepository refereeRepository;
+    private final NotificationRepository notificationRepository;
+    private final NotificationRecipientRepository notificationRecipientRepository;
 
     @Override
     @Transactional
@@ -100,6 +108,7 @@ public class RaceServiceImpl implements RaceService {
                     .numHorse(raceReq.getNumHorse())
                     .referee(referee)
                     .status("PENDING_REFEREE")
+                    .track(raceReq.getTrack()) // Ánh xạ trường track địa điểm thi đấu
                     .build();
 
             racesToSave.add(race);
@@ -109,6 +118,9 @@ public class RaceServiceImpl implements RaceService {
 
         List<RaceResponse> responses = new ArrayList<>();
         for (Race r : racesToSave) {
+            // Gửi thông báo lời mời cho trọng tài nếu được phân công trong đợt tạo hàng loạt
+            sendRefereeInvitation(r);
+
             responses.add(RaceResponse.builder()
                     .id(r.getId())
                     .tournamentId(r.getTournament().getId())
@@ -120,6 +132,7 @@ public class RaceServiceImpl implements RaceService {
                     .numHorse(r.getNumHorse())
                     .refereeId(r.getReferee() != null ? r.getReferee().getId() : null)
                     .status(r.getStatus())
+                    .track(r.getTrack()) // Ánh xạ trường track trả về cho client
                     .build());
         }
 
@@ -167,9 +180,13 @@ public class RaceServiceImpl implements RaceService {
                 .numHorse(request.getNumHorse())
                 .referee(referee)
                 .status("PENDING_REFEREE")
+                .track(request.getTrack()) // Ánh xạ trường track địa điểm thi đấu
                 .build();
 
         race = raceRepository.save(race);
+
+        // Gửi thông báo lời mời cho trọng tài nếu cuộc đua đơn có phân công trọng tài
+        sendRefereeInvitation(race);
 
         return RaceResponse.builder()
                 .id(race.getId())
@@ -182,6 +199,7 @@ public class RaceServiceImpl implements RaceService {
                 .numHorse(race.getNumHorse())
                 .refereeId(race.getReferee() != null ? race.getReferee().getId() : null)
                 .status(race.getStatus())
+                .track(race.getTrack()) // Ánh xạ trường track trả về cho client
                 .build();
     }
 
@@ -205,7 +223,16 @@ public class RaceServiceImpl implements RaceService {
             race.setNumHorse(request.getNumHorse());
         }
 
+        // Biến đánh dấu xem trọng tài có được phân công mới/thay đổi hay không
+        boolean refereeChanged = false;
+
         if (request.getRefereeId() != null) {
+            // Kiểm tra xem trọng tài được gán mới có khác trọng tài hiện tại hoặc cuộc đua đang cần mời lại không
+            if (race.getReferee() == null || !race.getReferee().getId().equals(request.getRefereeId()) ||
+                "REJECTED".equals(race.getStatus()) || "PENDING_REFEREE".equals(race.getStatus())) {
+                refereeChanged = true;
+            }
+
             Referee referee = refereeRepository.findById(request.getRefereeId())
                     .orElseThrow(() -> new IllegalArgumentException("Referee not found with id: " + request.getRefereeId()));
             
@@ -216,7 +243,17 @@ public class RaceServiceImpl implements RaceService {
             }
         }
 
+        // Cập nhật địa điểm đường đua (track) nếu được cung cấp trong request
+        if (request.getTrack() != null) {
+            race.setTrack(request.getTrack());
+        }
+
         race = raceRepository.save(race);
+
+        // Gửi lời mời tới trọng tài nếu có sự thay đổi phân công trọng tài
+        if (refereeChanged) {
+            sendRefereeInvitation(race);
+        }
 
         return RaceResponse.builder()
                 .id(race.getId())
@@ -229,6 +266,7 @@ public class RaceServiceImpl implements RaceService {
                 .numHorse(race.getNumHorse())
                 .refereeId(race.getReferee() != null ? race.getReferee().getId() : null)
                 .status(race.getStatus())
+                .track(race.getTrack()) // Ánh xạ trường track trả về cho client
                 .build();
     }
 
@@ -258,6 +296,7 @@ public class RaceServiceImpl implements RaceService {
                     .status(race.getStatus())
                     .refereeId(race.getReferee() != null ? race.getReferee().getId() : null)
                     .refereeName(race.getReferee() != null ? race.getReferee().getName() : null)
+                    .track(race.getTrack()) // Ánh xạ trường track địa điểm
                     .build();
             raceItems.add(item);
         }
@@ -330,5 +369,49 @@ public class RaceServiceImpl implements RaceService {
     public void predictScheduleUpdate() {
         // Tớ muốn cậu viết một hàm cập nhật lịch dự đoán nhưng để trống code ta sẽ phát triễn chức năng đấy sau
         // TODO: Implement schedule prediction logic
+    }
+
+    /**
+     * Gửi thông báo mời trọng tài tham gia điều hành cuộc đua.
+     * Người gửi (sender) được thiết lập là Admin liên kết trực tiếp với Tournament của cuộc đua.
+     * Loại thông báo là "REFEREE_INVITATION".
+     *
+     * @param race Cuộc đua được phân công trọng tài
+     */
+    private void sendRefereeInvitation(Race race) {
+        if (race.getReferee() == null) {
+            return;
+        }
+
+        // Lấy admin của tournament làm người gửi thông báo
+        User sender = race.getTournament().getAdmin();
+
+        // Tạo nội dung thông báo
+        String title = "Race Referee Invitation";
+        String content = String.format(
+                "You are invited to referee the race '%s' in tournament '%s' on %s.",
+                race.getName(),
+                race.getTournament().getName(),
+                race.getDate()
+        );
+
+        // Khởi tạo thực thể Notification liên kết với cuộc đua
+        Notification notification = Notification.builder()
+                .sender(sender)
+                .title(title)
+                .content(content)
+                .type("REFEREE_INVITATION")
+                .race(race)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notificationRepository.save(notification);
+
+        // Khởi tạo thực thể NotificationRecipient để liên kết thông báo với Trọng tài nhận
+        NotificationRecipient recipient = NotificationRecipient.builder()
+                .notification(notification)
+                .recipient(race.getReferee())
+                .status("None")
+                .build();
+        notificationRecipientRepository.save(recipient);
     }
 }
