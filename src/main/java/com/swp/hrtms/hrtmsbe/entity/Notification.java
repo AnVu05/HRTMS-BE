@@ -35,6 +35,10 @@ public class Notification {
     @Builder.Default
     private String type = "VERIFY_CERTIFICATE";
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "race_id")
+    private Race race;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

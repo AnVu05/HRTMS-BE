@@ -26,4 +26,9 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
     @org.springframework.data.jpa.repository.Modifying
     @Query("UPDATE NotificationRecipient nr SET nr.status = 'Reject' WHERE nr.recipient.id = :adminId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE' AND nr.notification.sender.id = :jockeyId")
     void markVerificationRequestAsRejected(@Param("adminId") Integer adminId, @Param("jockeyId") Integer jockeyId);
+
+    @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :refereeId AND nr.status = 'None' AND nr.notification.type = 'REFEREE_INVITATION'")
+    List<NotificationRecipient> findPendingRefereeInvitations(@Param("refereeId") Integer refereeId);
+
+    java.util.Optional<NotificationRecipient> findByIdAndRecipient_Id(Integer id, Integer recipientId);
 }

@@ -39,4 +39,6 @@ public class RaceResponse {
     private Integer refereeId;
 
     private String status;
+
+    private String track;
 }

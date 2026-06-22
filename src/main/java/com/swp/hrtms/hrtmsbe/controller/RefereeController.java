@@ -2,14 +2,12 @@ package com.swp.hrtms.hrtmsbe.controller;
 
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.RefereeResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.RefereeScheduledRaceResponse;
 import com.swp.hrtms.hrtmsbe.service.RefereeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -31,5 +29,15 @@ public class RefereeController {
         
         List<RefereeResponse> responses = refereeService.getReferees(date, startTime, endTime, excludeRaceId);
         return ResponseEntity.ok(ApiResponse.success(responses, "Referees fetched successfully"));
+    }
+
+    @GetMapping("/{refereeId}/scheduled-races")
+    public ResponseEntity<ApiResponse<List<RefereeScheduledRaceResponse>>> getScheduledRaces(
+            @PathVariable Integer refereeId) {
+        // Lấy danh sách cuộc đua đã lên lịch và xác nhận của trọng tài chỉ định
+        List<RefereeScheduledRaceResponse> responses = refereeService.getScheduledRaces(refereeId);
+
+        // Trả về kết quả thành công với định dạng ApiResponse chuẩn
+        return ResponseEntity.ok(ApiResponse.success(responses, "Scheduled races fetched successfully"));
     }
 }
