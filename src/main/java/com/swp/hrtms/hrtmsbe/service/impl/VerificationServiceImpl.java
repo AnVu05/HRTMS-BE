@@ -48,14 +48,18 @@ public class VerificationServiceImpl implements VerificationService {
             Object unproxiedSender = org.hibernate.Hibernate.unproxy(nr.getNotification().getSender());
             if (unproxiedSender instanceof Jockey) {
                 Jockey jockey = (Jockey) unproxiedSender;
-                List<String> pendingCerts = jockeyCertRepository.findPendingCertificateNamesByJockeyId(jockey.getId());
+                List<JockeyCert> pendingCerts = jockeyCertRepository.findPendingCertificatesByJockeyId(jockey.getId());
 
                 if (!pendingCerts.isEmpty()) {
+                    List<JockeyVerificationRequestResponse.CertificateInfo> certInfos = pendingCerts.stream()
+                            .map(c -> new JockeyVerificationRequestResponse.CertificateInfo(c.getCertName(), c.getStatus()))
+                            .toList();
+
                     JockeyVerificationRequestResponse response = JockeyVerificationRequestResponse.builder()
                             .notificationId(nr.getNotification().getId())
                             .jockeyId(jockey.getId())
                             .jockeyName(jockey.getJockeyName())
-                            .pendingCertificates(pendingCerts)
+                            .pendingCertificates(certInfos)
                             .build();
                     responses.add(response);
                 }
