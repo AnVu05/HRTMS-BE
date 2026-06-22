@@ -1,6 +1,7 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.HorseOwnerNotificationResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.NotificationResponse;
 import com.swp.hrtms.hrtmsbe.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -28,5 +29,16 @@ public class NotificationController {
         return ResponseEntity.ok(ApiResponse.success(
                 notifications,
                 "Fetched recent certificate notifications successfully"));
+    }
+
+    @GetMapping("/horse-owners/{ownerId}")
+    public ResponseEntity<ApiResponse<List<HorseOwnerNotificationResponse>>> getHorseOwnerNotifications(
+            @PathVariable Integer ownerId) {
+        List<HorseOwnerNotificationResponse> notifications =
+                notificationService.getHorseOwnerNotifications(ownerId);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                notifications,
+                "Fetched horse owner notifications successfully"));
     }
 }

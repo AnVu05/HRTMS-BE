@@ -4,6 +4,8 @@ import com.swp.hrtms.hrtmsbe.entity.Admin;
 import com.swp.hrtms.hrtmsbe.entity.Horse;
 import com.swp.hrtms.hrtmsbe.entity.HorseOwner;
 import com.swp.hrtms.hrtmsbe.entity.HorseStatus;
+import com.swp.hrtms.hrtmsbe.entity.Notification;
+import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
 import com.swp.hrtms.hrtmsbe.entity.Race;
 import com.swp.hrtms.hrtmsbe.entity.Spectator;
 import com.swp.hrtms.hrtmsbe.entity.Tournament;
@@ -69,6 +71,7 @@ public class MockData {
 
         // Check if data already exists to avoid duplicate data on application restart
         if (dataAlreadyExists) {
+            generateHorseOwnerNotificationData();
             System.out.println("Data already exists. Skipping test data generation.");
             return;
         }
@@ -235,6 +238,8 @@ public class MockData {
                 "ACCEPT_CERTIFICATE",
                 LocalDateTime.now().minusDays(1));
 
+        generateHorseOwnerNotificationData();
+
         System.out.println("Test data generated successfully!");
     }
 
@@ -344,5 +349,94 @@ public class MockData {
                         .build());
 
         horseRepository.saveAll(horses);
+    }
+
+    private void generateHorseOwnerNotificationData() {
+        User horseOwner = userRepository.findByUsername("horseowner1").orElse(null);
+        User admin = userRepository.findByUsername("admin1").orElse(null);
+        User jockey = userRepository.findByUsername("jockey1").orElse(null);
+
+        if (horseOwner == null || admin == null || jockey == null) {
+            System.out.println("Skipping horse owner notifications: mock owner, admin, or jockey is missing.");
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        List<HorseOwnerNotificationSeed> seeds = List.of(
+                new HorseOwnerNotificationSeed(admin, "New tournament published",
+                        "Spring Championship is now open for horse registration.",
+                        "NEW_TOURNAMENT", now.minusDays(10), now.minusDays(9)),
+                new HorseOwnerNotificationSeed(admin, "Tournament schedule updated",
+                        "The schedule for Spring Championship has been updated.",
+                        "TOURNAMENT_UPDATE", now.minusDays(9), null),
+                new HorseOwnerNotificationSeed(admin, "Tournament cancelled",
+                        "Autumn Sprint has been cancelled by the organizer.",
+                        "TOURNAMENT_CANCELLED", now.minusDays(8), now.minusDays(7)),
+                new HorseOwnerNotificationSeed(admin, "New race announced",
+                        "Qualifier 1 has been added to Spring Championship.",
+                        "NEW_RACE", now.minusDays(7), null),
+                new HorseOwnerNotificationSeed(admin, "Race schedule updated",
+                        "Qualifier 2 will start at 10:00 AM.",
+                        "RACE_UPDATE", now.minusDays(6), now.minusDays(5)),
+                new HorseOwnerNotificationSeed(admin, "Race cancelled",
+                        "The Finals race has been cancelled.",
+                        "RACE_CANCELLED", now.minusDays(5), null),
+                new HorseOwnerNotificationSeed(admin, "Registration approved",
+                        "Thunder Bolt has been approved for Qualifier 1.",
+                        "REGISTRATION_APPROVED", now.minusDays(4), now.minusDays(3)),
+                new HorseOwnerNotificationSeed(admin, "Registration rejected",
+                        "Golden Star was rejected because the horse is currently injured.",
+                        "REGISTRATION_REJECTED", now.minusDays(3), null),
+                new HorseOwnerNotificationSeed(jockey, "Jockey invitation accepted",
+                        "John Doe accepted your invitation to ride Thunder Bolt.",
+                        "INVITATION_ACCEPTED", now.minusDays(2), now.minusDays(1)),
+                new HorseOwnerNotificationSeed(jockey, "Jockey invitation rejected",
+                        "John Doe rejected your invitation to ride Silver Wind.",
+                        "INVITATION_REJECTED", now.minusDays(1), null));
+
+        List<String> existingTitles = notificationRecipientRepository.findHorseOwnerNotifications(
+                        horseOwner.getId(),
+                        List.of(
+                                "NEW_TOURNAMENT", "TOURNAMENT_UPDATE", "TOURNAMENT_CANCELLED",
+                                "NEW_RACE", "RACE_UPDATE", "RACE_CANCELLED",
+                                "REGISTRATION_APPROVED", "REGISTRATION_REJECTED"),
+                        List.of("INVITATION_ACCEPTED", "INVITATION_REJECTED"))
+                .stream()
+                .map(recipient -> recipient.getNotification().getTitle())
+                .toList();
+
+        for (HorseOwnerNotificationSeed seed : seeds) {
+            if (existingTitles.contains(seed.title())) {
+                continue;
+            }
+
+            Notification notification = Notification.builder()
+                    .sender(seed.sender())
+                    .title(seed.title())
+                    .content(seed.content())
+                    .type(seed.type())
+                    .createdAt(seed.createdAt())
+                    .build();
+            notification = notificationRepository.save(notification);
+
+            notificationRecipientRepository.save(NotificationRecipient.builder()
+                    .notification(notification)
+                    .recipient(horseOwner)
+                    .status("None")
+                    .readAt(seed.readAt())
+                    .build());
+        }
+
+        System.out.println("Horse owner notification test URL: /api/v1/notifications/horse-owners/"
+                + horseOwner.getId());
+    }
+
+    private record HorseOwnerNotificationSeed(
+            User sender,
+            String title,
+            String content,
+            String type,
+            LocalDateTime createdAt,
+            LocalDateTime readAt) {
     }
 }
