@@ -4,22 +4,20 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RaceDashboardItem {
-    private Integer id;
-    private String name;
-    private java.time.LocalDate date;
+@Builder
+public class RefereeInvitationResponse {
+    private Integer notificationId;
+    private Integer raceId;
+    private String raceName;
+    private String tournamentName;
+    private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
-    private Integer laps;
-    private String status;
-    private Integer refereeId;
-    private String refereeName;
     private String track;
 }

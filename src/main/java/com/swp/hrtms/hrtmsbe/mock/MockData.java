@@ -4,6 +4,8 @@ import com.swp.hrtms.hrtmsbe.entity.Admin;
 import com.swp.hrtms.hrtmsbe.entity.Horse;
 import com.swp.hrtms.hrtmsbe.entity.HorseOwner;
 import com.swp.hrtms.hrtmsbe.entity.HorseStatus;
+import com.swp.hrtms.hrtmsbe.entity.Notification;
+import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
 import com.swp.hrtms.hrtmsbe.entity.Race;
 import com.swp.hrtms.hrtmsbe.entity.Spectator;
 import com.swp.hrtms.hrtmsbe.entity.Tournament;

@@ -39,4 +39,7 @@ public interface RaceRepository extends JpaRepository<Race, Integer> {
                                                      @Param("endTime") LocalTime endTime);
 
     java.util.List<Race> findByTournamentId(Integer tournamentId);
+
+    @Query("SELECT r FROM Race r WHERE r.referee.id = :refereeId AND r.status = 'PUBLISHED'")
+    java.util.List<Race> findScheduledRacesByRefereeId(@Param("refereeId") Integer refereeId);
 }

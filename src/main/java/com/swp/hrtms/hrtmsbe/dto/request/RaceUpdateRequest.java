@@ -19,4 +19,6 @@ public class RaceUpdateRequest {
 
     @JsonProperty("referee_id")
     private Integer refereeId;
+
+    private String track;
 }

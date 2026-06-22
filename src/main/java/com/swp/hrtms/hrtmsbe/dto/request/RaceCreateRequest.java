@@ -32,4 +32,6 @@ public class RaceCreateRequest {
 
     @JsonProperty("referee_id")
     private Integer refereeId;
+
+    private String track;
 }

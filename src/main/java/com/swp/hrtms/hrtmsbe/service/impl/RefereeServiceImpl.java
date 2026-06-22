@@ -1,8 +1,11 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
 import com.swp.hrtms.hrtmsbe.dto.response.RefereeResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.RefereeScheduledRaceResponse;
 import com.swp.hrtms.hrtmsbe.entity.Referee;
+import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
 import com.swp.hrtms.hrtmsbe.repository.RefereeRepository;
+import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
 import com.swp.hrtms.hrtmsbe.service.RefereeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 public class RefereeServiceImpl implements RefereeService {
 
     private final RefereeRepository refereeRepository;
+    private final RaceRepository raceRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -40,5 +44,43 @@ public class RefereeServiceImpl implements RefereeService {
                         .name(r.getName())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Lấy danh sách lịch thi đấu đã xác nhận (My Scheduled Races) của Trọng tài đó.
+     * Chỉ lấy các cuộc đua có trạng thái "PUBLISHED" (tức là đã đồng ý tham gia điều hành).
+     *
+     * @param refereeId ID của Trọng tài
+     * @return Danh sách DTO chứa thông tin các cuộc đua đã xếp lịch
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<RefereeScheduledRaceResponse> getScheduledRaces(Integer refereeId) {
+        // Kiểm tra xem Trọng tài có tồn tại trong hệ thống hay không
+        if (!refereeRepository.existsById(refereeId)) {
+            throw new ResourceNotFoundException("Referee not found with id: " + refereeId);
+        }
+
+        // Lấy danh sách các cuộc đua đã xếp lịch của Trọng tài
+        List<com.swp.hrtms.hrtmsbe.entity.Race> races = raceRepository.findScheduledRacesByRefereeId(refereeId);
+
+        // Ánh xạ danh sách cuộc đua sang DTO trả về cho Client
+        return races.stream().map(race -> {
+            String tournamentName = (race.getTournament() != null) ? race.getTournament().getName() : null;
+
+            return RefereeScheduledRaceResponse.builder()
+                    .id(race.getId())
+                    .tournamentId(race.getTournament() != null ? race.getTournament().getId() : null)
+                    .tournamentName(tournamentName)
+                    .name(race.getName())
+                    .date(race.getDate())
+                    .startTime(race.getStartTime())
+                    .endTime(race.getEndTime())
+                    .laps(race.getLaps())
+                    .numHorse(race.getNumHorse())
+                    .status(race.getStatus())
+                    .track(race.getTrack())
+                    .build();
+        }).toList();
     }
 }

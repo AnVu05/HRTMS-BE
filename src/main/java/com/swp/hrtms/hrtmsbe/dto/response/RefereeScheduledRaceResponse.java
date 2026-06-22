@@ -1,11 +1,9 @@
-package com.swp.hrtms.hrtmsbe.dto.request;
+package com.swp.hrtms.hrtmsbe.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -13,29 +11,16 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SingleRaceCreateRequest {
-
-    @JsonProperty("tournament_id")
+public class RefereeScheduledRaceResponse {
+    private Integer id;
     private Integer tournamentId;
-
-    @JsonProperty("race_name")
-    private String raceName;
-
+    private String tournamentName;
+    private String name;
     private LocalDate date;
-
-    @JsonProperty("start_time")
     private LocalTime startTime;
-
-    @JsonProperty("end_time")
     private LocalTime endTime;
-
     private Integer laps;
-
-    @JsonProperty("num_horse")
     private Integer numHorse;
-
-    @JsonProperty("referee_id")
-    private Integer refereeId;
-
+    private String status;
     private String track;
 }

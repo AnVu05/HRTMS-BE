@@ -47,6 +47,8 @@ public class Race {
 
     private String status;
 
+    private String track;
+
     @Column(name = "reason")
     private String reason;
 }
