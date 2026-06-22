@@ -24,14 +24,5 @@ public class JockeyVerificationRequestResponse {
     private String jockeyName;
 
     @JsonProperty("pending_certificates")
-    private List<CertificateInfo> pendingCertificates;
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class CertificateInfo {
-        private String name;
-        private String status;
-    }
+    private List<String> pendingCertificates;
 }

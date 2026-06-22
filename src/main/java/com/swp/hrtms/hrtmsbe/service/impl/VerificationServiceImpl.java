@@ -51,8 +51,8 @@ public class VerificationServiceImpl implements VerificationService {
                 List<JockeyCert> pendingCerts = jockeyCertRepository.findPendingCertificatesByJockeyId(jockey.getId());
 
                 if (!pendingCerts.isEmpty()) {
-                    List<JockeyVerificationRequestResponse.CertificateInfo> certInfos = pendingCerts.stream()
-                            .map(c -> new JockeyVerificationRequestResponse.CertificateInfo(c.getCertName(), c.getStatus()))
+                    List<String> certInfos = pendingCerts.stream()
+                            .map(JockeyCert::getCertName)
                             .toList();
 
                     JockeyVerificationRequestResponse response = JockeyVerificationRequestResponse.builder()

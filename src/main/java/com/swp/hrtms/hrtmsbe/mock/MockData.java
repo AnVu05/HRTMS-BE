@@ -246,7 +246,8 @@ public class MockData {
                 cert2.setCertName("International Medical Clearance 2026");
                 cert2.setStatus("PENDING");
                 cert2.setJockey(jockey1);
-                cert2.setCertImg("International Medical Clearance 2026");
+                cert2.setCertImg(
+                                "/9j/4AAQSkZJRgABAQAAAQABAAD/4gIoSUNDX1BST0ZJTEUAAQEAAAIYanhsIARAAAB");
                 jockeyCertRepository.save(cert2);
 
                 com.swp.hrtms.hrtmsbe.entity.JockeyCert cert3 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
