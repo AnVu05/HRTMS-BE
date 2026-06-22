@@ -19,7 +19,7 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
                         Integer recipientId,
                         Collection<String> types);
 
-        @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :recipientId AND nr.status = 'UNREAD' AND nr.notification.type = 'VERIFY_CERTIFICATE'")
+        @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :recipientId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE'")
         List<NotificationRecipient> findPendingVerificationRequests(@Param("recipientId") Integer recipientId);
 
         @org.springframework.data.jpa.repository.Modifying
@@ -29,6 +29,10 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
         @org.springframework.data.jpa.repository.Modifying
         @Query("UPDATE NotificationRecipient nr SET nr.status = 'Reject' WHERE nr.recipient.id = :adminId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE' AND nr.notification.sender.id = :jockeyId")
         void markVerificationRequestAsRejected(@Param("adminId") Integer adminId, @Param("jockeyId") Integer jockeyId);
+
+        @org.springframework.data.jpa.repository.Modifying
+        @Query("UPDATE NotificationRecipient nr SET nr.status = 'DONE_VERIFY' WHERE nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE' AND nr.notification.sender.id = :jockeyId")
+        void markAllOtherVerificationRequestsAsDoneVerify(@Param("jockeyId") Integer jockeyId);
 
         Page<NotificationRecipient> findByRecipient_IdAndNotification_TypeInOrderByNotification_CreatedAtDesc(
                         Integer recipientId,

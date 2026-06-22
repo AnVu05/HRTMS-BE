@@ -169,6 +169,12 @@ public class VerificationServiceImpl implements VerificationService {
 
         // 2. Mark original notification as 'Accept'
         notificationRecipientRepository.markVerificationRequestAsAccepted(adminId, jockeyId);
+        
+        // 2.5 Mark other admins' notifications as 'DONE_VERIFY'
+        notificationRecipientRepository.markAllOtherVerificationRequestsAsDoneVerify(jockeyId);
+        
+        // 2.6 Update the type of the original notification
+        notificationRepository.updateTypeToDoneVerify(jockeyId);
 
         // 3. Send acceptance notification to the jockey
         com.swp.hrtms.hrtmsbe.entity.User admin = userRepository.findById(adminId)
@@ -198,6 +204,12 @@ public class VerificationServiceImpl implements VerificationService {
     public void rejectJockeyCertificates(Integer jockeyId, Integer adminId, String reason) {
         // 1. Mark original notification as 'Reject'
         notificationRecipientRepository.markVerificationRequestAsRejected(adminId, jockeyId);
+
+        // 1.5 Mark other admins' notifications as 'DONE_VERIFY'
+        notificationRecipientRepository.markAllOtherVerificationRequestsAsDoneVerify(jockeyId);
+        
+        // 1.6 Update the type of the original notification
+        notificationRepository.updateTypeToDoneVerify(jockeyId);
 
         // 2. Send rejection notification to the jockey
         com.swp.hrtms.hrtmsbe.entity.User admin = userRepository.findById(adminId)
