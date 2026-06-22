@@ -156,6 +156,9 @@ public class VerificationServiceImpl implements VerificationService {
             throw new RuntimeException("No pending certificates found for the given jockey.");
         }
         for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : certs) {
+            // BR_new_FastTrack (Tiền đề): Cấp trạng thái 'VERIFIED' (đã kiểm duyệt chứng chỉ)
+            // để nài ngựa đủ điều kiện tham gia luồng "Cập nhật siêu tốc" sau này.
+            // BR_01 (Tiền đề): Xác nhận chứng chỉ hợp lệ để hệ thống đối chiếu "Khớp Loại ngựa" khi đăng ký.
             cert.setStatus("VERIFIED");
         }
         jockeyCertRepository.saveAll(certs);
