@@ -1,20 +1,26 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyProfileUpdateRequest;
+import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertificateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyProfileResponse;
 import com.swp.hrtms.hrtmsbe.entity.Jockey;
+import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
+import com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository;
 import com.swp.hrtms.hrtmsbe.repository.JockeyRepository;
 import com.swp.hrtms.hrtmsbe.service.JockeyProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class JockeyProfileServiceImpl implements JockeyProfileService {
 
     private final JockeyRepository jockeyRepository;
+    private final JockeyCertRepository jockeyCertRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -32,6 +38,18 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
 
         Jockey updatedJockey = jockeyRepository.save(jockey);
         return toResponse(updatedJockey);
+    }
+
+    // Khai: Read all certificates without filtering out statuses updated by an admin.
+    @Override
+    @Transactional(readOnly = true)
+    public List<JockeyCertificateResponse> getCertificates(Integer jockeyId) {
+        findJockeyById(jockeyId);
+
+        return jockeyCertRepository.findAllCertificatesByJockeyId(jockeyId)
+                .stream()
+                .map(this::toCertificateResponse)
+                .toList();
     }
 
     private Jockey findJockeyById(Integer jockeyId) {
@@ -81,6 +99,15 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
                 .age(jockey.getAge())
                 .professionalBio(jockey.getProfessionalBio())
                 .status(jockey.getStatus())
+                .build();
+    }
+
+    private JockeyCertificateResponse toCertificateResponse(JockeyCert certificate) {
+        return JockeyCertificateResponse.builder()
+                .certId(certificate.getId())
+                .certName(certificate.getCertName())
+                .certImageBase64(certificate.getCertImg())
+                .status(certificate.getStatus())
                 .build();
     }
 }
