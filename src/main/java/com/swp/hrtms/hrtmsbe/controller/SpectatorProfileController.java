@@ -2,6 +2,7 @@ package com.swp.hrtms.hrtmsbe.controller;
 
 import com.swp.hrtms.hrtmsbe.dto.request.SpectatorAvatarUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.SpectatorProfileUpdateRequest;
+import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.SpectatorProfileResponse;
 import com.swp.hrtms.hrtmsbe.service.SpectatorProfileService;
 import org.springframework.http.ResponseEntity;
@@ -23,21 +24,24 @@ public class SpectatorProfileController {
     }
 
     @GetMapping("/{spectatorId}/profile")
-    public ResponseEntity<SpectatorProfileResponse> getProfile(@PathVariable Integer spectatorId) {
-        return ResponseEntity.ok(spectatorProfileService.getProfile(spectatorId));
+    public ResponseEntity<ApiResponse<SpectatorProfileResponse>> getProfile(@PathVariable Integer spectatorId) {
+        SpectatorProfileResponse response = spectatorProfileService.getProfile(spectatorId);
+        return ResponseEntity.ok(ApiResponse.success(response, "Spectator profile fetched successfully"));
     }
 
     @PutMapping("/{spectatorId}/profile")
-    public ResponseEntity<SpectatorProfileResponse> updateProfile(
+    public ResponseEntity<ApiResponse<SpectatorProfileResponse>> updateProfile(
             @PathVariable Integer spectatorId,
             @RequestBody SpectatorProfileUpdateRequest request) {
-        return ResponseEntity.ok(spectatorProfileService.updateProfile(spectatorId, request));
+        SpectatorProfileResponse response = spectatorProfileService.updateProfile(spectatorId, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Spectator profile updated successfully"));
     }
 
     @PutMapping("/{spectatorId}/profile/avatar")
-    public ResponseEntity<SpectatorProfileResponse> updateAvatar(
+    public ResponseEntity<ApiResponse<SpectatorProfileResponse>> updateAvatar(
             @PathVariable Integer spectatorId,
             @RequestBody SpectatorAvatarUpdateRequest request) {
-        return ResponseEntity.ok(spectatorProfileService.updateAvatar(spectatorId, request));
+        SpectatorProfileResponse response = spectatorProfileService.updateAvatar(spectatorId, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Spectator avatar updated successfully"));
     }
 }

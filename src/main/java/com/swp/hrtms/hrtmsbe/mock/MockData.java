@@ -20,6 +20,7 @@ import com.swp.hrtms.hrtmsbe.repository.RefereeRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -283,7 +284,69 @@ public class MockData {
                 rec2.setStatus("UNREAD");
                 notificationRecipientRepository.save(rec2);
 
-                System.out.println("International Realistic Test data generated successfully!");
+                com.swp.hrtms.hrtmsbe.entity.Notification notif3 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif3.setTitle("Referee Accepted");
+                notif3.setContent("Referee Michael Prosser has accepted the assignment for race The Churchill Downs Stakes.");
+                notif3.setType("REFEREE_ACCEPTED");
+                notif3 = notificationRepository.save(notif3);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec3 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec3.setNotification(notif3);
+                rec3.setRecipient(admin);
+                rec3.setStatus("UNREAD");
+                notificationRecipientRepository.save(rec3);
+
+                com.swp.hrtms.hrtmsbe.entity.Notification notif4 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif4.setTitle("Registration Verify");
+                notif4.setContent("A new horse registration requires your verification.");
+                notif4.setType("REGISTRATION_VERIFY");
+                notif4 = notificationRepository.save(notif4);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec4 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec4.setNotification(notif4);
+                rec4.setRecipient(admin);
+                rec4.setStatus("UNREAD");
+                notificationRecipientRepository.save(rec4);
+
+                com.swp.hrtms.hrtmsbe.entity.Notification notif5 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif5.setTitle("Doctor Rejected");
+                notif5.setContent("Doctor has rejected the horse medical clearance for Flightline.");
+                notif5.setType("DOCTOR_REJECTED");
+                notif5 = notificationRepository.save(notif5);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec5 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec5.setNotification(notif5);
+                rec5.setRecipient(admin);
+                rec5.setStatus("UNREAD");
+                notificationRecipientRepository.save(rec5);
+
+                com.swp.hrtms.hrtmsbe.entity.Notification notif6 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif6.setTitle("Doctor Accepted");
+                notif6.setContent("Doctor has accepted the horse medical clearance for Baaeed.");
+                notif6.setType("DOCTOR_ACCEPTED");
+                notif6 = notificationRepository.save(notif6);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec6 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec6.setNotification(notif6);
+                rec6.setRecipient(admin);
+                rec6.setStatus("READ");
+                rec6.setReadAt(LocalDateTime.now().minusDays(1));
+                notificationRecipientRepository.save(rec6);
+
+                com.swp.hrtms.hrtmsbe.entity.Notification notif7 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif7.setTitle("Referee Rejected");
+                notif7.setContent("Referee Kim Kelly has rejected the assignment for race The Turf Classic.");
+                notif7.setType("REFEREE_REJECTED");
+                notif7 = notificationRepository.save(notif7);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec7 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec7.setNotification(notif7);
+                rec7.setRecipient(admin);
+                rec7.setStatus("READ");
+                rec7.setReadAt(LocalDateTime.now().minusHours(5));
+                notificationRecipientRepository.save(rec7);
+
+                System.out.println("Test data generated successfully!");
         }
 
         private void generateHorseOwnerProfileData() {
