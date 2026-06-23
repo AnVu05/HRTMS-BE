@@ -1,6 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyProfileUpdateRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertificateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyProfileResponse;
 import com.swp.hrtms.hrtmsbe.entity.Jockey;
@@ -52,9 +53,49 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
                 .toList();
     }
 
+    // Khai: Updating verified data resets the certificate to PENDING for admin review.
+    @Override
+    @Transactional
+    public JockeyCertificateResponse updateCertificate(
+            Integer jockeyId,
+            Integer certId,
+            JockeyCertUpdateRequest request) {
+        validateCertificateUpdateRequest(request);
+        JockeyCert certificate = findCertificateByIdAndJockeyId(certId, jockeyId);
+
+        certificate.setCertName(request.getCertName().trim());
+        certificate.setCertImg(request.getCertImageBase64());
+        certificate.setStatus("PENDING");
+
+        return toCertificateResponse(jockeyCertRepository.save(certificate));
+    }
+
+    // Khai: Permanently remove the certificate from the database.
+    @Override
+    @Transactional
+    public void deleteCertificate(Integer jockeyId, Integer certId) {
+        JockeyCert certificate = findCertificateByIdAndJockeyId(certId, jockeyId);
+        jockeyCertRepository.delete(certificate);
+    }
+
     private Jockey findJockeyById(Integer jockeyId) {
         return jockeyRepository.findById(jockeyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Jockey not found with id: " + jockeyId));
+    }
+
+    private JockeyCert findCertificateByIdAndJockeyId(Integer certId, Integer jockeyId) {
+        return jockeyCertRepository.findCertificateByIdAndJockeyId(certId, jockeyId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Certificate not found with id " + certId + " for jockey " + jockeyId));
+    }
+
+    private void validateCertificateUpdateRequest(JockeyCertUpdateRequest request) {
+        if (request == null || request.getCertName() == null || request.getCertName().isBlank()) {
+            throw new IllegalArgumentException("Certificate name cannot be empty");
+        }
+        if (request.getCertImageBase64() == null || request.getCertImageBase64().isBlank()) {
+            throw new IllegalArgumentException("Certificate image cannot be empty");
+        }
     }
 
     private void applyRequestToJockey(Jockey jockey, JockeyProfileUpdateRequest request) {
