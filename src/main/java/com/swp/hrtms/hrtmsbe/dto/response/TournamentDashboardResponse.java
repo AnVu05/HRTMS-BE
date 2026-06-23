@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;
 
@@ -18,4 +19,13 @@ public class TournamentDashboardResponse {
     private LocalDate endDate;
     private Long numRaces;
     private String status;
+
+    @JsonProperty("allowed_breed")
+    private String allowedBreed;
+
+    @JsonProperty("allowed_horse_age")
+    private Integer allowedHorseAge;
+
+    @JsonProperty("tournament_description")
+    private String description;
 }

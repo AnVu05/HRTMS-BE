@@ -245,7 +245,7 @@ public class MockData {
                 tournament.setEndDate(java.time.LocalDate.of(2026, 6, 26));
                 tournament.setAllowedBreed("Thoroughbred");
                 tournament.setAllowedHorseAge(4);
-                tournament.setDescription("Royal Ascot mock tournament for race creation API flow.");
+                tournament.setDescription("<p>Royal Ascot mock tournament for race creation API flow.</p>");
                 tournament.setStatus("DRAFT");
                 return tournamentRepository.save(tournament);
         }
