@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface JockeyCertRepository extends JpaRepository<JockeyCert, Integer> {
@@ -20,4 +21,10 @@ public interface JockeyCertRepository extends JpaRepository<JockeyCert, Integer>
     // Khai: Return all certificates so the jockey can see PENDING, VERIFIED, and REJECTED statuses.
     @Query("SELECT jc FROM JockeyCert jc WHERE jc.jockey.id = :jockeyId ORDER BY jc.id ASC")
     List<JockeyCert> findAllCertificatesByJockeyId(@Param("jockeyId") Integer jockeyId);
+
+    // Khai: Find a certificate only when it belongs to the requested jockey.
+    @Query("SELECT jc FROM JockeyCert jc WHERE jc.id = :certId AND jc.jockey.id = :jockeyId")
+    Optional<JockeyCert> findCertificateByIdAndJockeyId(
+            @Param("certId") Integer certId,
+            @Param("jockeyId") Integer jockeyId);
 }
