@@ -18,10 +18,11 @@ public class TournamentController {
 
     private final TournamentService tournamentService;
 
-    @PostMapping
+    @PostMapping("/{adminId}")
     public ResponseEntity<ApiResponse<TournamentResponse>> createTournament(
+            @PathVariable("adminId") Integer adminId,
             @RequestBody TournamentCreateRequest request) {
-        TournamentResponse response = tournamentService.createTournament(request);
+        TournamentResponse response = tournamentService.createTournament(adminId, request);
         return new ResponseEntity<>(ApiResponse.success(response, "Tournament created successfully"),
                 HttpStatus.CREATED);
     }

@@ -40,10 +40,10 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @Transactional
-    public TournamentResponse createTournament(TournamentCreateRequest request) {
+    public TournamentResponse createTournament(Integer adminId, TournamentCreateRequest request) {
         // Find Admin
-        Admin admin = adminRepository.findById(request.getAdminId())
-                .orElseThrow(() -> new IllegalArgumentException("Admin not found with id: " + request.getAdminId()));
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new IllegalArgumentException("Admin not found with id: " + adminId));
 
         // Validate dates
         if (request.getStartDate() == null || request.getEndDate() == null) {
