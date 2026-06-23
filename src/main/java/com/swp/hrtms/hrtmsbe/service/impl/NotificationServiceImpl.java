@@ -7,11 +7,13 @@ import com.swp.hrtms.hrtmsbe.dto.response.HorseOwnerNotificationResponse;
 import com.swp.hrtms.hrtmsbe.entity.Notification;
 import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
 import com.swp.hrtms.hrtmsbe.entity.Race;
-import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
+import com.swp.hrtms.hrtmsbe.entity.Referee;
+import com.swp.hrtms.hrtmsbe.entity.User;
 import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
 import com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository;
 import com.swp.hrtms.hrtmsbe.repository.JockeyRepository;
 import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
 import com.swp.hrtms.hrtmsbe.repository.RefereeRepository;
 import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
 import com.swp.hrtms.hrtmsbe.service.NotificationService;
@@ -50,6 +52,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final HorseOwnerRepository horseOwnerRepository;
     private final RefereeRepository refereeRepository;
     private final RaceRepository raceRepository;
+    private final NotificationRepository notificationRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -108,7 +111,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * Lấy danh sách lời mời đang chờ (Pending Invitations) của Trọng tài.
-     * Chỉ lấy các lời mời có trạng thái "None" và loại thông báo "REFEREE_INVITATION".
+     * Chỉ lấy các lời mời có trạng thái "None" và loại thông báo
+     * "REFEREE_INVITATION".
      *
      * @param refereeId ID của Trọng tài
      * @return Danh sách DTO chứa thông tin lời mời
@@ -122,13 +126,15 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         // Lấy tất cả các lời mời đang chờ (trạng thái None) của Trọng tài này
-        List<NotificationRecipient> recipients = notificationRecipientRepository.findPendingRefereeInvitations(refereeId);
+        List<NotificationRecipient> recipients = notificationRecipientRepository
+                .findPendingRefereeInvitations(refereeId);
 
         // Ánh xạ danh sách các lời mời sang DTO để trả về cho Client
         return recipients.stream().map(recipient -> {
             Notification notification = recipient.getNotification();
             Race race = notification.getRace();
-            String tournamentName = (race != null && race.getTournament() != null) ? race.getTournament().getName() : null;
+            String tournamentName = (race != null && race.getTournament() != null) ? race.getTournament().getName()
+                    : null;
 
             return RefereeInvitationResponse.builder()
                     .notificationId(recipient.getId())
@@ -145,32 +151,33 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * Trọng tài phản hồi lời mời tham gia điều hành cuộc đua (Accept hoặc Reject).
-     * Khi Accept, hệ thống bắt buộc kiểm tra xem trọng tài đã có lịch thi đấu nào khác trùng thời gian hay chưa.
+     * Khi Accept, hệ thống bắt buộc kiểm tra xem trọng tài đã có lịch thi đấu nào
+     * khác trùng thời gian hay chưa.
      * Nếu trùng lịch, ném lỗi và từ chối xử lý.
      * Nếu không trùng:
-     * - Trạng thái của NotificationRecipient được đổi thành "Accept", trạng thái Cuộc đua thành "PUBLISHED".
-     * - Khi Reject, trạng thái đổi thành "Reject", trạng thái Cuộc đua thành "REJECTED".
+     * - Trạng thái của NotificationRecipient được đổi thành "Accept", trạng thái
+     * Cuộc đua thành "PUBLISHED".
+     * - Khi Reject, trạng thái đổi thành "Reject", trạng thái Cuộc đua thành
+     * "REJECTED".
      *
-     * @param refereeId ID của Trọng tài
+     * @param refereeId      ID của Trọng tài
      * @param notificationId ID của NotificationRecipient nhận lời mời
-     * @param request DTO phản hồi chứa trạng thái mong muốn ("Accept" hoặc "Reject")
+     * @param request        DTO phản hồi chứa trạng thái mong muốn ("Accept" hoặc
+     *                       "Reject")
      */
     @Override
     @Transactional
-    public void respondToRefereeInvitation(Integer refereeId, Integer notificationId, RespondInvitationRequest request) {
-        // 1. Kiểm tra sự tồn tại của Trọng tài trong hệ thống
-        if (!refereeRepository.existsById(refereeId)) {
-            throw new ResourceNotFoundException("Referee not found with id: " + refereeId);
-        }
+    public void respondToRefereeInvitation(Integer refereeId, Integer notificationId,
+            RespondInvitationRequest request) {
+        // 1. Tìm Trọng tài trong hệ thống
+        Referee referee = refereeRepository.findById(refereeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Referee not found with id: " + refereeId));
 
         // 2. Tìm thông báo nhận tương ứng của Trọng tài
-        NotificationRecipient recipient = notificationRecipientRepository.findByIdAndRecipient_Id(notificationId, refereeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Invitation not found for referee with id: " + notificationId));
-
-        // Kiểm tra xem lời mời đã được xử lý hay chưa để tránh cập nhật lặp
-        if (!"None".equals(recipient.getStatus())) {
-            throw new IllegalArgumentException("This invitation has already been responded to.");
-        }
+        NotificationRecipient recipient = notificationRecipientRepository
+                .findByIdAndRecipient_Id(notificationId, refereeId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Invitation not found for referee with id: " + notificationId));
 
         Notification notification = recipient.getNotification();
         Race race = notification.getRace();
@@ -178,29 +185,51 @@ public class NotificationServiceImpl implements NotificationService {
             throw new ResourceNotFoundException("No race associated with this invitation.");
         }
 
+        // Kiểm tra xem lời mời đã được xử lý hay chưa để tránh cập nhật lặp
+        // Lời mời chỉ hợp lệ khi cuộc đua vẫn đang chờ trọng tài (PENDING_REFEREE) và
+        // trọng tài được gán trùng khớp với refereeId
+        if (!"PENDING_REFEREE".equals(race.getStatus()) || race.getReferee() == null
+                || !race.getReferee().getId().equals(refereeId)) {
+            throw new IllegalArgumentException("This invitation is no longer valid or has already been responded to.");
+        }
+
         String responseStatus = request.getStatus();
         if ("Accept".equalsIgnoreCase(responseStatus)) {
             // --- VALIDATE TRÙNG LỊCH (BR_ScheduleCheck) ---
-            // Kiểm tra xem trọng tài đã có lịch ở cuộc đua nào khác đang active (khác CANCELLED) trùng ngày và khoảng thời gian hay chưa
+            // Kiểm tra xem trọng tài đã có lịch ở cuộc đua nào khác đang active (khác
+            // CANCELLED) trùng ngày và khoảng thời gian hay chưa
             boolean hasOverlap = raceRepository.existsOverlappingForRefereeExcludingRace(
                     refereeId,
                     race.getId(),
                     race.getDate(),
                     race.getStartTime(),
-                    race.getEndTime()
-            );
+                    race.getEndTime());
             if (hasOverlap) {
                 // Ném ngoại lệ thông báo lỗi trùng lịch biểu của Trọng tài như yêu cầu
-                throw new IllegalArgumentException("Referee is already scheduled for another active/published race at this overlapping time.");
+                throw new IllegalArgumentException(
+                        "Referee is already scheduled for another active/published race at this overlapping time.");
             }
 
-            // Cập nhật trạng thái người nhận và trạng thái cuộc đua thành PUBLISHED (đã xuất bản)
-            recipient.setStatus("Accept");
+            // Cập nhật trạng thái người nhận thành "None" (theo yêu cầu của hệ thống để hỗ
+            // trợ lọc thông báo chưa đọc sau này)
+            // Cập nhật trạng thái cuộc đua thành PUBLISHED (đã xuất bản)
+            recipient.setStatus("None");
             race.setStatus("PUBLISHED");
+
+            // Tạo thông báo phản hồi (Đồng ý) gửi ngược về lại cho Admin
+            createResponseNotification(referee, race, true);
         } else if ("Reject".equalsIgnoreCase(responseStatus)) {
-            // Cập nhật trạng thái người nhận và trạng thái cuộc đua thành REJECTED (bị từ chối)
-            recipient.setStatus("Reject");
-            race.setStatus("REJECTED");
+            // Cập nhật trạng thái người nhận thành "None" theo yêu cầu
+            recipient.setStatus("None");
+
+            // Tạo thông báo phản hồi (Từ chối) gửi ngược về lại cho Admin trước khi gán
+            // referee thành null
+            createResponseNotification(referee, race, false);
+
+            // Cập nhật trạng thái cuộc đua thành PENDING_REFEREE và gỡ bỏ referee_id (set
+            // null)
+            race.setStatus("PENDING_REFEREE");
+            race.setReferee(null);
         } else {
             throw new IllegalArgumentException("Invalid status. Supported statuses are 'Accept' or 'Reject'.");
         }
@@ -208,5 +237,39 @@ public class NotificationServiceImpl implements NotificationService {
         // Lưu tất cả các thay đổi trạng thái vào cơ sở dữ liệu
         notificationRecipientRepository.save(recipient);
         raceRepository.save(race);
+    }
+
+    // Hàm hỗ trợ tạo thông báo phản hồi gửi ngược lại cho Admin của cuộc đua
+    private void createResponseNotification(Referee referee, Race race, boolean isAccepted) {
+        User admin = race.getTournament().getAdmin();
+        if (admin == null) {
+            return;
+        }
+
+        String title = isAccepted ? "Referee Invitation Accepted" : "Referee Invitation Rejected";
+        String content = isAccepted
+                ? String.format("%s has accepted the invitation to referee the race '%s' in tournament '%s'.",
+                        referee.getName(), race.getName(), race.getTournament().getName())
+                : String.format("%s has rejected the invitation to referee the race '%s' in tournament '%s'.",
+                        referee.getName(), race.getName(), race.getTournament().getName());
+
+        // Lưu thông báo mới (referee là người gửi)
+        Notification notification = Notification.builder()
+                .sender(referee)
+                .title(title)
+                .content(content)
+                .type(isAccepted ? "INVITATION_ACCEPTED" : "INVITATION_REJECTED")
+                .race(race)
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
+        notificationRepository.save(notification);
+
+        // Liên kết thông báo phản hồi với Admin nhận (status mặc định là None)
+        NotificationRecipient responseRecipient = NotificationRecipient.builder()
+                .notification(notification)
+                .recipient(admin)
+                .status("None")
+                .build();
+        notificationRecipientRepository.save(responseRecipient);
     }
 }
