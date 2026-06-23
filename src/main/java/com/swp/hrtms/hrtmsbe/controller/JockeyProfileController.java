@@ -1,6 +1,7 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyProfileUpdateRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertificateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyProfileResponse;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/jockeys")
@@ -38,5 +40,27 @@ public class JockeyProfileController {
             @PathVariable Integer jockeyId) {
         List<JockeyCertificateResponse> response = jockeyProfileService.getCertificates(jockeyId);
         return ResponseEntity.ok(ApiResponse.success(response, "Fetched jockey certificates successfully"));
+    }
+
+    // Khai: Update a certificate's name and image, then send it back to PENDING status.
+    @PutMapping("/{jockeyId}/certificates/{certId}")
+    public ResponseEntity<ApiResponse<JockeyCertificateResponse>> updateCertificate(
+            @PathVariable Integer jockeyId,
+            @PathVariable Integer certId,
+            @RequestBody JockeyCertUpdateRequest request) {
+        JockeyCertificateResponse response = jockeyProfileService
+                .updateCertificate(jockeyId, certId, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Certificate updated successfully"));
+    }
+
+    // Khai: Permanently delete a certificate and return only status and message.
+    @DeleteMapping("/{jockeyId}/certificates/{certId}")
+    public ResponseEntity<Map<String, String>> deleteCertificate(
+            @PathVariable Integer jockeyId,
+            @PathVariable Integer certId) {
+        jockeyProfileService.deleteCertificate(jockeyId, certId);
+        return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Certificate deleted successfully"));
     }
 }
