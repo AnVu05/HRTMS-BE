@@ -272,14 +272,14 @@ public class NotificationServiceImpl implements NotificationService {
                         // Cập nhật trạng thái người nhận thành "None" (theo yêu cầu của hệ thống để hỗ
                         // trợ lọc thông báo chưa đọc sau này)
                         // Cập nhật trạng thái cuộc đua thành PUBLISHED (đã xuất bản)
-                        recipient.setStatus("None");
+                        recipient.setStatus("READ");
                         race.setStatus("PUBLISHED");
 
                         // Tạo thông báo phản hồi (Đồng ý) gửi ngược về lại cho Admin
                         createResponseNotification(referee, race, true);
                 } else if ("Reject".equalsIgnoreCase(responseStatus)) {
                         // Cập nhật trạng thái người nhận thành "None" theo yêu cầu
-                        recipient.setStatus("None");
+                        recipient.setStatus("READ");
 
                         // Tạo thông báo phản hồi (Từ chối) gửi ngược về lại cho Admin trước khi gán
                         // referee thành null

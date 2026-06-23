@@ -233,9 +233,8 @@ public class RaceServiceImpl implements RaceService {
         boolean refereeChanged = false;
 
         if (request.getRefereeId() != null) {
-            // Kiểm tra xem trọng tài được gán mới có khác trọng tài hiện tại hoặc cuộc đua đang cần mời lại không
-            if (race.getReferee() == null || !race.getReferee().getId().equals(request.getRefereeId()) ||
-                "REJECTED".equals(race.getStatus()) || "PENDING_REFEREE".equals(race.getStatus())) {
+            // Kiểm tra xem trọng tài được gán mới có thực sự khác trọng tài hiện tại hay không
+            if (race.getReferee() == null || !race.getReferee().getId().equals(request.getRefereeId())) {
                 refereeChanged = true;
             }
 
