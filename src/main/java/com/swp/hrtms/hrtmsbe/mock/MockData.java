@@ -29,414 +29,421 @@ import java.util.List;
 @Component
 public class MockData {
 
-    private final UserRepository userRepository;
-    private final AdminRepository adminRepository;
-    private final HorseOwnerRepository horseOwnerRepository;
-    private final HorseRepository horseRepository;
-    private final TournamentRepository tournamentRepository;
-    private final RaceRepository raceRepository;
-    private final RefereeRepository refereeRepository;
-    private final com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository jockeyCertRepository;
-    private final com.swp.hrtms.hrtmsbe.repository.NotificationRepository notificationRepository;
-    private final com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository notificationRecipientRepository;
+        private final UserRepository userRepository;
+        private final AdminRepository adminRepository;
+        private final HorseOwnerRepository horseOwnerRepository;
+        private final HorseRepository horseRepository;
+        private final TournamentRepository tournamentRepository;
+        private final RaceRepository raceRepository;
+        private final RefereeRepository refereeRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository jockeyCertRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.NotificationRepository notificationRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository notificationRecipientRepository;
 
-    public MockData(UserRepository userRepository,
-            AdminRepository adminRepository,
-            HorseOwnerRepository horseOwnerRepository,
-            HorseRepository horseRepository,
-            TournamentRepository tournamentRepository,
-            RaceRepository raceRepository,
-            RefereeRepository refereeRepository,
-            com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository jockeyCertRepository,
-            com.swp.hrtms.hrtmsbe.repository.NotificationRepository notificationRepository,
-            com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository notificationRecipientRepository) {
-        this.userRepository = userRepository;
-        this.adminRepository = adminRepository;
-        this.horseOwnerRepository = horseOwnerRepository;
-        this.horseRepository = horseRepository;
-        this.tournamentRepository = tournamentRepository;
-        this.raceRepository = raceRepository;
-        this.refereeRepository = refereeRepository;
-        this.jockeyCertRepository = jockeyCertRepository;
-        this.notificationRepository = notificationRepository;
-        this.notificationRecipientRepository = notificationRecipientRepository;
-    }
-
-    public void generateData() {
-        boolean dataAlreadyExists = userRepository.count() > 0;
-
-        generateHorseOwnerProfileData();
-        generateSpectatorProfileData();
-        generateHorseData();
-
-        // Check if data already exists to avoid duplicate data on application restart
-        if (dataAlreadyExists) {
-            generateHorseOwnerNotificationData();
-            System.out.println("Data already exists. Skipping test data generation.");
-            return;
+        public MockData(UserRepository userRepository,
+                        AdminRepository adminRepository,
+                        HorseOwnerRepository horseOwnerRepository,
+                        HorseRepository horseRepository,
+                        TournamentRepository tournamentRepository,
+                        RaceRepository raceRepository,
+                        RefereeRepository refereeRepository,
+                        com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository jockeyCertRepository,
+                        com.swp.hrtms.hrtmsbe.repository.NotificationRepository notificationRepository,
+                        com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository notificationRecipientRepository) {
+                this.userRepository = userRepository;
+                this.adminRepository = adminRepository;
+                this.horseOwnerRepository = horseOwnerRepository;
+                this.horseRepository = horseRepository;
+                this.tournamentRepository = tournamentRepository;
+                this.raceRepository = raceRepository;
+                this.refereeRepository = refereeRepository;
+                this.jockeyCertRepository = jockeyCertRepository;
+                this.notificationRepository = notificationRepository;
+                this.notificationRecipientRepository = notificationRecipientRepository;
         }
 
-        System.out.println("Generating test data for Dashboard & Race Details...");
+        public void generateData() {
+                boolean dataAlreadyExists = userRepository.count() > 0;
 
-        // 1. Create Admin
-        Admin admin = new Admin();
-        admin.setUsername("admin1");
-        admin.setPassword("password123");
-        admin.setEmail("admin1@test.com");
-        admin.setRole(UserRole.ADMIN.name());
-        adminRepository.save(admin);
+                generateHorseOwnerProfileData();
+                generateHorseData();
 
-        // 2. Create Tournaments for Dashboard (Various Statuses)
-        Tournament t1 = new Tournament();
-        t1.setAdmin(admin);
-        t1.setName("Spring Championship");
-        t1.setStartDate(LocalDate.now().plusDays(5));
-        t1.setEndDate(LocalDate.now().plusDays(10));
-        t1.setAllowedBreed("Thoroughbred");
-        t1.setAllowedHorseAge(4);
-        t1.setStatus("DRAFT");
-        tournamentRepository.save(t1);
+                // Check if data already exists to avoid duplicate data on application restart
+                if (dataAlreadyExists) {
+                        System.out.println("Data already exists. Skipping test data generation.");
+                        return;
+                }
 
-        Tournament t2 = new Tournament();
-        t2.setAdmin(admin);
-        t2.setName("Summer Cup");
-        t2.setStartDate(LocalDate.now().minusDays(5));
-        t2.setEndDate(LocalDate.now().plusDays(5));
-        t2.setAllowedBreed("Arabian");
-        t2.setAllowedHorseAge(5);
-        t2.setStatus("PUBLISHED");
-        tournamentRepository.save(t2);
+                System.out.println("Generating INTERNATIONAL REALISTIC test data for HRTMS APIs...");
 
-        Tournament t3 = new Tournament();
-        t3.setAdmin(admin);
-        t3.setName("Winter Classics");
-        t3.setStartDate(LocalDate.now().minusDays(20));
-        t3.setEndDate(LocalDate.now().minusDays(15));
-        t3.setAllowedBreed("Any");
-        t3.setAllowedHorseAge(6);
-        t3.setStatus("COMPLET");
-        tournamentRepository.save(t3);
+                // ==========================================
+                // 1. Create Admin
+                // ==========================================
+                Admin admin = new Admin();
+                admin.setUsername("admin_global");
+                admin.setPassword("password123");
+                admin.setEmail("admin.global@hrtms.com");
+                admin.setRole(UserRole.ADMIN.name());
+                adminRepository.save(admin);
 
-        Tournament t4 = new Tournament();
-        t4.setAdmin(admin);
-        t4.setName("Autumn Sprint");
-        t4.setStartDate(LocalDate.now().minusDays(10));
-        t4.setEndDate(LocalDate.now().minusDays(5));
-        t4.setAllowedBreed("Quarter Horse");
-        t4.setAllowedHorseAge(3);
-        t4.setStatus("CANCELLED");
-        tournamentRepository.save(t4);
+                // ==========================================
+                // 2. Create Referees (Stewards) - For GET /api/v1/referees
+                // ==========================================
+                Referee ref1 = new Referee();
+                ref1.setUsername("referee_prosser");
+                ref1.setPassword("password123");
+                ref1.setEmail("m.prosser@racing.com");
+                ref1.setRole(UserRole.REFEREE.name());
+                ref1.setName("Michael Prosser (Chief Steward)");
+                refereeRepository.save(ref1);
 
-        // Create Referees
-        Referee ref1 = new Referee();
-        ref1.setUsername("referee1");
-        ref1.setPassword("password123");
-        ref1.setEmail("ref1@test.com");
-        ref1.setRole(UserRole.REFEREE.name());
-        ref1.setName("John Referee");
-        refereeRepository.save(ref1);
+                Referee ref2 = new Referee();
+                ref2.setUsername("referee_kelly");
+                ref2.setPassword("password123");
+                ref2.setEmail("k.kelly@racing.com");
+                ref2.setRole(UserRole.REFEREE.name());
+                ref2.setName("Kim Kelly");
+                refereeRepository.save(ref2);
 
-        Referee ref2 = new Referee();
-        ref2.setUsername("referee2");
-        ref2.setPassword("password123");
-        ref2.setEmail("ref2@test.com");
-        ref2.setRole(UserRole.REFEREE.name());
-        ref2.setName("Mike Referee");
-        refereeRepository.save(ref2);
+                // ==========================================
+                // 3. Create Tournaments - For Dashboard, PUT /id, PUT /cancel, POST
+                // ==========================================
+                Tournament t1 = new Tournament();
+                t1.setAdmin(admin);
+                t1.setName("Kentucky Derby 2026");
+                t1.setStartDate(LocalDate.now().plusDays(10));
+                t1.setEndDate(LocalDate.now().plusDays(12));
+                t1.setAllowedBreed("Thoroughbred");
+                t1.setAllowedHorseAge(3);
+                t1.setStatus("PUBLISHED");
+                t1 = tournamentRepository.save(t1);
 
-        // 3. Create Races for Tournament 1 (To test Race Details API)
-        Race r1 = new Race();
-        r1.setTournament(t1);
-        r1.setName("Qualifier 1");
-        r1.setDate(LocalDate.now().plusDays(6));
-        r1.setStartTime(LocalTime.of(8, 0));
-        r1.setEndTime(LocalTime.of(9, 0));
-        r1.setLaps(5);
-        r1.setNumHorse(10);
-        r1.setStatus("PENDING_REFEREE");
-        r1.setReferee(ref1);
-        raceRepository.save(r1);
+                Tournament t2 = new Tournament();
+                t2.setAdmin(admin);
+                t2.setName("Dubai World Cup 2026");
+                t2.setStartDate(LocalDate.now().minusDays(15));
+                t2.setEndDate(LocalDate.now().minusDays(14));
+                t2.setAllowedBreed("Thoroughbred & Arabian");
+                t2.setAllowedHorseAge(4);
+                t2.setStatus("COMPLETED");
+                t2 = tournamentRepository.save(t2);
 
-        Race r2 = new Race();
-        r2.setTournament(t1);
-        r2.setName("Qualifier 2");
-        r2.setDate(LocalDate.now().plusDays(6));
-        r2.setStartTime(LocalTime.of(10, 0));
-        r2.setEndTime(LocalTime.of(11, 0));
-        r2.setLaps(5);
-        r2.setNumHorse(8);
-        r2.setStatus("PUBLISHED");
-        r2.setReferee(ref2);
-        raceRepository.save(r2);
+                Tournament t3 = new Tournament();
+                t3.setAdmin(admin);
+                t3.setName("Prix de l'Arc de Triomphe 2026");
+                t3.setStartDate(LocalDate.now().plusDays(30));
+                t3.setEndDate(LocalDate.now().plusDays(32));
+                t3.setAllowedBreed("Thoroughbred");
+                t3.setAllowedHorseAge(3);
+                t3.setStatus("DRAFT");
+                tournamentRepository.save(t3);
 
-        Race r3 = new Race();
-        r3.setTournament(t1);
-        r3.setName("Finals");
-        r3.setDate(LocalDate.now().plusDays(9));
-        r3.setStartTime(LocalTime.of(15, 0));
-        r3.setEndTime(LocalTime.of(16, 0));
-        r3.setLaps(10);
-        r3.setNumHorse(12);
-        r3.setStatus("CANCELLD");
-        r3.setReferee(ref1);
-        raceRepository.save(r3);
+                Tournament t4 = new Tournament();
+                t4.setAdmin(admin);
+                t4.setName("Melbourne Cup 2026");
+                t4.setStartDate(LocalDate.now().plusDays(40));
+                t4.setEndDate(LocalDate.now().plusDays(45));
+                t4.setAllowedBreed("Any");
+                t4.setAllowedHorseAge(5);
+                t4.setStatus("CANCELLED");
+                tournamentRepository.save(t4);
 
-        // 4. Create Jockey and Verification Requests
-        com.swp.hrtms.hrtmsbe.entity.Jockey jockey = new com.swp.hrtms.hrtmsbe.entity.Jockey();
-        jockey.setUsername("jockey1");
-        jockey.setPassword("pass123");
-        jockey.setEmail("jockey1@test.com");
-        jockey.setRole("JOCKEY");
-        jockey.setJockeyName("John Doe");
-        jockey.setYearOfExperience(5);
-        jockey.setAge(28);
-        jockey.setStatus(true);
-        jockey = (com.swp.hrtms.hrtmsbe.entity.Jockey) userRepository.save(jockey); // save as user
+                // ==========================================
+                // 4. Create Independent Races (All belong to Kentucky Derby but are completely
+                // independent)
+                // ==========================================
+                Race r1 = new Race();
+                r1.setTournament(t1);
+                r1.setName("The Churchill Downs Stakes (G1) - 1400m Dirt");
+                r1.setDate(LocalDate.now().plusDays(11));
+                r1.setStartTime(LocalTime.of(13, 0));
+                r1.setEndTime(LocalTime.of(13, 15));
+                r1.setLaps(1);
+                r1.setNumHorse(14);
+                r1.setStatus("PENDING_REFEREE");
+                r1.setReferee(ref1);
+                raceRepository.save(r1);
 
-        com.swp.hrtms.hrtmsbe.entity.JockeyCert cert1 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
-        cert1.setCertName("Health Certificate 2024");
-        cert1.setStatus("PENDING");
-        cert1.setJockey(jockey);
-        cert1.setCertImg("mock-image-data-1");
-        jockeyCertRepository.save(cert1);
+                Race r2 = new Race();
+                r2.setTournament(t1);
+                r2.setName("The Turf Classic (G1) - 1800m Turf");
+                r2.setDate(LocalDate.now().plusDays(11));
+                r2.setStartTime(LocalTime.of(14, 30));
+                r2.setEndTime(LocalTime.of(14, 45));
+                r2.setLaps(1);
+                r2.setNumHorse(12);
+                r2.setStatus("PUBLISHED");
+                r2.setReferee(ref2);
+                raceRepository.save(r2);
 
-        com.swp.hrtms.hrtmsbe.entity.JockeyCert cert2 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
-        cert2.setCertName("Pro License Level B");
-        cert2.setStatus("PENDING");
-        cert2.setJockey(jockey);
-        cert2.setCertImg("mock-image-data-2");
-        jockeyCertRepository.save(cert2);
+                Race r3 = new Race();
+                r3.setTournament(t1);
+                r3.setName("The Derby City Distaff (G1) - 1600m Dirt");
+                r3.setDate(LocalDate.now().plusDays(12));
+                r3.setStartTime(LocalTime.of(15, 0));
+                r3.setEndTime(LocalTime.of(15, 15));
+                r3.setLaps(1);
+                r3.setNumHorse(10);
+                r3.setStatus("CANCELLED");
+                r3.setReferee(ref1);
+                raceRepository.save(r3);
 
-        com.swp.hrtms.hrtmsbe.entity.Notification notification = new com.swp.hrtms.hrtmsbe.entity.Notification();
-        notification.setSender(jockey);
-        notification.setTitle("New Certificate Verification Request");
-        notification.setContent("Jockey John Doe has submitted new certificates for verification.");
-        notification.setType("VERIFY_CERTIFICATE");
-        notification = notificationRepository.save(notification);
+                // ==========================================
+                // 5. Create Jockey & Jockey Certs - For Verifications API
+                // ==========================================
+                com.swp.hrtms.hrtmsbe.entity.Jockey jockey1 = new com.swp.hrtms.hrtmsbe.entity.Jockey();
+                jockey1.setUsername("jockey_dettori");
+                jockey1.setPassword("pass123");
+                jockey1.setEmail("f.dettori@jockey.com");
+                jockey1.setRole("JOCKEY");
+                jockey1.setJockeyName("Frankie Dettori");
+                jockey1.setYearOfExperience(30);
+                jockey1.setAge(52);
+                jockey1.setStatus(false); // Pending verification
+                jockey1 = (com.swp.hrtms.hrtmsbe.entity.Jockey) userRepository.save(jockey1);
 
-        com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
-        recipient.setNotification(notification);
-        recipient.setRecipient(admin);
-        recipient.setStatus("None");
-        notificationRecipientRepository.save(recipient);
+                com.swp.hrtms.hrtmsbe.entity.Jockey jockey2 = new com.swp.hrtms.hrtmsbe.entity.Jockey();
+                jockey2.setUsername("jockey_moore");
+                jockey2.setPassword("pass123");
+                jockey2.setEmail("r.moore@jockey.com");
+                jockey2.setRole("JOCKEY");
+                jockey2.setJockeyName("Ryan Moore");
+                jockey2.setYearOfExperience(20);
+                jockey2.setAge(40);
+                jockey2.setStatus(false); // Pending verification
+                jockey2 = (com.swp.hrtms.hrtmsbe.entity.Jockey) userRepository.save(jockey2);
 
-        // Historical certificate results delivered to the jockey. These records
-        // support GET /api/v1/notifications/jockeys/{jockeyId}/certificate-results.
-        createCertificateResultNotification(
-                admin,
-                jockey,
-                "Certificate Verification Rejected",
-                "The certificate image is unclear. Please upload a clearer image.",
-                "REJECT_CERTIFICATE",
-                LocalDateTime.now().minusDays(2));
+                // Create Horse Owner User
+                User userOwner = new User();
+                userOwner.setUsername("owner_godolphin");
+                userOwner.setEmail("contact@godolphin.com");
+                userOwner.setPassword("pass123");
+                userOwner.setRole("HORSE_OWNER");
+                userOwner = userRepository.save(userOwner);
 
-        createCertificateResultNotification(
-                admin,
-                jockey,
-                "Certificate Verified",
-                "Your certificates have been verified successfully.",
-                "ACCEPT_CERTIFICATE",
-                LocalDateTime.now().minusDays(1));
+                com.swp.hrtms.hrtmsbe.entity.HorseOwner owner = new com.swp.hrtms.hrtmsbe.entity.HorseOwner();
+                owner.setUser(userOwner);
+                horseOwnerRepository.save(owner);
 
-        generateHorseOwnerNotificationData();
+                // Create Spectator
+                com.swp.hrtms.hrtmsbe.entity.Spectator spectator = new com.swp.hrtms.hrtmsbe.entity.Spectator();
+                spectator.setUsername("spectator_vip");
+                spectator.setPassword("pass123");
+                spectator.setEmail("vip.member@racingfans.com");
+                spectator.setRole("SPECTATOR");
+                userRepository.save(spectator);
 
-        System.out.println("Test data generated successfully!");
-    }
+                // Create Certificates for Verifications Test
+                com.swp.hrtms.hrtmsbe.entity.JockeyCert cert1 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
+                cert1.setCertName("International Medical Clearance 2026");
+                cert1.setStatus("PENDING");
+                cert1.setJockey(jockey1);
+                cert1.setCertImg(
+                                "/9j/4AAQSkZJRgABAQAAAQABAAD/4gIoSUNDX1BST0ZJTEUAAQEAAAIYanhsIARAAAB");
+                jockeyCertRepository.save(cert1);
 
-    private void createCertificateResultNotification(
-            User admin,
-            User jockey,
-            String title,
-            String content,
-            String type,
-            LocalDateTime createdAt) {
-        com.swp.hrtms.hrtmsbe.entity.Notification notification =
-                new com.swp.hrtms.hrtmsbe.entity.Notification();
-        notification.setSender(admin);
-        notification.setTitle(title);
-        notification.setContent(content);
-        notification.setType(type);
-        notification.setCreatedAt(createdAt);
-        notification = notificationRepository.save(notification);
+                com.swp.hrtms.hrtmsbe.entity.JockeyCert cert2 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
+                cert2.setCertName("International Medical Clearance 2026");
+                cert2.setStatus("PENDING");
+                cert2.setJockey(jockey1);
+                cert2.setCertImg(
+                                "/9j/4AAQSkZJRgABAQAAAQABAAD/4gIoSUNDX1BST0ZJTEUAAQEAAAIYanhsIARAAAB");
+                jockeyCertRepository.save(cert2);
 
-        com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient =
-                new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
-        recipient.setNotification(notification);
-        recipient.setRecipient(jockey);
-        recipient.setStatus("None");
-        notificationRecipientRepository.save(recipient);
-    }
+                com.swp.hrtms.hrtmsbe.entity.JockeyCert cert3 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
+                cert3.setCertName("Jockey Club of North America Riding Permit");
+                cert3.setStatus("PENDING");
+                cert3.setJockey(jockey2);
+                jockeyCertRepository.save(cert3);
+                cert3.setCertImg(
+                                "iVBORw0KGgoAAAANSUhEUgAAA8YAAADFCAYAAACW7evyAAAAAXNSR0IArs4c6QAAAAR");
+                jockeyCertRepository.save(cert3);
 
-    private void generateHorseOwnerProfileData() {
-        User horseOwnerUser = userRepository.findByUsername("horseowner1")
-                .orElseGet(() -> {
-                    User user = new User();
-                    user.setUsername("horseowner1");
-                    user.setPassword("password123");
-                    user.setEmail("horseowner1@test.com");
-                    user.setRole(UserRole.HORSE_OWNER.name());
-                    return userRepository.save(user);
-                });
+                // Notifications
+                com.swp.hrtms.hrtmsbe.entity.Notification notif1 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif1.setSender(jockey1);
+                notif1.setTitle("Jockey Verification Request");
+                notif1.setContent(
+                                "Jockey Frankie Dettori has uploaded new certification documents. Please review and verify.");
+                notif1.setType("VERIFY_CERTIFICATE");
+                notif1 = notificationRepository.save(notif1);
 
-        HorseOwner horseOwner = horseOwnerRepository.findById(horseOwnerUser.getId())
-                .orElseGet(() -> horseOwnerRepository.save(HorseOwner.builder()
-                        .user(horseOwnerUser)
-                        .build()));
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec1 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec1.setNotification(notif1);
+                rec1.setRecipient(admin);
+                rec1.setStatus("UNREAD");
+                notificationRecipientRepository.save(rec1);
 
-        System.out.println("Horse owner profile test URL: /api/horse-owners/"
-                + horseOwner.getUserId() + "/profile");
-    }
+                com.swp.hrtms.hrtmsbe.entity.Notification notif2 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif2.setSender(jockey2);
+                notif2.setTitle("Jockey Verification Request");
+                notif2.setContent(
+                                "Jockey Ryan Moore has uploaded new certification documents. Please review and verify.");
+                notif2.setType("VERIFY_CERTIFICATE");
+                notif2 = notificationRepository.save(notif2);
 
-    private void generateSpectatorProfileData() {
-        if (userRepository.findByUsername("spectator1").isPresent()) {
-            return;
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec2 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec2.setNotification(notif2);
+                rec2.setRecipient(admin);
+                rec2.setStatus("UNREAD");
+                notificationRecipientRepository.save(rec2);
+
+                com.swp.hrtms.hrtmsbe.entity.Notification notif3 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif3.setTitle("Referee Accepted");
+                notif3.setContent(
+                                "Referee Michael Prosser has accepted the assignment for race The Churchill Downs Stakes.");
+                notif3.setType("REFEREE_ACCEPTED");
+                notif3 = notificationRepository.save(notif3);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec3 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec3.setNotification(notif3);
+                rec3.setRecipient(admin);
+                rec3.setStatus("UNREAD");
+                notificationRecipientRepository.save(rec3);
+
+                com.swp.hrtms.hrtmsbe.entity.Notification notif4 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif4.setTitle("Registration Verify");
+                notif4.setContent("A new horse registration requires your verification.");
+                notif4.setType("REGISTRATION_VERIFY");
+                notif4 = notificationRepository.save(notif4);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec4 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec4.setNotification(notif4);
+                rec4.setRecipient(admin);
+                rec4.setStatus("UNREAD");
+                notificationRecipientRepository.save(rec4);
+
+                com.swp.hrtms.hrtmsbe.entity.Notification notif5 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif5.setTitle("Doctor Rejected");
+                notif5.setContent("Doctor has rejected the horse medical clearance for Flightline.");
+                notif5.setType("DOCTOR_REJECTED");
+                notif5 = notificationRepository.save(notif5);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec5 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec5.setNotification(notif5);
+                rec5.setRecipient(admin);
+                rec5.setStatus("UNREAD");
+                notificationRecipientRepository.save(rec5);
+
+                com.swp.hrtms.hrtmsbe.entity.Notification notif6 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif6.setTitle("Doctor Accepted");
+                notif6.setContent("Doctor has accepted the horse medical clearance for Baaeed.");
+                notif6.setType("DOCTOR_ACCEPTED");
+                notif6 = notificationRepository.save(notif6);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec6 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec6.setNotification(notif6);
+                rec6.setRecipient(admin);
+                rec6.setStatus("READ");
+                rec6.setReadAt(LocalDateTime.now().minusDays(1));
+                notificationRecipientRepository.save(rec6);
+
+                com.swp.hrtms.hrtmsbe.entity.Notification notif7 = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notif7.setTitle("Referee Rejected");
+                notif7.setContent("Referee Kim Kelly has rejected the assignment for race The Turf Classic.");
+                notif7.setType("REFEREE_REJECTED");
+                notif7 = notificationRepository.save(notif7);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec7 = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                rec7.setNotification(notif7);
+                rec7.setRecipient(admin);
+                rec7.setStatus("READ");
+                rec7.setReadAt(LocalDateTime.now().minusHours(5));
+                notificationRecipientRepository.save(rec7);
+
+                System.out.println("Test data generated successfully!");
         }
 
-        Spectator spectator = new Spectator();
-        spectator.setUsername("spectator1");
-        spectator.setPassword("password123");
-        spectator.setEmail("spectator1@test.com");
-        spectator.setRole(UserRole.SPECTATOR.name());
-        spectator.setDisplayName("Test Spectator");
-        userRepository.save(spectator);
-    }
+        private void createCertificateResultNotification(
+                        User admin,
+                        User jockey,
+                        String title,
+                        String content,
+                        String type,
+                        LocalDateTime createdAt) {
+                com.swp.hrtms.hrtmsbe.entity.Notification notification = new com.swp.hrtms.hrtmsbe.entity.Notification();
+                notification.setSender(admin);
+                notification.setTitle(title);
+                notification.setContent(content);
+                notification.setType(type);
+                notification.setCreatedAt(createdAt);
+                notification = notificationRepository.save(notification);
 
-    private void generateHorseData() {
-        if (horseRepository.count() > 0) {
-            return;
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = new com.swp.hrtms.hrtmsbe.entity.NotificationRecipient();
+                recipient.setNotification(notification);
+                recipient.setRecipient(jockey);
+                recipient.setStatus("None");
+                notificationRecipientRepository.save(recipient);
         }
 
-        User ownerUser = userRepository.findByUsername("horseowner1")
-                .orElseThrow(() -> new IllegalStateException("Mock horse owner was not created"));
-        HorseOwner owner = horseOwnerRepository.findById(ownerUser.getId())
-                .orElseThrow(() -> new IllegalStateException("Mock horse owner profile was not created"));
+        private void generateHorseOwnerProfileData() {
+                User horseOwnerUser = userRepository.findByUsername("owner_coolmore")
+                                .orElseGet(() -> {
+                                        User user = new User();
+                                        user.setUsername("owner_coolmore");
+                                        user.setPassword("password123");
+                                        user.setEmail("contact@coolmore.com");
+                                        user.setRole(UserRole.HORSE_OWNER.name());
+                                        return userRepository.save(user);
+                                });
 
-        List<Horse> horses = List.of(
-                Horse.builder()
-                        .owner(owner)
-                        .name("Thunder Bolt")
-                        .age(4)
-                        .breed("Thoroughbred")
-                        .status(HorseStatus.ACTIVE)
-                        .build(),
-                Horse.builder()
-                        .owner(owner)
-                        .name("Silver Wind")
-                        .age(5)
-                        .breed("Arabian")
-                        .status(HorseStatus.ACTIVE)
-                        .build(),
-                Horse.builder()
-                        .owner(owner)
-                        .name("Black Pearl")
-                        .age(3)
-                        .breed("Thoroughbred")
-                        .status(HorseStatus.ACTIVE)
-                        .build(),
-                Horse.builder()
-                        .owner(owner)
-                        .name("Golden Star")
-                        .age(6)
-                        .breed("Quarter Horse")
-                        .status(HorseStatus.INJURED)
-                        .build(),
-                Horse.builder()
-                        .owner(owner)
-                        .name("Old Champion")
-                        .age(10)
-                        .breed("Arabian")
-                        .status(HorseStatus.RETIRED)
-                        .build());
+                HorseOwner horseOwner = horseOwnerRepository.findById(horseOwnerUser.getId())
+                                .orElseGet(() -> horseOwnerRepository.save(HorseOwner.builder()
+                                                .user(horseOwnerUser)
+                                                .build()));
 
-        horseRepository.saveAll(horses);
-    }
-
-    private void generateHorseOwnerNotificationData() {
-        User horseOwner = userRepository.findByUsername("horseowner1").orElse(null);
-        User admin = userRepository.findByUsername("admin1").orElse(null);
-        User jockey = userRepository.findByUsername("jockey1").orElse(null);
-
-        if (horseOwner == null || admin == null || jockey == null) {
-            System.out.println("Skipping horse owner notifications: mock owner, admin, or jockey is missing.");
-            return;
+                System.out.println("Horse owner profile test URL: /api/horse-owners/"
+                                + horseOwner.getUserId() + "/profile");
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        List<HorseOwnerNotificationSeed> seeds = List.of(
-                new HorseOwnerNotificationSeed(admin, "New tournament published",
-                        "Spring Championship is now open for horse registration.",
-                        "NEW_TOURNAMENT", now.minusDays(10), now.minusDays(9)),
-                new HorseOwnerNotificationSeed(admin, "Tournament schedule updated",
-                        "The schedule for Spring Championship has been updated.",
-                        "TOURNAMENT_UPDATE", now.minusDays(9), null),
-                new HorseOwnerNotificationSeed(admin, "Tournament cancelled",
-                        "Autumn Sprint has been cancelled by the organizer.",
-                        "TOURNAMENT_CANCELLED", now.minusDays(8), now.minusDays(7)),
-                new HorseOwnerNotificationSeed(admin, "New race announced",
-                        "Qualifier 1 has been added to Spring Championship.",
-                        "NEW_RACE", now.minusDays(7), null),
-                new HorseOwnerNotificationSeed(admin, "Race schedule updated",
-                        "Qualifier 2 will start at 10:00 AM.",
-                        "RACE_UPDATE", now.minusDays(6), now.minusDays(5)),
-                new HorseOwnerNotificationSeed(admin, "Race cancelled",
-                        "The Finals race has been cancelled.",
-                        "RACE_CANCELLED", now.minusDays(5), null),
-                new HorseOwnerNotificationSeed(admin, "Registration approved",
-                        "Thunder Bolt has been approved for Qualifier 1.",
-                        "REGISTRATION_APPROVED", now.minusDays(4), now.minusDays(3)),
-                new HorseOwnerNotificationSeed(admin, "Registration rejected",
-                        "Golden Star was rejected because the horse is currently injured.",
-                        "REGISTRATION_REJECTED", now.minusDays(3), null),
-                new HorseOwnerNotificationSeed(jockey, "Jockey invitation accepted",
-                        "John Doe accepted your invitation to ride Thunder Bolt.",
-                        "INVITATION_ACCEPTED", now.minusDays(2), now.minusDays(1)),
-                new HorseOwnerNotificationSeed(jockey, "Jockey invitation rejected",
-                        "John Doe rejected your invitation to ride Silver Wind.",
-                        "INVITATION_REJECTED", now.minusDays(1), null));
+        private void generateHorseData() {
+                if (horseRepository.count() > 0) {
+                        return;
+                }
 
-        List<String> existingTitles = notificationRecipientRepository.findHorseOwnerNotifications(
-                        horseOwner.getId(),
-                        List.of(
-                                "NEW_TOURNAMENT", "TOURNAMENT_UPDATE", "TOURNAMENT_CANCELLED",
-                                "NEW_RACE", "RACE_UPDATE", "RACE_CANCELLED",
-                                "REGISTRATION_APPROVED", "REGISTRATION_REJECTED"),
-                        List.of("INVITATION_ACCEPTED", "INVITATION_REJECTED"))
-                .stream()
-                .map(recipient -> recipient.getNotification().getTitle())
-                .toList();
+                User ownerUser = userRepository.findByUsername("owner_coolmore")
+                                .orElseThrow(() -> new IllegalStateException("Mock horse owner was not created"));
+                HorseOwner owner = horseOwnerRepository.findById(ownerUser.getId())
+                                .orElseThrow(() -> new IllegalStateException(
+                                                "Mock horse owner profile was not created"));
 
-        for (HorseOwnerNotificationSeed seed : seeds) {
-            if (existingTitles.contains(seed.title())) {
-                continue;
-            }
+                List<Horse> horses = List.of(
+                                Horse.builder()
+                                                .owner(owner)
+                                                .name("Flightline")
+                                                .age(4)
+                                                .breed("Thoroughbred")
+                                                .status(HorseStatus.ACTIVE)
+                                                .build(),
+                                Horse.builder()
+                                                .owner(owner)
+                                                .name("Baaeed")
+                                                .age(4)
+                                                .breed("Thoroughbred")
+                                                .status(HorseStatus.ACTIVE)
+                                                .build(),
+                                Horse.builder()
+                                                .owner(owner)
+                                                .name("Equinox")
+                                                .age(3)
+                                                .breed("Thoroughbred")
+                                                .status(HorseStatus.ACTIVE)
+                                                .build(),
+                                Horse.builder()
+                                                .owner(owner)
+                                                .name("City Of Troy")
+                                                .age(2)
+                                                .breed("Thoroughbred")
+                                                .status(HorseStatus.INJURED)
+                                                .build(),
+                                Horse.builder()
+                                                .owner(owner)
+                                                .name("Frankel")
+                                                .age(14)
+                                                .breed("Thoroughbred")
+                                                .status(HorseStatus.RETIRED)
+                                                .build());
 
-            Notification notification = Notification.builder()
-                    .sender(seed.sender())
-                    .title(seed.title())
-                    .content(seed.content())
-                    .type(seed.type())
-                    .createdAt(seed.createdAt())
-                    .build();
-            notification = notificationRepository.save(notification);
-
-            notificationRecipientRepository.save(NotificationRecipient.builder()
-                    .notification(notification)
-                    .recipient(horseOwner)
-                    .status("None")
-                    .readAt(seed.readAt())
-                    .build());
+                horseRepository.saveAll(horses);
         }
-
-        System.out.println("Horse owner notification test URL: /api/v1/notifications/horse-owners/"
-                + horseOwner.getId());
-    }
-
-    private record HorseOwnerNotificationSeed(
-            User sender,
-            String title,
-            String content,
-            String type,
-            LocalDateTime createdAt,
-            LocalDateTime readAt) {
-    }
 }

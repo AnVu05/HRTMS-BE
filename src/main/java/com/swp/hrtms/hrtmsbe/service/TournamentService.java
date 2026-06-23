@@ -9,7 +9,7 @@ import com.swp.hrtms.hrtmsbe.dto.response.TournamentResponse;
 import java.util.List;
 
 public interface TournamentService {
-    TournamentResponse createTournament(TournamentCreateRequest request);
+    TournamentResponse createTournament(Integer adminId, TournamentCreateRequest request);
 
     List<TournamentDashboardResponse> getTournamentsForDashboard();
 
