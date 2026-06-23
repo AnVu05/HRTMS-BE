@@ -67,7 +67,21 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
         @Query("UPDATE NotificationRecipient nr SET nr.status = 'READ', nr.readAt = CURRENT_TIMESTAMP WHERE nr.recipient.id = :adminId AND nr.status = 'UNREAD'")
         void markAllAsReadByRecipientId(@Param("adminId") Integer adminId);
 
-        @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :refereeId AND nr.status = 'None' AND nr.notification.type = 'REFEREE_INVITATION'")
+        // Lấy lời mời trọng tài đang chờ: Trạng thái thông báo nhận là 'None' (chưa
+        // đọc),
+        // cuộc đua tương ứng vẫn đang ở trạng thái 'PENDING_REFEREE' và trọng tài được
+        // phân công trùng khớp.
+        @Query("""
+                        SELECT nr
+                        FROM NotificationRecipient nr
+                        JOIN nr.notification n
+                        JOIN n.race r
+                        WHERE nr.recipient.id = :refereeId
+                          AND nr.status = 'None'
+                          AND n.type = 'REFEREE_INVITATION'
+                          AND r.referee.id = :refereeId
+                          AND r.status = 'PENDING_REFEREE'
+                        """)
         List<NotificationRecipient> findPendingRefereeInvitations(@Param("refereeId") Integer refereeId);
 
         java.util.Optional<NotificationRecipient> findByIdAndRecipient_Id(Integer id, Integer recipientId);
