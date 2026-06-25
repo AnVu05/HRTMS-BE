@@ -432,7 +432,7 @@ public class MockData {
     }
 
     private record HorseOwnerNotificationSeed(
-            User sender,
+            User sender,        
             String title,
             String content,
             String type,
