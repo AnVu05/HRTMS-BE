@@ -27,6 +27,16 @@ public class TournamentResponse {
     @JsonProperty("end_date")
     private LocalDate endDate;
 
+    //Khai
+    @JsonProperty("announcement_date")
+    private LocalDate announcementDate;
+
+    @JsonProperty("registration_open_date")
+    private LocalDate registrationOpenDate;
+
+    @JsonProperty("registration_close_date")
+    private LocalDate registrationCloseDate;
+
     @JsonProperty("allowed_breed")
     private String allowedBreed;
 
