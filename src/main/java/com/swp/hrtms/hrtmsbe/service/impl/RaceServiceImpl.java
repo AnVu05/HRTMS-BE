@@ -52,7 +52,8 @@ public class RaceServiceImpl implements RaceService {
                 throw new IllegalArgumentException("Race date, start time, and end time are required.");
             }
             if (raceReq.getStartTime().isAfter(raceReq.getEndTime())) {
-                throw new IllegalArgumentException("Start time cannot be after end time for race '" + raceReq.getName() + "'.");
+                throw new IllegalArgumentException(
+                        "Start time cannot be after end time for race '" + raceReq.getName() + "'.");
             }
 
             // 1. Validation: Overlap in DB (Tournament)
@@ -143,26 +144,31 @@ public class RaceServiceImpl implements RaceService {
     @Transactional
     public RaceResponse createSingleRace(com.swp.hrtms.hrtmsbe.dto.request.SingleRaceCreateRequest request) {
         if (request.getTournamentId() == null || request.getDate() == null ||
-            request.getStartTime() == null || request.getEndTime() == null || request.getRaceName() == null) {
-            throw new IllegalArgumentException("Tournament ID, race name, date, start time, and end time are required.");
+                request.getStartTime() == null || request.getEndTime() == null || request.getRaceName() == null) {
+            throw new IllegalArgumentException(
+                    "Tournament ID, race name, date, start time, and end time are required.");
         }
 
         if (!request.getStartTime().isBefore(request.getEndTime())) {
-            throw new IllegalArgumentException("Start time must be before end time for race '" + request.getRaceName() + "'.");
+            throw new IllegalArgumentException(
+                    "Start time must be before end time for race '" + request.getRaceName() + "'.");
         }
 
         Tournament tournament = tournamentRepository.findById(request.getTournamentId())
-                .orElseThrow(() -> new IllegalArgumentException("Tournament not found with id: " + request.getTournamentId()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Tournament not found with id: " + request.getTournamentId()));
 
         if (raceRepository.existsOverlappingInTournament(tournament.getId(), request.getDate(),
                 request.getStartTime(), request.getEndTime())) {
-            throw new IllegalArgumentException("Race '" + request.getRaceName() + "' overlaps with an existing race in the tournament.");
+            throw new IllegalArgumentException(
+                    "Race '" + request.getRaceName() + "' overlaps with an existing race in the tournament.");
         }
 
         Referee referee = null;
         if (request.getRefereeId() != null) {
             referee = refereeRepository.findById(request.getRefereeId())
-                    .orElseThrow(() -> new IllegalArgumentException("Referee not found with id: " + request.getRefereeId()));
+                    .orElseThrow(
+                            () -> new IllegalArgumentException("Referee not found with id: " + request.getRefereeId()));
 
             if (raceRepository.existsOverlappingForReferee(referee.getId(), request.getDate(),
                     request.getStartTime(), request.getEndTime())) {
@@ -217,8 +223,8 @@ public class RaceServiceImpl implements RaceService {
         }
 
         if (request.getNumHorse() != null) {
-            if (request.getNumHorse() <= 0) {
-                throw new IllegalArgumentException("Number of horses must be greater than 0");
+            if (request.getNumHorse() <= 1) {
+                throw new IllegalArgumentException("Number of horses must be greater than 1");
             }
             race.setNumHorse(request.getNumHorse());
         }
@@ -227,17 +233,17 @@ public class RaceServiceImpl implements RaceService {
         boolean refereeChanged = false;
 
         if (request.getRefereeId() != null) {
-            // Kiểm tra xem trọng tài được gán mới có khác trọng tài hiện tại hoặc cuộc đua đang cần mời lại không
-            if (race.getReferee() == null || !race.getReferee().getId().equals(request.getRefereeId()) ||
-                "REJECTED".equals(race.getStatus()) || "PENDING_REFEREE".equals(race.getStatus())) {
+            // Kiểm tra xem trọng tài được gán mới có thực sự khác trọng tài hiện tại hay không
+            if (race.getReferee() == null || !race.getReferee().getId().equals(request.getRefereeId())) {
                 refereeChanged = true;
             }
 
             Referee referee = refereeRepository.findById(request.getRefereeId())
-                    .orElseThrow(() -> new IllegalArgumentException("Referee not found with id: " + request.getRefereeId()));
-            
+                    .orElseThrow(
+                            () -> new IllegalArgumentException("Referee not found with id: " + request.getRefereeId()));
+
             race.setReferee(referee);
-            
+
             if (!"CANCELLED".equals(race.getStatus())) {
                 race.setStatus("PENDING_REFEREE");
             }
@@ -307,6 +313,7 @@ public class RaceServiceImpl implements RaceService {
                 .races(raceItems)
                 .build();
     }
+
     @Override
     @Transactional
     public String cancelRace(Integer raceId, com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest request) {
@@ -323,6 +330,7 @@ public class RaceServiceImpl implements RaceService {
 
         return "Race has been successfully cancelled.";
     }
+
     @Override
     @Transactional
     public String updateRaceTime(Integer raceId, com.swp.hrtms.hrtmsbe.dto.request.RaceUpdateTimeRequest request) {
@@ -343,14 +351,16 @@ public class RaceServiceImpl implements RaceService {
 
         // Check overlap in tournament excluding this race
         if (raceRepository.existsOverlappingInTournamentExcludingRace(
-                race.getTournament().getId(), race.getId(), request.getDate(), request.getStartTime(), request.getEndTime())) {
+                race.getTournament().getId(), race.getId(), request.getDate(), request.getStartTime(),
+                request.getEndTime())) {
             throw new IllegalArgumentException("Updated time overlaps with another race in the tournament.");
         }
 
         // Check overlap for referee excluding this race
         if (race.getReferee() != null) {
             if (raceRepository.existsOverlappingForRefereeExcludingRace(
-                race.getReferee().getId(), race.getId(), request.getDate(), request.getStartTime(), request.getEndTime())) {
+                    race.getReferee().getId(), race.getId(), request.getDate(), request.getStartTime(),
+                    request.getEndTime())) {
                 throw new IllegalArgumentException("Referee is already assigned to another overlapping race.");
             }
         }
@@ -367,7 +377,8 @@ public class RaceServiceImpl implements RaceService {
 
     @Override
     public void predictScheduleUpdate() {
-        // Tớ muốn cậu viết một hàm cập nhật lịch dự đoán nhưng để trống code ta sẽ phát triễn chức năng đấy sau
+        // Tớ muốn cậu viết một hàm cập nhật lịch dự đoán nhưng để trống code ta sẽ phát
+        // triễn chức năng đấy sau
         // TODO: Implement schedule prediction logic
     }
 

@@ -8,6 +8,13 @@ import com.swp.hrtms.hrtmsbe.dto.request.RespondInvitationRequest;
 import com.swp.hrtms.hrtmsbe.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,54 +24,74 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationController {
 
-    private final NotificationService notificationService;
+        private final NotificationService notificationService;
 
-    @GetMapping("/jockeys/{jockeyId}/certificate-results")
-    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getRecentCertificateNotifications(
-            @PathVariable Integer jockeyId) {
-        List<NotificationResponse> notifications =
-                notificationService.getRecentCertificateNotifications(jockeyId);
+        @GetMapping("/jockeys/{jockeyId}/certificate-results")
+        public ResponseEntity<ApiResponse<List<NotificationResponse>>> getRecentCertificateNotifications(
+                        @PathVariable Integer jockeyId) {
+                List<NotificationResponse> notifications = notificationService
+                                .getRecentCertificateNotifications(jockeyId);
 
-        return ResponseEntity.ok(ApiResponse.success(
-                notifications,
-                "Fetched recent certificate notifications successfully"));
-    }
+                return ResponseEntity.ok(ApiResponse.success(
+                                notifications,
+                                "Fetched recent certificate notifications successfully"));
+        }
 
-    @GetMapping("/horse-owners/{ownerId}")
-    public ResponseEntity<ApiResponse<List<HorseOwnerNotificationResponse>>> getHorseOwnerNotifications(
-            @PathVariable Integer ownerId) {
-        List<HorseOwnerNotificationResponse> notifications =
-                notificationService.getHorseOwnerNotifications(ownerId);
+        @GetMapping("/admin/{adminId}")
+        public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAdminNotifications(
+                        @PathVariable Integer adminId,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "5") int size,
+                        @RequestParam(defaultValue = "false") boolean unreadOnly) {
+                Page<NotificationResponse> notifications = notificationService.getAdminNotifications(adminId, page,
+                                size, unreadOnly);
+                return ResponseEntity.ok(ApiResponse.success(
+                                notifications,
+                                "Fetched admin notifications successfully"));
+        }
 
-        return ResponseEntity.ok(ApiResponse.success(
-                notifications,
-                "Fetched horse owner notifications successfully"));
-    }
+        @PutMapping("/admin/{adminId}/read")
+        public ResponseEntity<ApiResponse<Void>> markAllAdminNotificationsAsRead(@PathVariable Integer adminId) {
+                notificationService.markAllAdminNotificationsAsRead(adminId);
+                return ResponseEntity.ok(ApiResponse.success(null, "All notifications have been read"));
+        }
 
-    @GetMapping("/referees/{refereeId}/invitations")
-    public ResponseEntity<ApiResponse<List<RefereeInvitationResponse>>> getPendingRefereeInvitations(
-            @PathVariable Integer refereeId) {
-        // Gọi Service lấy danh sách các lời mời trọng tài đang chờ xử lý
-        List<RefereeInvitationResponse> invitations =
-                notificationService.getPendingRefereeInvitations(refereeId);
+        @GetMapping("/horse-owners/{ownerId}")
+        public ResponseEntity<ApiResponse<List<HorseOwnerNotificationResponse>>> getHorseOwnerNotifications(
+                        @PathVariable Integer ownerId) {
+                List<HorseOwnerNotificationResponse> notifications = notificationService
+                                .getHorseOwnerNotifications(ownerId);
 
-        // Trả về phản hồi thành công theo định dạng ApiResponse chuẩn của hệ thống
-        return ResponseEntity.ok(ApiResponse.success(
-                invitations,
-                "Fetched pending referee invitations successfully"));
-    }
+                return ResponseEntity.ok(ApiResponse.success(
+                                notifications,
+                                "Fetched horse owner notifications successfully"));
+        }
 
-    @PutMapping("/referees/{refereeId}/invitations/{notificationId}/respond")
-    public ResponseEntity<ApiResponse<Void>> respondToRefereeInvitation(
-            @PathVariable Integer refereeId,
-            @PathVariable Integer notificationId,
-            @RequestBody RespondInvitationRequest request) {
-        // Thực thi việc cập nhật trạng thái đồng ý/từ chối của trọng tài đối với lời mời cuộc đua tương ứng
-        notificationService.respondToRefereeInvitation(refereeId, notificationId, request);
+        @GetMapping("/referees/{refereeId}/invitations")
+        public ResponseEntity<ApiResponse<List<RefereeInvitationResponse>>> getPendingRefereeInvitations(
+                        @PathVariable Integer refereeId) {
+                // Gọi Service lấy danh sách các lời mời trọng tài đang chờ xử lý
+                List<RefereeInvitationResponse> invitations = notificationService
+                                .getPendingRefereeInvitations(refereeId);
 
-        // Trả về kết quả thành công không có dữ liệu kèm theo (Void)
-        return ResponseEntity.ok(ApiResponse.success(
-                null,
-                "Responded to referee invitation successfully"));
-    }
+                // Trả về phản hồi thành công theo định dạng ApiResponse chuẩn của hệ thống
+                return ResponseEntity.ok(ApiResponse.success(
+                                invitations,
+                                "Fetched pending referee invitations successfully"));
+        }
+
+        @PutMapping("/referees/{refereeId}/invitations/{notificationId}/respond")
+        public ResponseEntity<ApiResponse<Void>> respondToRefereeInvitation(
+                        @PathVariable Integer refereeId,
+                        @PathVariable Integer notificationId,
+                        @RequestBody RespondInvitationRequest request) {
+                // Thực thi việc cập nhật trạng thái đồng ý/từ chối của trọng tài đối với lời
+                // mời cuộc đua tương ứng
+                notificationService.respondToRefereeInvitation(refereeId, notificationId, request);
+
+                // Trả về kết quả thành công không có dữ liệu kèm theo (Void)
+                return ResponseEntity.ok(ApiResponse.success(
+                                null,
+                                "Responded to referee invitation successfully"));
+        }
 }

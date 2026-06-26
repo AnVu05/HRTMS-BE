@@ -14,9 +14,6 @@ import java.time.LocalDate;
 @Builder
 public class TournamentCreateRequest {
 
-    @JsonProperty("admin_id")
-    private Integer adminId;
-
     private String name;
 
     @JsonProperty("start_date")

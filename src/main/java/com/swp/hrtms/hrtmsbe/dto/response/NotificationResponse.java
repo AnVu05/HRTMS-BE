@@ -12,8 +12,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class NotificationResponse {
+    private Integer id;
     private String title;
     private String content;
     private LocalDateTime createdAt;
     private String type;
+    private String status;
+    private LocalDateTime readAt;
 }
