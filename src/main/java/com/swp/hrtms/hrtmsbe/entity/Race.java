@@ -40,10 +40,10 @@ public class Race {
     @Column(name = "end_time")
     private LocalTime endTime;
 
-    private Integer laps;
+    // private Integer laps;
 
-    @Column(name = "num_horse")
-    private Integer numHorse;
+    // @Column(name = "num_horse")
+    // private Integer numHorse;
 
     //Khai: Race requirements displayed on the Add New Race form.
     @Column(name = "distance_m")

@@ -114,8 +114,8 @@ public class RaceServiceImpl implements RaceService {
                     .date(raceReq.getDate())
                     .startTime(raceReq.getStartTime())
                     .endTime(raceReq.getEndTime())
-                    .laps(raceReq.getLaps())
-                    .numHorse(raceReq.getNumHorse())
+                    // .laps(raceReq.getLaps())
+                    // .numHorse(raceReq.getNumHorse())
                     .referee(referee)
                     .status("PENDING_REFEREE")
                     .track(raceReq.getTrack()) // Ánh xạ trường track địa điểm thi đấu
@@ -138,8 +138,8 @@ public class RaceServiceImpl implements RaceService {
                     .date(r.getDate())
                     .startTime(r.getStartTime())
                     .endTime(r.getEndTime())
-                    .laps(r.getLaps())
-                    .numHorse(r.getNumHorse())
+                    // .laps(r.getLaps())
+                    // .numHorse(r.getNumHorse())
                     .refereeId(r.getReferee() != null ? r.getReferee().getId() : null)
                     .status(r.getStatus())
                     .track(r.getTrack()) // Ánh xạ trường track trả về cho client
@@ -296,19 +296,19 @@ public class RaceServiceImpl implements RaceService {
         Race race = raceRepository.findById(raceId)
                 .orElseThrow(() -> new RuntimeException("Race not found"));
 
-        if (request.getLaps() != null) {
-            if (request.getLaps() <= 0) {
-                throw new IllegalArgumentException("Laps must be greater than 0");
-            }
-            race.setLaps(request.getLaps());
-        }
+        // if (request.getLaps() != null) {
+        //     if (request.getLaps() <= 0) {
+        //         throw new IllegalArgumentException("Laps must be greater than 0");
+        //     }
+        //     race.setLaps(request.getLaps());
+        // }
 
-        if (request.getNumHorse() != null) {
-            if (request.getNumHorse() <= 1) {
-                throw new IllegalArgumentException("Number of horses must be greater than 1");
-            }
-            race.setNumHorse(request.getNumHorse());
-        }
+        // if (request.getNumHorse() != null) {
+        //     if (request.getNumHorse() <= 1) {
+        //         throw new IllegalArgumentException("Number of horses must be greater than 1");
+        //     }
+        //     race.setNumHorse(request.getNumHorse());
+        // }
 
         // Biến đánh dấu xem trọng tài có được phân công mới/thay đổi hay không
         boolean refereeChanged = false;
@@ -349,8 +349,8 @@ public class RaceServiceImpl implements RaceService {
                 .date(race.getDate())
                 .startTime(race.getStartTime())
                 .endTime(race.getEndTime())
-                .laps(race.getLaps())
-                .numHorse(race.getNumHorse())
+                // .laps(race.getLaps())
+                // .numHorse(race.getNumHorse())
                 .refereeId(race.getReferee() != null ? race.getReferee().getId() : null)
                 .status(race.getStatus())
                 .track(race.getTrack()) // Ánh xạ trường track trả về cho client
@@ -369,9 +369,9 @@ public class RaceServiceImpl implements RaceService {
         List<RaceDashboardItem> raceItems = new ArrayList<>();
 
         for (Race race : races) {
-            if (race.getNumHorse() != null) {
-                totalEntries += race.getNumHorse();
-            }
+            // if (race.getNumHorse() != null) {
+            //     totalEntries += race.getNumHorse();
+            // }
 
             RaceDashboardItem item = RaceDashboardItem.builder()
                     .id(race.getId())
@@ -379,7 +379,7 @@ public class RaceServiceImpl implements RaceService {
                     .date(race.getDate())
                     .startTime(race.getStartTime())
                     .endTime(race.getEndTime())
-                    .laps(race.getLaps())
+                  //  .laps(race.getLaps())
                     .status(race.getStatus())
                     .refereeId(race.getReferee() != null ? race.getReferee().getId() : null)
                     .refereeName(race.getReferee() != null ? race.getReferee().getName() : null)

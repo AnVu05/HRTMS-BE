@@ -273,8 +273,8 @@ public class MockData {
                 race.setDate(date);
                 race.setStartTime(startTime);
                 race.setEndTime(endTime);
-                race.setLaps(4);
-                race.setNumHorse(10);
+                // race.setLaps(4);
+                // race.setNumHorse(10);
                 race.setStatus(status);
                 race.setTrack("Ascot Racecourse");
                 return raceRepository.save(race);

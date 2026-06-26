@@ -76,8 +76,8 @@ public class RefereeServiceImpl implements RefereeService {
                     .date(race.getDate())
                     .startTime(race.getStartTime())
                     .endTime(race.getEndTime())
-                    .laps(race.getLaps())
-                    .numHorse(race.getNumHorse())
+                    // .laps(race.getLaps())
+                    // .numHorse(race.getNumHorse())
                     .status(race.getStatus())
                     .track(race.getTrack())
                     .build();
