@@ -41,28 +41,48 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     @Transactional
     public TournamentResponse createTournament(Integer adminId, TournamentCreateRequest request) {
+        //Khai
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new IllegalArgumentException("Tournament name is required");
+        }
+
         // Find Admin
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found with id: " + adminId));
 
-        // Validate dates
-        if (request.getStartDate() == null || request.getEndDate() == null) {
-            throw new IllegalArgumentException("Start date and end date are required");
+        //Khai: Validate all required dates in the order used by the FE workflow.
+        if (request.getAnnouncementDate() == null || request.getRegistrationOpenDate() == null ||
+                request.getRegistrationCloseDate() == null || request.getStartDate() == null ||
+                request.getEndDate() == null) {
+            throw new IllegalArgumentException(
+                    "Announcement date, registration open date, registration close date, start date, and end date are required");
+        }
+
+        if (request.getAnnouncementDate().isAfter(request.getRegistrationOpenDate())) {
+            throw new IllegalArgumentException("Announcement date cannot be after registration open date");
+        }
+        if (request.getRegistrationOpenDate().isAfter(request.getRegistrationCloseDate())) {
+            throw new IllegalArgumentException("Registration open date cannot be after registration close date");
+        }
+        if (!request.getRegistrationCloseDate().isBefore(request.getStartDate())) {
+            throw new IllegalArgumentException("Registration close date must be before tournament start date");
         }
         if (request.getStartDate().isAfter(request.getEndDate())) {
-            throw new IllegalArgumentException("Start date cannot be after end date");
+            throw new IllegalArgumentException("Tournament start date cannot be after end date");
         }
 
         // Create Tournament entity
         Tournament tournament = Tournament.builder()
                 .admin(admin)
-                .name(request.getName())
+                .name(request.getName().trim())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .allowedBreed(request.getAllowedBreed())
-                .allowedHorseAge(request.getAllowedHorseAge())
+                //Khai
+                .announcementDate(request.getAnnouncementDate())
+                .registrationOpenDate(request.getRegistrationOpenDate())
+                .registrationCloseDate(request.getRegistrationCloseDate())
                 .description(request.getDescription())
-                .status(request.getStatus() != null ? request.getStatus() : "DRAFT")
+                .status("UPCOMING")
                 .build();
 
         // Save to DB
@@ -216,6 +236,10 @@ public class TournamentServiceImpl implements TournamentService {
                 .name(tournament.getName())
                 .startDate(tournament.getStartDate())
                 .endDate(tournament.getEndDate())
+                //Khai
+                .announcementDate(tournament.getAnnouncementDate())
+                .registrationOpenDate(tournament.getRegistrationOpenDate())
+                .registrationCloseDate(tournament.getRegistrationCloseDate())
                 .allowedBreed(tournament.getAllowedBreed())
                 .allowedHorseAge(tournament.getAllowedHorseAge())
                 .description(tournament.getDescription())
