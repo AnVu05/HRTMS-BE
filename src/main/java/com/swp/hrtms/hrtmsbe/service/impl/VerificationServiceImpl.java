@@ -1,6 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertCreateRequest;
+import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertificateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyVerificationRequestResponse;
 import com.swp.hrtms.hrtmsbe.entity.Admin;
 import com.swp.hrtms.hrtmsbe.entity.Jockey;
@@ -8,7 +9,6 @@ import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 import com.swp.hrtms.hrtmsbe.entity.Notification;
 import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
 import com.swp.hrtms.hrtmsbe.entity.User;
-import com.swp.hrtms.hrtmsbe.entity.UserRole;
 import com.swp.hrtms.hrtmsbe.repository.AdminRepository;
 import com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository;
 import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
@@ -46,25 +46,18 @@ public class VerificationServiceImpl implements VerificationService {
                 for (NotificationRecipient nr : recipients) {
                         org.hibernate.Hibernate.initialize(nr.getNotification().getSender());
                         Object unproxiedSender = org.hibernate.Hibernate.unproxy(nr.getNotification().getSender());
-                        if (unproxiedSender instanceof Jockey) {
+                        JockeyCert certificate = nr.getNotification().getJockeyCert();
+                        if (unproxiedSender instanceof Jockey && certificate != null) {
                                 Jockey jockey = (Jockey) unproxiedSender;
-                                List<JockeyCert> pendingCerts = jockeyCertRepository
-                                                .findPendingCertificatesByJockeyId(jockey.getId());
 
-                                if (!pendingCerts.isEmpty()) {
-                                        List<String> certInfos = pendingCerts.stream()
-                                                        .map(JockeyCert::getCertName)
-                                                        .toList();
-
-                                        JockeyVerificationRequestResponse response = JockeyVerificationRequestResponse
-                                                        .builder()
-                                                        .notificationId(nr.getNotification().getId())
-                                                        .jockeyId(jockey.getId())
-                                                        .jockeyName(jockey.getJockeyName())
-                                                        .pendingCertificates(certInfos)
-                                                        .build();
-                                        responses.add(response);
-                                }
+                                JockeyVerificationRequestResponse response = JockeyVerificationRequestResponse
+                                                .builder()
+                                                .notificationId(nr.getNotification().getId())
+                                                .jockeyId(jockey.getId())
+                                                .jockeyName(jockey.getJockeyName())
+                                                .pendingCertificates(List.of(toCertificateResponse(certificate)))
+                                                .build();
+                                responses.add(response);
                         }
                 }
 
@@ -112,7 +105,10 @@ public class VerificationServiceImpl implements VerificationService {
                                 .jockey(jockey)
                                 .build();
 
-                return jockeyCertRepository.save(certificate).getId();
+                JockeyCert savedCertificate = jockeyCertRepository.save(certificate);
+                createCertificateVerificationNotification(jockey, savedCertificate);
+
+                return savedCertificate.getId();
         }
 
         @Override
@@ -154,6 +150,138 @@ public class VerificationServiceImpl implements VerificationService {
                                                 "Jockey not found with id: " + jockeyId));
         }
 
+        // Khai: Accept only one selected pending certificate instead of every pending certificate.
+        @Override
+        @Transactional
+        public void acceptJockeyCertificate(Integer jockeyId, Integer certId, Integer adminId) {
+                com.swp.hrtms.hrtmsbe.entity.JockeyCert cert = jockeyCertRepository
+                                .findCertificateByIdAndJockeyId(certId, jockeyId)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Certificate not found with id " + certId + " for jockey " + jockeyId));
+                if (cert.getStatus() != null && !"PENDING".equals(cert.getStatus())) {
+                        throw new RuntimeException("Certificate is not pending.");
+                }
+
+                cert.setStatus("VERIFIED");
+                jockeyCertRepository.save(cert);
+
+                // Khai: Close only this certificate verification notification.
+                notificationRecipientRepository.markCertificateVerificationAsAccepted(adminId, certId);
+                notificationRecipientRepository.markOtherCertificateVerificationRequestsAsDone(adminId, certId);
+                notificationRepository.updateCertificateNotificationTypeToDoneVerify(certId);
+
+                com.swp.hrtms.hrtmsbe.entity.User admin = userRepository.findById(adminId)
+                                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                com.swp.hrtms.hrtmsbe.entity.User jockey = userRepository.findById(jockeyId)
+                                .orElseThrow(() -> new RuntimeException("Jockey not found"));
+
+                com.swp.hrtms.hrtmsbe.entity.Notification notification = com.swp.hrtms.hrtmsbe.entity.Notification
+                                .builder()
+                                .sender(admin)
+                                .title("Certificate Verified")
+                                .content("Your certificate '" + cert.getCertName()
+                                                + "' has been verified successfully.")
+                                .type("ACCEPT_CERTIFICATE")
+                                .createdAt(java.time.LocalDateTime.now())
+                                .build();
+                notification = notificationRepository.save(notification);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                                .builder()
+                                .notification(notification)
+                                .recipient(jockey)
+                                .status("None")
+                                .build();
+                notificationRecipientRepository.save(recipient);
+        }
+
+        // Khai: Reject only one selected pending certificate instead of every pending certificate.
+        @Override
+        @Transactional
+        public void rejectJockeyCertificate(Integer jockeyId, Integer certId, Integer adminId, String reason) {
+                com.swp.hrtms.hrtmsbe.entity.JockeyCert cert = jockeyCertRepository
+                                .findCertificateByIdAndJockeyId(certId, jockeyId)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Certificate not found with id " + certId + " for jockey " + jockeyId));
+                if (cert.getStatus() != null && !"PENDING".equals(cert.getStatus())) {
+                        throw new RuntimeException("Certificate is not pending.");
+                }
+
+                cert.setStatus("REJECTED");
+                jockeyCertRepository.save(cert);
+
+                // Khai: Close only this certificate verification notification.
+                notificationRecipientRepository.markCertificateVerificationAsRejected(adminId, certId);
+                notificationRecipientRepository.markOtherCertificateVerificationRequestsAsDone(adminId, certId);
+                notificationRepository.updateCertificateNotificationTypeToDoneVerify(certId);
+
+                com.swp.hrtms.hrtmsbe.entity.User admin = userRepository.findById(adminId)
+                                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                com.swp.hrtms.hrtmsbe.entity.User jockey = userRepository.findById(jockeyId)
+                                .orElseThrow(() -> new RuntimeException("Jockey not found"));
+
+                String rejectContent = "Your certificate '" + cert.getCertName() + "' has been rejected.";
+                if (reason != null && !reason.isBlank()) {
+                        rejectContent = rejectContent + " Reason: " + reason;
+                }
+
+                com.swp.hrtms.hrtmsbe.entity.Notification notification = com.swp.hrtms.hrtmsbe.entity.Notification
+                                .builder()
+                                .sender(admin)
+                                .title("Certificate Verification Rejected")
+                                .content(rejectContent)
+                                .type("REJECT_CERTIFICATE")
+                                .createdAt(java.time.LocalDateTime.now())
+                                .build();
+                notification = notificationRepository.save(notification);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                                .builder()
+                                .notification(notification)
+                                .recipient(jockey)
+                                .status("None")
+                                .build();
+                notificationRecipientRepository.save(recipient);
+        }
+
+        // Khai: Create one verification notification for one newly submitted certificate.
+        private void createCertificateVerificationNotification(Jockey jockey, JockeyCert certificate) {
+                List<Admin> admins = adminRepository.findAll();
+                if (admins.isEmpty()) {
+                        throw new IllegalArgumentException("No admin account is available to receive the request");
+                }
+
+                Notification notification = Notification.builder()
+                                .sender(jockey)
+                                .title(NOTIFICATION_TITLE)
+                                .content("Jockey has requested verification for certificate '"
+                                                + certificate.getCertName() + "'.")
+                                .type("VERIFY_CERTIFICATE")
+                                .jockeyCert(certificate)
+                                .build();
+                Notification savedNotification = notificationRepository.save(notification);
+
+                List<NotificationRecipient> recipients = admins.stream()
+                                .map(admin -> NotificationRecipient.builder()
+                                                .notification(savedNotification)
+                                                .recipient(admin)
+                                                .build())
+                                .toList();
+                notificationRecipientRepository.saveAll(recipients);
+        }
+
+        // Khai: Map the pending certificate so admin can pass cert_id to accept/reject APIs.
+        private JockeyCertificateResponse toCertificateResponse(JockeyCert certificate) {
+                return JockeyCertificateResponse.builder()
+                                .certId(certificate.getId())
+                                .certName(certificate.getCertName())
+                                .certImageBase64(certificate.getCertImg())
+                                .status(certificate.getStatus())
+                                .build();
+        }
+
+        /*
+        // Khai: Old function accepted every pending certificate of one jockey.
         @Override
         @Transactional
         public void acceptJockeyCertificates(Integer jockeyId, Integer adminId) {
@@ -207,6 +335,7 @@ public class VerificationServiceImpl implements VerificationService {
                 notificationRecipientRepository.save(recipient);
         }
 
+        // Khai: Old function rejected every pending certificate of one jockey.
         @Override
         @Transactional
         public void rejectJockeyCertificates(Integer jockeyId, Integer adminId, String reason) {
@@ -254,4 +383,5 @@ public class VerificationServiceImpl implements VerificationService {
                                 .build();
                 notificationRecipientRepository.save(recipient);
         }
+        */
 }

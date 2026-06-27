@@ -39,6 +39,12 @@ public class Notification {
     @JoinColumn(name = "race_id")
     private Race race;
 
+    // Khai: Link one certificate verification notification to one jockey certificate.
+    //nhiều noti có thể liên kết với một jockey certificate, nhưng một jockey certificate chỉ có thể liên kết với một notification.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "jockey_cert_id")
+    private JockeyCert jockeyCert;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

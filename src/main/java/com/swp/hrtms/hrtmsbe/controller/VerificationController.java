@@ -47,31 +47,55 @@ public class VerificationController {
                         "message", "Certificate created successfully"));
     }
 
-    // Khai: Create one verification notification and deliver it to every admin.
-    @PostMapping("/jockey-certs/{jockeyId}/request-verification")
-    public ResponseEntity<Map<String, String>> requestVerificationForAll(@PathVariable Integer jockeyId) {
-        verificationService.requestVerificationForAll(jockeyId);
-        return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "message", "Certificate verification requested successfully"));
-    }
+    // Khai: Old batch verification API. New flow creates one notification when one certificate is created.
+    // @PostMapping("/jockey-certs/{jockeyId}/request-verification")
+    // public ResponseEntity<Map<String, String>> requestVerificationForAll(@PathVariable Integer jockeyId) {
+    //     verificationService.requestVerificationForAll(jockeyId);
+    //     return ResponseEntity.ok(Map.of(
+    //             "status", "success",
+    //             "message", "Certificate verification requested successfully"));
+    // }
 
-    @PutMapping("/jockey-certs/{jockeyId}/accept")
-    public ResponseEntity<ApiResponse<Void>> acceptJockeyCertificates(
+    // Khai: Old APIs accepted/rejected every pending certificate of one jockey.
+    // @PutMapping("/jockey-certs/{jockeyId}/accept")
+    // public ResponseEntity<ApiResponse<Void>> acceptJockeyCertificates(
+    //         @PathVariable("jockeyId") Integer jockeyId,
+    //         @RequestParam("adminId") Integer adminId) {
+    //
+    //     verificationService.acceptJockeyCertificates(jockeyId, adminId);
+    //     return ResponseEntity.ok(ApiResponse.success(null, "Certificates accepted successfully"));
+    // }
+    //
+    // @PutMapping("/jockey-certs/{jockeyId}/reject")
+    // public ResponseEntity<ApiResponse<Void>> rejectJockeyCertificates(
+    //         @PathVariable("jockeyId") Integer jockeyId,
+    //         @RequestParam("adminId") Integer adminId,
+    //         @org.springframework.web.bind.annotation.RequestBody com.swp.hrtms.hrtmsbe.dto.request.RejectVerificationRequest request) {
+    //
+    //     verificationService.rejectJockeyCertificates(jockeyId, adminId, request.getReason());
+    //     return ResponseEntity.ok(ApiResponse.success(null, "Certificates rejected successfully"));
+    // }
+
+    // Khai: Accept only one selected certificate.
+    @PutMapping("/jockey-certs/{jockeyId}/{certId}/accept")
+    public ResponseEntity<ApiResponse<Void>> acceptJockeyCertificate(
             @PathVariable("jockeyId") Integer jockeyId,
+            @PathVariable("certId") Integer certId,
             @RequestParam("adminId") Integer adminId) {
 
-        verificationService.acceptJockeyCertificates(jockeyId, adminId);
-        return ResponseEntity.ok(ApiResponse.success(null, "Certificates accepted successfully"));
+        verificationService.acceptJockeyCertificate(jockeyId, certId, adminId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Certificate accepted successfully"));
     }
 
-    @PutMapping("/jockey-certs/{jockeyId}/reject")
-    public ResponseEntity<ApiResponse<Void>> rejectJockeyCertificates(
+    // Khai: Reject only one selected certificate.
+    @PutMapping("/jockey-certs/{jockeyId}/{certId}/reject")
+    public ResponseEntity<ApiResponse<Void>> rejectJockeyCertificate(
             @PathVariable("jockeyId") Integer jockeyId,
+            @PathVariable("certId") Integer certId,
             @RequestParam("adminId") Integer adminId,
             @org.springframework.web.bind.annotation.RequestBody com.swp.hrtms.hrtmsbe.dto.request.RejectVerificationRequest request) {
 
-        verificationService.rejectJockeyCertificates(jockeyId, adminId, request.getReason());
-        return ResponseEntity.ok(ApiResponse.success(null, "Certificates rejected successfully"));
+        verificationService.rejectJockeyCertificate(jockeyId, certId, adminId, request.getReason());
+        return ResponseEntity.ok(ApiResponse.success(null, "Certificate rejected successfully"));
     }
 }

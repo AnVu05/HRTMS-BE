@@ -13,4 +13,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     @org.springframework.data.jpa.repository.Modifying
     @Query("UPDATE Notification n SET n.type = 'DONE_VERIFY' WHERE n.sender.id = :jockeyId AND n.type = 'VERIFY_CERTIFICATE'")
     void updateTypeToDoneVerify(@Param("jockeyId") Integer jockeyId);
+
+    // Khai: Finish only the notification linked to the selected jockey certificate.
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Notification n SET n.type = 'DONE_VERIFY' WHERE n.jockeyCert.id = :certId AND n.type = 'VERIFY_CERTIFICATE'")
+    void updateCertificateNotificationTypeToDoneVerify(@Param("certId") Integer certId);
 }

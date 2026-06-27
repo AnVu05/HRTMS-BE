@@ -19,8 +19,36 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
                         Integer recipientId,
                         Collection<String> types);
 
-        @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :recipientId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE'")
+        // Khai: Return one pending admin verification notification per pending certificate.
+        @Query("""
+                        SELECT nr
+                        FROM NotificationRecipient nr
+                        JOIN FETCH nr.notification n
+                        JOIN FETCH n.sender sender
+                        JOIN FETCH n.jockeyCert cert
+                        WHERE nr.recipient.id = :recipientId
+                          AND nr.status = 'None'
+                          AND n.type = 'VERIFY_CERTIFICATE'
+                          AND (cert.status = 'PENDING' OR cert.status IS NULL)
+                        """)
         List<NotificationRecipient> findPendingVerificationRequests(@Param("recipientId") Integer recipientId);
+
+        // Khai: Mark only the selected certificate verification notification for this admin.
+        @org.springframework.data.jpa.repository.Modifying
+        @Query("UPDATE NotificationRecipient nr SET nr.status = 'Accept' WHERE nr.recipient.id = :adminId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE' AND nr.notification.jockeyCert.id = :certId")
+        void markCertificateVerificationAsAccepted(@Param("adminId") Integer adminId, @Param("certId") Integer certId);
+
+        // Khai: Mark only the selected certificate verification notification for this admin.
+        @org.springframework.data.jpa.repository.Modifying
+        @Query("UPDATE NotificationRecipient nr SET nr.status = 'Reject' WHERE nr.recipient.id = :adminId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE' AND nr.notification.jockeyCert.id = :certId")
+        void markCertificateVerificationAsRejected(@Param("adminId") Integer adminId, @Param("certId") Integer certId);
+
+        // Khai: Mark other admins' copies of only this selected certificate notification.
+        @org.springframework.data.jpa.repository.Modifying
+        @Query("UPDATE NotificationRecipient nr SET nr.status = 'DONE_VERIFY' WHERE nr.recipient.id <> :adminId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE' AND nr.notification.jockeyCert.id = :certId")
+        void markOtherCertificateVerificationRequestsAsDone(
+                        @Param("adminId") Integer adminId,
+                        @Param("certId") Integer certId);
 
         @org.springframework.data.jpa.repository.Modifying
         @Query("UPDATE NotificationRecipient nr SET nr.status = 'Accept' WHERE nr.recipient.id = :adminId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE' AND nr.notification.sender.id = :jockeyId")

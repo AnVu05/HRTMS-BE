@@ -24,5 +24,5 @@ public class JockeyVerificationRequestResponse {
     private String jockeyName;
 
     @JsonProperty("pending_certificates")
-    private List<String> pendingCertificates;
+    private List<JockeyCertificateResponse> pendingCertificates;
 }
