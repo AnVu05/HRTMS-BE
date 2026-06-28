@@ -33,6 +33,16 @@ public class Tournament {
     @Column(name = "end_date")
     private LocalDate endDate;
 
+    //Khai: Dates displayed on the Create New Tournament form.
+    @Column(name = "announcement_date")
+    private LocalDate announcementDate;
+
+    @Column(name = "registration_open_date")
+    private LocalDate registrationOpenDate;
+
+    @Column(name = "registration_close_date")
+    private LocalDate registrationCloseDate;
+
     @Column(name = "allowed_breed")
     private String allowedBreed;
 

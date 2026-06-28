@@ -2,6 +2,8 @@ package com.swp.hrtms.hrtmsbe.controller;
 
 import com.swp.hrtms.hrtmsbe.dto.request.RaceBatchCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.RaceResponse;
+//Khai
+import com.swp.hrtms.hrtmsbe.dto.response.SingleRaceCreateResponse;
 import com.swp.hrtms.hrtmsbe.service.RaceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,8 +27,9 @@ public class RaceController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<RaceResponse>> createSingleRace(@RequestBody com.swp.hrtms.hrtmsbe.dto.request.SingleRaceCreateRequest request) {
-        RaceResponse response = raceService.createSingleRace(request);
+    //Khai
+    public ResponseEntity<ApiResponse<SingleRaceCreateResponse>> createSingleRace(@RequestBody com.swp.hrtms.hrtmsbe.dto.request.SingleRaceCreateRequest request) {
+        SingleRaceCreateResponse response = raceService.createSingleRace(request);
         return new ResponseEntity<>(ApiResponse.success(response, "Race created successfully"), HttpStatus.CREATED);
     }
 

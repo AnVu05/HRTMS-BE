@@ -6,6 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+//Khai
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -36,10 +40,32 @@ public class Race {
     @Column(name = "end_time")
     private LocalTime endTime;
 
-    private Integer laps;
+    // private Integer laps;
 
-    @Column(name = "num_horse")
-    private Integer numHorse;
+    // @Column(name = "num_horse")
+    // private Integer numHorse;
+
+    //Khai: Race requirements displayed on the Add New Race form.
+    @Column(name = "distance_m")
+    private Integer distanceM;
+
+    @Column(name = "horse_breed")
+    private String horseBreed;
+
+    @Column(name = "weight_kg", precision = 10, scale = 2)
+    private BigDecimal weightKg;
+
+    @Column(name = "horse_age")
+    private Integer horseAge;
+
+    //Khai: VND awarded to each spectator who predicts the winner correctly.
+    @Column(name = "betting_reward")
+    private Long bettingReward;
+
+    //Khai
+    @OneToMany(mappedBy = "race", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<RacePrize> jockeyPrizes = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "referee_id")
