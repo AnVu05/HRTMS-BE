@@ -35,6 +35,20 @@ public class HorseServiceImpl implements HorseService {
                 .toList();
     }
 
+    //Khai
+    @Override
+    @Transactional(readOnly = true)
+    public List<HorseResponse> getHorsesByOwnerId(Integer ownerId) {
+        if (!horseOwnerRepository.existsById(ownerId)) {
+            throw new ResourceNotFoundException("Horse owner not found with id: " + ownerId);
+        }
+
+        return horseRepository.findByOwnerUserId(ownerId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public HorseResponse getHorseById(Integer id) {
