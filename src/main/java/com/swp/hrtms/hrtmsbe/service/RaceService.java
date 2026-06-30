@@ -25,4 +25,6 @@ public interface RaceService {
     String updateRaceTime(Integer raceId, com.swp.hrtms.hrtmsbe.dto.request.RaceUpdateTimeRequest request);
 
     void predictScheduleUpdate();
+
+    RaceResponse getRaceById(Integer id);
 }

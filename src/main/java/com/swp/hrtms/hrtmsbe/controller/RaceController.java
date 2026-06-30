@@ -63,4 +63,10 @@ public class RaceController {
         String response = raceService.updateRaceTime(id, request);
         return ResponseEntity.ok(ApiResponse.success(null, response));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<RaceResponse>> getRaceById(@PathVariable("id") Integer id) {
+        RaceResponse response = raceService.getRaceById(id);
+        return ResponseEntity.ok(ApiResponse.success(response, null));
+    }
 }

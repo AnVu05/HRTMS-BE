@@ -531,4 +531,12 @@ public class RaceServiceImpl implements RaceService {
                 .build();
         notificationRecipientRepository.save(recipient);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RaceResponse getRaceById(Integer id) {
+        Race race = raceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Race not found with id: " + id));
+        return mapToRaceResponse(race);
+    }
 }
