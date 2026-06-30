@@ -51,6 +51,7 @@ public class MockData {
 
         public void generateData() {
                 generateJockeyCertificateAndRaceFlowMockDataOnStartup();
+                generateDataForCreateTournamentApiTest();
         }
 
         public void generateJockeyCertificateAndRaceFlowMockDataOnStartup() {
@@ -164,6 +165,26 @@ public class MockData {
                 System.out.println("Published race Ascot Gold Cup id=" + ascotGoldCup.getId());
         }
 
+        public void generateDataForCreateTournamentApiTest() {
+                System.out.println("\n--- Seeding data for Create Tournament API Test ---");
+                Admin testAdmin = findOrCreateAdmin("admin_test_tournament", "admin_test@test.com");
+                
+                System.out.println("Admin for testing Create Tournament API:");
+                System.out.println("Username: " + testAdmin.getUsername());
+                System.out.println("Password: password123");
+                System.out.println("\n[POSTMAN] Sample JSON payload to create a new tournament:");
+                System.out.println("{");
+                System.out.println("  \"name\": \"Vietnam Grand Prix 2026\",");
+                System.out.println("  \"start_date\": \"2026-10-01\",");
+                System.out.println("  \"end_date\": \"2026-10-05\",");
+                System.out.println("  \"announcement_date\": \"2026-08-01\",");
+                System.out.println("  \"registration_open_date\": \"2026-08-15\",");
+                System.out.println("  \"registration_close_date\": \"2026-09-15\",");
+                System.out.println("  \"tournament_description\": \"A prestigious national horse racing tournament.\"");
+                System.out.println("}");
+                System.out.println("---------------------------------------------------\n");
+        }
+
         private Admin findOrCreateAdmin() {
                 java.util.Optional<User> existingAdminUser = userRepository.findByUsername("admin1");
                 if (existingAdminUser.isPresent()) {
@@ -174,6 +195,20 @@ public class MockData {
                 admin.setUsername("admin1");
                 admin.setPassword("password123");
                 admin.setEmail("admin1@test.com");
+                admin.setRole(UserRole.ADMIN.name());
+                return adminRepository.save(admin);
+        }
+
+        private Admin findOrCreateAdmin(String username, String email) {
+                java.util.Optional<User> existingAdminUser = userRepository.findByUsername(username);
+                if (existingAdminUser.isPresent()) {
+                        return (Admin) existingAdminUser.get();
+                }
+
+                Admin admin = new Admin();
+                admin.setUsername(username);
+                admin.setPassword("password123");
+                admin.setEmail(email);
                 admin.setRole(UserRole.ADMIN.name());
                 return adminRepository.save(admin);
         }

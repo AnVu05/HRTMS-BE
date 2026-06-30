@@ -41,7 +41,7 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     @Transactional
     public TournamentResponse createTournament(Integer adminId, TournamentCreateRequest request) {
-        //Khai
+        // Khai
         if (request.getName() == null || request.getName().isBlank()) {
             throw new IllegalArgumentException("Tournament name is required");
         }
@@ -50,7 +50,7 @@ public class TournamentServiceImpl implements TournamentService {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found with id: " + adminId));
 
-        //Khai: Validate all required dates in the order used by the FE workflow.
+        // Khai: Validate all required dates in the order used by the FE workflow.
         if (request.getAnnouncementDate() == null || request.getRegistrationOpenDate() == null ||
                 request.getRegistrationCloseDate() == null || request.getStartDate() == null ||
                 request.getEndDate() == null) {
@@ -77,12 +77,12 @@ public class TournamentServiceImpl implements TournamentService {
                 .name(request.getName().trim())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                //Khai
+                // Khai
                 .announcementDate(request.getAnnouncementDate())
                 .registrationOpenDate(request.getRegistrationOpenDate())
                 .registrationCloseDate(request.getRegistrationCloseDate())
                 .description(request.getDescription())
-                .status("UPCOMING")
+                .status("DRAFT")
                 .build();
 
         // Save to DB
@@ -236,7 +236,7 @@ public class TournamentServiceImpl implements TournamentService {
                 .name(tournament.getName())
                 .startDate(tournament.getStartDate())
                 .endDate(tournament.getEndDate())
-                //Khai
+                // Khai
                 .announcementDate(tournament.getAnnouncementDate())
                 .registrationOpenDate(tournament.getRegistrationOpenDate())
                 .registrationCloseDate(tournament.getRegistrationCloseDate())
