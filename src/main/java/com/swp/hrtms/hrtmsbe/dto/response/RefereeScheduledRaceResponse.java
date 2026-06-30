@@ -21,6 +21,6 @@ public class RefereeScheduledRaceResponse {
     private LocalTime endTime;
     private Integer laps;
     private Integer numHorse;
-    private String status;
+    private com.swp.hrtms.hrtmsbe.enums.RaceStatus status;
     private String track;
 }

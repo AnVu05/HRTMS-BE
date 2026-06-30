@@ -18,7 +18,7 @@ public class TournamentDashboardResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private Long numRaces;
-    private String status;
+    private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status;
 
     @JsonProperty("allowed_breed")
     private String allowedBreed;

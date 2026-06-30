@@ -272,14 +272,15 @@ public class NotificationServiceImpl implements NotificationService {
                         // Cập nhật trạng thái người nhận thành "None" (theo yêu cầu của hệ thống để hỗ
                         // trợ lọc thông báo chưa đọc sau này)
                         // Cập nhật trạng thái cuộc đua thành PUBLISHED (đã xuất bản)
-                        recipient.setStatus("READ");
-                        race.setStatus("PUBLISHED");
+                        recipient.setStatus(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.READ);
+                        // khai
+                        race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED);
 
                         // Tạo thông báo phản hồi (Đồng ý) gửi ngược về lại cho Admin
                         createResponseNotification(referee, race, true);
                 } else if ("Reject".equalsIgnoreCase(responseStatus)) {
                         // Cập nhật trạng thái người nhận thành "None" theo yêu cầu
-                        recipient.setStatus("READ");
+                        recipient.setStatus(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.READ);
 
                         // Tạo thông báo phản hồi (Từ chối) gửi ngược về lại cho Admin trước khi gán
                         // referee thành null
@@ -287,7 +288,7 @@ public class NotificationServiceImpl implements NotificationService {
 
                         // Cập nhật trạng thái cuộc đua thành PENDING_REFEREE và gỡ bỏ referee_id (set
                         // null)
-                        race.setStatus("PENDING_REFEREE");
+                        race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PENDING_REFEREE);
                         race.setReferee(null);
                 } else {
                         throw new IllegalArgumentException(
@@ -318,7 +319,7 @@ public class NotificationServiceImpl implements NotificationService {
                                 .sender(referee)
                                 .title(title)
                                 .content(content)
-                                .type(isAccepted ? "INVITATION_ACCEPTED" : "INVITATION_REJECTED")
+                                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.SYSTEM)
                                 .race(race)
                                 .createdAt(java.time.LocalDateTime.now())
                                 .build();
@@ -328,7 +329,7 @@ public class NotificationServiceImpl implements NotificationService {
                 NotificationRecipient responseRecipient = NotificationRecipient.builder()
                                 .notification(notification)
                                 .recipient(admin)
-                                .status("None")
+                                .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
                                 .build();
                 notificationRecipientRepository.save(responseRecipient);
         }

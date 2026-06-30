@@ -23,6 +23,16 @@ public class TournamentUpdateRequest {
     @JsonProperty("end_date")
     private LocalDate endDate;
 
+    // khai
+    @JsonProperty("published_date")
+    private LocalDate publishedDate;
+
+    @JsonProperty("open_prediction_date")
+    private LocalDate openPredictionDate;
+
+    @JsonProperty("close_prediction_date")
+    private LocalDate closePredictionDate;
+
     @JsonProperty("allowed_horse_breed")
     private String allowedBreed;
 
@@ -32,5 +42,8 @@ public class TournamentUpdateRequest {
     @JsonProperty("tournament_description")
     private String description;
 
-    private String status;
+    private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status;
+
+    @JsonProperty("cancel_reason")
+    private String cancelReason;
 }

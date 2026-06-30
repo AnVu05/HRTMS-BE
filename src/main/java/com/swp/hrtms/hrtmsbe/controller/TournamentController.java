@@ -1,7 +1,6 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCreateRequest;
-import com.swp.hrtms.hrtmsbe.dto.response.TournamentDashboardResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentResponse;
 import com.swp.hrtms.hrtmsbe.service.TournamentService;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +26,10 @@ public class TournamentController {
                 HttpStatus.CREATED);
     }
 
+    // khai
     @GetMapping("/dashboard")
-    public ResponseEntity<ApiResponse<List<TournamentDashboardResponse>>> getTournamentsForDashboard() {
-        List<TournamentDashboardResponse> tournaments = tournamentService.getTournamentsForDashboard();
+    public ResponseEntity<ApiResponse<List<TournamentResponse>>> getTournamentsForDashboard() {
+        List<TournamentResponse> tournaments = tournamentService.getTournamentsForDashboard();
         return ResponseEntity.ok(ApiResponse.success(tournaments, null));
     }
 

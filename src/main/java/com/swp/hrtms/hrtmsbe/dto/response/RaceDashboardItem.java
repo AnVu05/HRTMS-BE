@@ -18,7 +18,7 @@ public class RaceDashboardItem {
     private LocalTime startTime;
     private LocalTime endTime;
     private Integer laps;
-    private String status;
+    private com.swp.hrtms.hrtmsbe.enums.RaceStatus status;
     private Integer refereeId;
     private String refereeName;
     private String track;

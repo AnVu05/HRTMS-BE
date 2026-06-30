@@ -193,7 +193,7 @@ public class VerificationServiceImpl implements VerificationService {
                                 .sender(admin)
                                 .title("Certificate Verified")
                                 .content("Your certificates have been verified successfully.")
-                                .type("ACCEPT_CERTIFICATE")
+                                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.ACCEPT_CERTIFICATE)
                                 .createdAt(java.time.LocalDateTime.now())
                                 .build();
                 notification = notificationRepository.save(notification);
@@ -202,7 +202,7 @@ public class VerificationServiceImpl implements VerificationService {
                                 .builder()
                                 .notification(notification)
                                 .recipient(jockey)
-                                .status("None")
+                                .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
                                 .build();
                 notificationRecipientRepository.save(recipient);
         }
@@ -241,7 +241,7 @@ public class VerificationServiceImpl implements VerificationService {
                                 .sender(admin)
                                 .title("Certificate Verification Rejected")
                                 .content(reason)
-                                .type("REJECT_CERTIFICATE")
+                                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.REJECT_CERTIFICATE)
                                 .createdAt(java.time.LocalDateTime.now())
                                 .build();
                 notification = notificationRepository.save(notification);
@@ -250,7 +250,7 @@ public class VerificationServiceImpl implements VerificationService {
                                 .builder()
                                 .notification(notification)
                                 .recipient(jockey)
-                                .status("None")
+                                .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
                                 .build();
                 notificationRecipientRepository.save(recipient);
         }

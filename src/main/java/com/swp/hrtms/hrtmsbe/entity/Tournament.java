@@ -34,14 +34,14 @@ public class Tournament {
     private LocalDate endDate;
 
     // Khai: Dates displayed on the Create New Tournament form.
-    @Column(name = "announcement_date")
-    private LocalDate announcementDate;
+    @Column(name = "published_date")
+    private LocalDate publishedDate;
 
-    @Column(name = "registration_open_date")
-    private LocalDate registrationOpenDate;
+    @Column(name = "open_prediction_date")
+    private LocalDate openPredictionDate;
 
-    @Column(name = "registration_close_date")
-    private LocalDate registrationCloseDate;
+    @Column(name = "close_prediction_date")
+    private LocalDate closePredictionDate;
 
     @Column(name = "allowed_breed")
     private String allowedBreed;
@@ -52,7 +52,10 @@ public class Tournament {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private String status; // "PUBLIC", "COMPLETED", "CANCELLED"
+    // khai
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status = com.swp.hrtms.hrtmsbe.enums.TournamentStatus.DRAFT;
 
     @Column(name = "cancel_reason")
     private String cancelReason;

@@ -3,7 +3,6 @@ package com.swp.hrtms.hrtmsbe.service.impl;
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCancelRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ActiveTournamentResponse;
-import com.swp.hrtms.hrtmsbe.dto.response.TournamentDashboardResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentResponse;
 import com.swp.hrtms.hrtmsbe.entity.Admin;
 import com.swp.hrtms.hrtmsbe.entity.Race;
@@ -51,21 +50,21 @@ public class TournamentServiceImpl implements TournamentService {
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found with id: " + adminId));
 
         // Khai: Validate all required dates in the order used by the FE workflow.
-        if (request.getAnnouncementDate() == null || request.getRegistrationOpenDate() == null ||
-                request.getRegistrationCloseDate() == null || request.getStartDate() == null ||
+        if (request.getPublishedDate() == null || request.getOpenPredictionDate() == null ||
+                request.getClosePredictionDate() == null || request.getStartDate() == null ||
                 request.getEndDate() == null) {
             throw new IllegalArgumentException(
-                    "Announcement date, registration open date, registration close date, start date, and end date are required");
+                    "Published date, open prediction date, close prediction date, start date, and end date are required");
         }
 
-        if (request.getAnnouncementDate().isAfter(request.getRegistrationOpenDate())) {
-            throw new IllegalArgumentException("Announcement date cannot be after registration open date");
+        if (request.getPublishedDate().isAfter(request.getOpenPredictionDate())) {
+            throw new IllegalArgumentException("Published date cannot be after open prediction date");
         }
-        if (request.getRegistrationOpenDate().isAfter(request.getRegistrationCloseDate())) {
-            throw new IllegalArgumentException("Registration open date cannot be after registration close date");
+        if (request.getOpenPredictionDate().isAfter(request.getClosePredictionDate())) {
+            throw new IllegalArgumentException("Open prediction date cannot be after close prediction date");
         }
-        if (!request.getRegistrationCloseDate().isBefore(request.getStartDate())) {
-            throw new IllegalArgumentException("Registration close date must be before tournament start date");
+        if (!request.getClosePredictionDate().isBefore(request.getStartDate())) {
+            throw new IllegalArgumentException("Close prediction date must be before tournament start date");
         }
         if (request.getStartDate().isAfter(request.getEndDate())) {
             throw new IllegalArgumentException("Tournament start date cannot be after end date");
@@ -78,11 +77,16 @@ public class TournamentServiceImpl implements TournamentService {
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 // Khai
-                .announcementDate(request.getAnnouncementDate())
-                .registrationOpenDate(request.getRegistrationOpenDate())
-                .registrationCloseDate(request.getRegistrationCloseDate())
+                .publishedDate(request.getPublishedDate())
+                .openPredictionDate(request.getOpenPredictionDate())
+                .closePredictionDate(request.getClosePredictionDate())
+                // khai
+                .allowedBreed(request.getAllowedBreed())
+                .allowedHorseAge(request.getAllowedHorseAge())
                 .description(request.getDescription())
-                .status("DRAFT")
+                .status(request.getStatus() != null ? request.getStatus()
+                        : com.swp.hrtms.hrtmsbe.enums.TournamentStatus.DRAFT)
+                .cancelReason(request.getCancelReason())
                 .build();
 
         // Save to DB
@@ -98,21 +102,23 @@ public class TournamentServiceImpl implements TournamentService {
     @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 0 * * ?")
     public void updateTournamentStatuses() {
         java.time.LocalDate now = java.time.LocalDate.now();
-        // Chỉ lấy các giải đấu đang ở trạng thái PUBLISHED theo yêu cầu
-        List<Tournament> tournaments = tournamentRepository.findByStatus("PUBLISHED");
+        // khai
+        // Chỉ lấy các giải đấu đang ở trạng thái PUBLIC theo yêu cầu
+        List<Tournament> tournaments = tournamentRepository
+                .findByStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED);
 
         boolean updated = false;
         for (Tournament tournament : tournaments) {
             if (tournament.getStartDate() == null || tournament.getEndDate() == null)
                 continue;
 
-            String currentStatus = tournament.getStatus();
-            String newStatus = currentStatus;
+            com.swp.hrtms.hrtmsbe.enums.TournamentStatus currentStatus = tournament.getStatus();
+            com.swp.hrtms.hrtmsbe.enums.TournamentStatus newStatus = currentStatus;
 
             if (now.isBefore(tournament.getStartDate())) {
-                newStatus = "UPCOMING";
+                newStatus = com.swp.hrtms.hrtmsbe.enums.TournamentStatus.DRAFT;
             } else if (now.isAfter(tournament.getEndDate())) {
-                newStatus = "FINISHED";
+                newStatus = com.swp.hrtms.hrtmsbe.enums.TournamentStatus.COMPLETE;
             }
             // Nếu nằm trong khoảng đang diễn ra thì giữ nguyên (không đổi sang ONGOING)
 
@@ -130,14 +136,18 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TournamentDashboardResponse> getTournamentsForDashboard() {
-        return tournamentRepository.getTournamentsForDashboard();
+    public List<TournamentResponse> getTournamentsForDashboard() {
+        // khai
+        return tournamentRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ActiveTournamentResponse> getActiveTournaments() {
-        return tournamentRepository.findByStatus("PUBLISHED").stream()
+        // khai
+        return tournamentRepository.findByStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED).stream()
                 .map(t -> ActiveTournamentResponse.builder()
                         .id(t.getId())
                         .name(t.getName())
@@ -158,6 +168,16 @@ public class TournamentServiceImpl implements TournamentService {
         if (request.getEndDate() != null) {
             tournament.setEndDate(request.getEndDate());
         }
+        // khai
+        if (request.getPublishedDate() != null) {
+            tournament.setPublishedDate(request.getPublishedDate());
+        }
+        if (request.getOpenPredictionDate() != null) {
+            tournament.setOpenPredictionDate(request.getOpenPredictionDate());
+        }
+        if (request.getClosePredictionDate() != null) {
+            tournament.setClosePredictionDate(request.getClosePredictionDate());
+        }
 
         if (tournament.getStartDate() != null && tournament.getEndDate() != null
                 && tournament.getStartDate().isAfter(tournament.getEndDate())) {
@@ -176,21 +196,26 @@ public class TournamentServiceImpl implements TournamentService {
         if (request.getDescription() != null) {
             tournament.setDescription(request.getDescription());
         }
-        String oldStatus = tournament.getStatus();
+        com.swp.hrtms.hrtmsbe.enums.TournamentStatus oldStatus = tournament.getStatus();
         if (request.getStatus() != null) {
             tournament.setStatus(request.getStatus());
+        }
+        if (request.getCancelReason() != null) {
+            tournament.setCancelReason(request.getCancelReason());
         }
 
         tournament = tournamentRepository.save(tournament);
 
-        if (!"PUBLISHED".equals(oldStatus) && "PUBLISHED".equals(request.getStatus())) {
+        // khai
+        if (!"PUBLIC".equals(oldStatus) && "PUBLIC".equals(request.getStatus() != null ? request.getStatus()
+                : com.swp.hrtms.hrtmsbe.enums.TournamentStatus.DRAFT.name())) {
             List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
             if (!targetUsers.isEmpty()) {
                 Notification notification = Notification.builder()
                         .sender(null) // System notification
                         .title("New Tournament " + tournament.getName())
                         .content(tournament.getDescription())
-                        .type("None")
+                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.SYSTEM)
                         .build();
                 notification = notificationRepository.save(notification);
 
@@ -199,7 +224,7 @@ public class TournamentServiceImpl implements TournamentService {
                     NotificationRecipient recipient = NotificationRecipient.builder()
                             .notification(notification)
                             .recipient(user)
-                            .status("None")
+                            .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
                             .build();
                     recipients.add(recipient);
                 }
@@ -216,13 +241,17 @@ public class TournamentServiceImpl implements TournamentService {
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
 
-        tournament.setStatus("CANCELLED");
+        // khai
+        // BR_17 (Tiền đề): Cập nhật trạng thái CANCELLED, chờ logic hoàn tiền (refund)
+        // 100% Points/Vouchers.
+        tournament.setStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.CANCELLED);
         tournament.setCancelReason(request.getReason());
         tournamentRepository.save(tournament);
 
         List<Race> races = raceRepository.findByTournamentId(tournamentId);
         for (Race race : races) {
-            race.setStatus("CANCELLED");
+            // BR_06: The cancelled race will be converted into a rest period.
+            race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.CANCELLED);
         }
         raceRepository.saveAll(races);
 
@@ -237,9 +266,9 @@ public class TournamentServiceImpl implements TournamentService {
                 .startDate(tournament.getStartDate())
                 .endDate(tournament.getEndDate())
                 // Khai
-                .announcementDate(tournament.getAnnouncementDate())
-                .registrationOpenDate(tournament.getRegistrationOpenDate())
-                .registrationCloseDate(tournament.getRegistrationCloseDate())
+                .publishedDate(tournament.getPublishedDate())
+                .openPredictionDate(tournament.getOpenPredictionDate())
+                .closePredictionDate(tournament.getClosePredictionDate())
                 .allowedBreed(tournament.getAllowedBreed())
                 .allowedHorseAge(tournament.getAllowedHorseAge())
                 .description(tournament.getDescription())

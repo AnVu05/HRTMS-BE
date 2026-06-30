@@ -22,16 +22,27 @@ public class TournamentCreateRequest {
     @JsonProperty("end_date")
     private LocalDate endDate;
 
-    //Khai: Required dates from the Create New Tournament form.
-    @JsonProperty("announcement_date")
-    private LocalDate announcementDate;
+    @JsonProperty("published_date")
+    private LocalDate publishedDate;
 
-    @JsonProperty("registration_open_date")
-    private LocalDate registrationOpenDate;
+    @JsonProperty("open_prediction_date")
+    private LocalDate openPredictionDate;
 
-    @JsonProperty("registration_close_date")
-    private LocalDate registrationCloseDate;
+    @JsonProperty("close_prediction_date")
+    private LocalDate closePredictionDate;
+
+    // khai
+    @JsonProperty("allowed_breed")
+    private String allowedBreed;
+
+    @JsonProperty("allowed_horse_age")
+    private Integer allowedHorseAge;
 
     @JsonProperty("tournament_description")
     private String description;
+
+    private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status;
+
+    @JsonProperty("cancel_reason")
+    private String cancelReason;
 }

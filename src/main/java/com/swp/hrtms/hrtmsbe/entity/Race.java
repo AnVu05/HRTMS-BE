@@ -45,7 +45,7 @@ public class Race {
     // @Column(name = "num_horse")
     // private Integer numHorse;
 
-    //Khai: Race requirements displayed on the Add New Race form.
+    // Khai: Race requirements displayed on the Add New Race form.
     @Column(name = "distance_m")
     private Integer distanceM;
 
@@ -58,11 +58,11 @@ public class Race {
     @Column(name = "horse_age")
     private Integer horseAge;
 
-    //Khai: VND awarded to each spectator who predicts the winner correctly.
+    // Khai: VND awarded to each spectator who predicts the winner correctly.
     @Column(name = "betting_reward")
     private Long bettingReward;
 
-    //Khai
+    // Khai
     @OneToMany(mappedBy = "race", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<RacePrize> jockeyPrizes = new ArrayList<>();
@@ -71,10 +71,25 @@ public class Race {
     @JoinColumn(name = "referee_id")
     private Referee referee;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private com.swp.hrtms.hrtmsbe.enums.RaceStatus status = com.swp.hrtms.hrtmsbe.enums.RaceStatus.PENDING_REFEREE;
 
     private String track;
 
     @Column(name = "reason")
     private String reason;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "race_rules")
+    private RaceFormat raceRules;
+
+    @Column(name = "expected_duration_minutes")
+    private Integer expectedDurationMinutes;
+
+    @Column(name = "break_time_minutes")
+    private Integer breakTimeMinutes;
+
+    @Column(name = "canceled_at")
+    private java.time.LocalDateTime canceledAt;
 }
