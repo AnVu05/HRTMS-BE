@@ -14,9 +14,6 @@ import java.time.LocalDate;
 @Builder
 public class TournamentCreateRequest {
 
-    @JsonProperty("admin_id")
-    private Integer adminId;
-
     private String name;
 
     @JsonProperty("start_date")
@@ -25,14 +22,14 @@ public class TournamentCreateRequest {
     @JsonProperty("end_date")
     private LocalDate endDate;
 
-    @JsonProperty("allowed_breed")
-    private String allowedBreed;
+    @JsonProperty("published_date")
+    private LocalDate publishedDate;
 
-    @JsonProperty("allowed_horse_age")
-    private Integer allowedHorseAge;
+    @JsonProperty("open_prediction_date")
+    private LocalDate openPredictionDate;
 
-    @JsonProperty("tournament_description")
-    private String description;
+    @JsonProperty("close_prediction_date")
+    private LocalDate closePredictionDate;
 
-    private String status;
+    private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status;
 }

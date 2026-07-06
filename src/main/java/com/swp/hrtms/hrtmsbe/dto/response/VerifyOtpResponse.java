@@ -13,3 +13,4 @@ public class VerifyOtpResponse {
     private String token;
     private UserResponse user;
 }
+

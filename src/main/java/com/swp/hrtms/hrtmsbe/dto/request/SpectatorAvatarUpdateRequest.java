@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SpectatorAvatarUpdateRequest {
 
-    private String avatarBase64;
+    private String avatar;
 }
+

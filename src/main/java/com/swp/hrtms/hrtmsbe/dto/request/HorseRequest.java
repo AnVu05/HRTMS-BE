@@ -20,7 +20,10 @@ public class HorseRequest {
     private String name;
     private Integer age;
     private String breed;
+    private String sex;
+    private java.math.BigDecimal weightKg;
     private HorseStatus status;
 
     
 }
+

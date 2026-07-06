@@ -15,4 +15,14 @@ public class HorseOwnerProfileUpdateRequest {
     private String email;
 
     private String password;
+
+    private String ownerName;
+
+    private String avatar;
+
+    private String role;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("created_at")
+    private java.time.LocalDateTime createdAt;
 }
+

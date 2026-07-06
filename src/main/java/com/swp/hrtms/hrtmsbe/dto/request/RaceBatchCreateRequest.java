@@ -19,3 +19,4 @@ public class RaceBatchCreateRequest {
 
     private List<RaceCreateRequest> races;
 }
+

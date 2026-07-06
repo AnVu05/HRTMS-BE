@@ -39,6 +39,17 @@ public class Horse {
 
     private String breed;
 
+    @Column(length = 20)
+    private String sex;
+
+    @Column(nullable = false, columnDefinition = "DECIMAL(5,2)")
+    private java.math.BigDecimal weightKg;
+
     @Enumerated(EnumType.STRING)
     private HorseStatus status; //thêm class HorseStatus để ko bao giờ gõ sai status của ngựa
 }
+
+
+
+
+

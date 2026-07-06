@@ -25,7 +25,8 @@ public class RaceCreateRequest {
     @JsonProperty("end_time")
     private LocalTime endTime;
 
-    private Integer laps;
+    @JsonProperty("distance_m")
+    private Integer distanceM;
 
     @JsonProperty("num_horse")
     private Integer numHorse;
@@ -33,5 +34,13 @@ public class RaceCreateRequest {
     @JsonProperty("referee_id")
     private Integer refereeId;
 
-    private String track;
+    @JsonProperty("race_rules_id")
+    private Integer raceRulesId;
+
+    @JsonProperty("expected_duration_minutes")
+    private Integer expectedDurationMinutes;
+
+    @JsonProperty("break_time_minutes")
+    private Integer breakTimeMinutes;
 }
+

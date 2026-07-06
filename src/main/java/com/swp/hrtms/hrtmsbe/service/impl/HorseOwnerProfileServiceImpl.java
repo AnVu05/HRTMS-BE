@@ -8,10 +8,10 @@ import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
 import com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository;
 import com.swp.hrtms.hrtmsbe.repository.UserRepository;
 import com.swp.hrtms.hrtmsbe.service.HorseOwnerProfileService;
-import org.springframework.http.HttpStatus;
+//import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+//import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class HorseOwnerProfileServiceImpl implements HorseOwnerProfileService {
@@ -29,7 +29,7 @@ public class HorseOwnerProfileServiceImpl implements HorseOwnerProfileService {
     @Transactional(readOnly = true)
     public HorseOwnerProfileResponse getProfile(Integer ownerId) {
         HorseOwner horseOwner = findHorseOwnerById(ownerId);
-        return toResponse(horseOwner.getUser());
+        return toResponse(horseOwner);
     }
 
     @Override
@@ -40,8 +40,17 @@ public class HorseOwnerProfileServiceImpl implements HorseOwnerProfileService {
 
         applyRequestToUser(user, request);
 
-        User updatedUser = userRepository.save(user);
-        return toResponse(updatedUser);
+        if (request.getOwnerName() != null && !request.getOwnerName().isBlank()) {
+            horseOwner.setOwnerName(request.getOwnerName());
+        }
+
+        if (request.getAvatar() != null && !request.getAvatar().isBlank()) {
+            horseOwner.setAvatar(request.getAvatar());
+        }
+
+        userRepository.save(user);
+        HorseOwner updatedOwner = horseOwnerRepository.save(horseOwner);
+        return toResponse(updatedOwner);
     }
 
     // Khải: Tìm đúng chủ ngựa theo user_id, nếu không có thì trả lỗi 404.
@@ -65,6 +74,14 @@ public class HorseOwnerProfileServiceImpl implements HorseOwnerProfileService {
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPassword(request.getPassword());
         }
+
+        if (request.getRole() != null && !request.getRole().isBlank()) {
+            user.setRole(request.getRole());
+        }
+
+        if (request.getCreatedAt() != null) {
+            user.setCreatedAt(request.getCreatedAt());
+        }
     }
 
     // Khải: Chặn trùng username để tránh lỗi unique constraint từ database.
@@ -81,13 +98,19 @@ public class HorseOwnerProfileServiceImpl implements HorseOwnerProfileService {
         }
     }
 
-    // Khải: Map entity User sang response an toàn cho màn hình profile.
-    private HorseOwnerProfileResponse toResponse(User user) {
+    // Khi: Map entity User sang response an toAn cho mAn hAnh profile.
+    private HorseOwnerProfileResponse toResponse(HorseOwner horseOwner) {
+        User user = horseOwner.getUser();
         return new HorseOwnerProfileResponse(
                 user.getId(),
                 user.getUsername(),
+                user.getPassword(),
                 user.getEmail(),
                 user.getRole(),
-                user.getCreatedAt());
+                user.getCreatedAt(),
+                horseOwner.getOwnerName(),
+                horseOwner.getAvatar());
     }
 }
+
+

@@ -23,8 +23,8 @@ public class Jockey extends User {
     private String jockeyName;
 
     @Min(value = 0, message = "Years of experience must be greater than or equal to 0")
-    @Column(name = "year_of_experience")
-    private Integer yearOfExperience;
+    @Column(name = "experience_years")
+    private Integer experienceYears;
 
     @Min(value = 0, message = "Age must be greater than or equal to 0")
     private Integer age;
@@ -32,20 +32,15 @@ public class Jockey extends User {
     @Column(name = "professional_bio", columnDefinition = "TEXT")
     private String professionalBio;
 
-    @Column(columnDefinition = "bit")
-    private Boolean status;
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String avatar;
 
     @OneToMany(mappedBy = "jockey", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<JockeyCert> jockeyCerts;
-
-    public void setStatus(Boolean status) {
-        this.status = status;
-        if (Boolean.FALSE.equals(status) && this.jockeyCerts != null) {
-            for (JockeyCert cert : this.jockeyCerts) {
-                cert.setStatus("REJECTED");
-            }
-        }
-    }
 }
+
+
+

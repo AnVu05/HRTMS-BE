@@ -29,3 +29,5 @@ public class GlobalExceptionHandler {
                 .body(com.swp.hrtms.hrtmsbe.dto.response.ApiResponse.error("System error: " + exception.getMessage()));
     }
 }
+
+

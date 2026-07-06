@@ -12,3 +12,5 @@ public interface SpectatorProfileService {
 
     SpectatorProfileResponse updateAvatar(Integer spectatorId, SpectatorAvatarUpdateRequest request);
 }
+
+

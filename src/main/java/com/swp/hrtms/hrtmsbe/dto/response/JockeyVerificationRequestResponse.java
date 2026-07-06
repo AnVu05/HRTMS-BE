@@ -26,3 +26,4 @@ public class JockeyVerificationRequestResponse {
     @JsonProperty("pending_certificates")
     private List<String> pendingCertificates;
 }
+

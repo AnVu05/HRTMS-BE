@@ -13,12 +13,16 @@ import java.time.LocalDateTime;
 public class JockeyProfileResponse {
     private Integer id;
     private String username;
+    private String password;
     private String email;
     private String role;
     private LocalDateTime createdAt;
     private String jockeyName;
-    private Integer yearOfExperience;
+    private Integer experienceYears;
     private Integer age;
     private String professionalBio;
-    private Boolean status;
+    //khai
+    private com.swp.hrtms.hrtmsbe.enums.UserStatus status;
+    private String avatar;
 }
+

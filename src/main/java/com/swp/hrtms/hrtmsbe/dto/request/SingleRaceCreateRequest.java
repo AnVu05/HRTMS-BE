@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+//Khai
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -29,7 +30,9 @@ public class SingleRaceCreateRequest {
     @JsonProperty("end_time")
     private LocalTime endTime;
 
-    private Integer laps;
+    //Khai: Fields required by the Add New Race form.
+    @JsonProperty("distance_m")
+    private Integer distanceM;
 
     @JsonProperty("num_horse")
     private Integer numHorse;
@@ -37,5 +40,13 @@ public class SingleRaceCreateRequest {
     @JsonProperty("referee_id")
     private Integer refereeId;
 
-    private String track;
+    @JsonProperty("race_rules_id")
+    private Integer raceRulesId;
+
+    @JsonProperty("expected_duration_minutes")
+    private Integer expectedDurationMinutes;
+
+    @JsonProperty("break_time_minutes")
+    private Integer breakTimeMinutes;
 }
+

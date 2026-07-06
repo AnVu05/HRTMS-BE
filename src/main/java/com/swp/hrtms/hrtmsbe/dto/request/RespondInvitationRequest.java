@@ -12,3 +12,4 @@ import lombok.NoArgsConstructor;
 public class RespondInvitationRequest {
     private String status; // "Accept" hoặc "Reject"
 }
+

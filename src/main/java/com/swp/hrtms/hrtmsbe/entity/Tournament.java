@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tournaments")
@@ -27,22 +28,32 @@ public class Tournament {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
     @Column(name = "start_date")
     private LocalDate startDate;
 
     @Column(name = "end_date")
     private LocalDate endDate;
 
-    @Column(name = "allowed_breed")
-    private String allowedBreed;
+    // Khai: Dates displayed on the Create New Tournament form.
+    @Column(name = "published_date")
+    private LocalDate publishedDate;
 
-    @Column(name = "allowed_horse_age")
-    private Integer allowedHorseAge;
+    @Column(name = "open_prediction_date")
+    private LocalDate openPredictionDate;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
+    @Column(name = "close_prediction_date")
+    private LocalDate closePredictionDate;
 
-    private String status; // "PUBLIC", "COMPLETED", "CANCELLED"
+    //khai
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status = com.swp.hrtms.hrtmsbe.enums.TournamentStatus.DRAFT;
+
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
 
     @Column(name = "cancel_reason")
     private String cancelReason;

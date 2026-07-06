@@ -10,3 +10,5 @@ public interface HorseOwnerProfileService {
 
     HorseOwnerProfileResponse updateProfile(Integer ownerId, HorseOwnerProfileUpdateRequest request);
 }
+
+

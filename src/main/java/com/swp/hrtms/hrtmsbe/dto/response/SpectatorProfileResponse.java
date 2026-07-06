@@ -11,11 +11,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class SpectatorProfileResponse {
 
+    @com.fasterxml.jackson.annotation.JsonProperty("id")
     private Integer userId;
 
     private String displayName;
 
     private String username;
+
+    private String password;
 
     private String email;
 
@@ -23,5 +26,6 @@ public class SpectatorProfileResponse {
 
     private LocalDateTime createdAt;
 
-    private String avatarBase64;
+    private String avatar;
 }
+
