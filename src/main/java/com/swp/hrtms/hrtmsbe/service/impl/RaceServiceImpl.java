@@ -35,6 +35,9 @@ public class RaceServiceImpl implements RaceService {
     private final com.swp.hrtms.hrtmsbe.repository.RaceFormatRepository raceFormatRepository;
     private final com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository;
 
+    // code moi(06/07) tiem them vao de lay user thong bao !
+    private final com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository registrationFormRepository;
+
     @Override
     @Transactional
     public List<RaceResponse> createRacesBatch(RaceBatchCreateRequest request) {
@@ -401,6 +404,14 @@ public class RaceServiceImpl implements RaceService {
 
         processRefunds(raceId);
 
+        // code moi (06/07)
+        // Gửi thông báo đến những người dùng liên quan
+        sendRaceNotification(
+                race,
+                com.swp.hrtms.hrtmsbe.enums.NotificationType.RACE_CANCELLED,
+                "Race Cancelled: " + race.getName(),
+                "The race '" + race.getName() + "' has been cancelled. Reason: " + request.getReason());
+
         return "Race has been successfully cancelled.";
     }
 
@@ -501,6 +512,15 @@ public class RaceServiceImpl implements RaceService {
         race.setEndTime(request.getEndTime());
 
         raceRepository.save(race);
+
+        // code moi (06/07)
+        // Gửi thông báo đến những người dùng liên quan
+        sendRaceNotification(
+                race,
+                com.swp.hrtms.hrtmsbe.enums.NotificationType.RACE_UPDATE,
+                "Race Schedule Updated: " + race.getName(),
+                "The schedule for race '" + race.getName() + "' has been updated. New time: " + request.getDate() + " "
+                        + request.getStartTime() + " - " + request.getEndTime());
 
         return "Race time has been successfully updated.";
     }
@@ -635,6 +655,57 @@ public class RaceServiceImpl implements RaceService {
         }
 
         return mapToRaceResponse(race);
+    }
+
+    // code moi(06/07) them vao de lay user can thong bao
+    private void sendRaceNotification(Race race, com.swp.hrtms.hrtmsbe.enums.NotificationType type, String title,
+            String content) {
+        java.util.Set<User> recipientsSet = new java.util.HashSet<>();
+
+        // A. Khán giả đã cược
+        List<Prediction> predictions = predictionRepository.findByRace_Id(race.getId());
+        for (Prediction p : predictions) {
+            if (p.getSpectator() != null) {
+                recipientsSet.add(p.getSpectator());
+            }
+        }
+
+        // B. Chủ ngựa & Nài ngựa đăng ký tham gia
+        List<com.swp.hrtms.hrtmsbe.entity.RegistrationForm> forms = registrationFormRepository
+                .findByRace_Id(race.getId());
+        for (com.swp.hrtms.hrtmsbe.entity.RegistrationForm f : forms) {
+            if (f.getOwner() != null && f.getOwner().getUser() != null) {
+                recipientsSet.add(f.getOwner().getUser());
+            }
+            if (f.getJockey() != null) {
+                recipientsSet.add(f.getJockey());
+            }
+        }
+
+        if (recipientsSet.isEmpty()) {
+            return;
+        }
+
+        Notification notification = Notification.builder()
+                .sender(null) // System notification
+                .title(title)
+                .content(content)
+                .type(type)
+                .race(race)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notification = notificationRepository.save(notification);
+
+        List<NotificationRecipient> recipients = new ArrayList<>();
+        for (User recipientUser : recipientsSet) {
+            NotificationRecipient recipient = NotificationRecipient.builder()
+                    .notification(notification)
+                    .recipient(recipientUser)
+                    .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                    .build();
+            recipients.add(recipient);
+        }
+        notificationRecipientRepository.saveAll(recipients);
     }
 
 }

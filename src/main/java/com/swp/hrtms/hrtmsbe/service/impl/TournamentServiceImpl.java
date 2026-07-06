@@ -71,7 +71,8 @@ public class TournamentServiceImpl implements TournamentService {
                 .publishedDate(request.getPublishedDate())
                 .openPredictionDate(request.getOpenPredictionDate())
                 .closePredictionDate(request.getClosePredictionDate())
-                .status(request.getStatus() != null ? request.getStatus() : com.swp.hrtms.hrtmsbe.enums.TournamentStatus.DRAFT)
+                .status(request.getStatus() != null ? request.getStatus()
+                        : com.swp.hrtms.hrtmsbe.enums.TournamentStatus.DRAFT)
                 .build();
 
         // Save to DB
@@ -87,9 +88,10 @@ public class TournamentServiceImpl implements TournamentService {
     @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 0 * * ?")
     public void updateTournamentStatuses() {
         java.time.LocalDate now = java.time.LocalDate.now();
-        //khai
+        // khai
         // Chỉ lấy các giải đấu đang ở trạng thái PUBLIC theo yêu cầu
-        List<Tournament> tournaments = tournamentRepository.findByStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED);
+        List<Tournament> tournaments = tournamentRepository
+                .findByStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED);
 
         boolean updated = false;
         for (Tournament tournament : tournaments) {
@@ -121,7 +123,7 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     @Transactional(readOnly = true)
     public List<TournamentResponse> getTournamentsForDashboard() {
-        //khai
+        // khai
         return tournamentRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -130,7 +132,7 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     @Transactional(readOnly = true)
     public List<ActiveTournamentResponse> getActiveTournaments() {
-        //khai
+        // khai
         return tournamentRepository.findByStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED).stream()
                 .map(t -> ActiveTournamentResponse.builder()
                         .id(t.getId())
@@ -154,21 +156,30 @@ public class TournamentServiceImpl implements TournamentService {
         Tournament tournament = tournamentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
 
-        if (request.getStartDate() != null) {
+        boolean isScheduleUpdated = false;
+
+        if (request.getStartDate() != null && !request.getStartDate().equals(tournament.getStartDate())) {
             tournament.setStartDate(request.getStartDate());
+            isScheduleUpdated = true;
         }
-        if (request.getEndDate() != null) {
+        if (request.getEndDate() != null && !request.getEndDate().equals(tournament.getEndDate())) {
             tournament.setEndDate(request.getEndDate());
+            isScheduleUpdated = true;
         }
-        //khai
-        if (request.getPublishedDate() != null) {
+        // khai
+        if (request.getPublishedDate() != null && !request.getPublishedDate().equals(tournament.getPublishedDate())) {
             tournament.setPublishedDate(request.getPublishedDate());
+            isScheduleUpdated = true;
         }
-        if (request.getOpenPredictionDate() != null) {
+        if (request.getOpenPredictionDate() != null
+                && !request.getOpenPredictionDate().equals(tournament.getOpenPredictionDate())) {
             tournament.setOpenPredictionDate(request.getOpenPredictionDate());
+            isScheduleUpdated = true;
         }
-        if (request.getClosePredictionDate() != null) {
+        if (request.getClosePredictionDate() != null
+                && !request.getClosePredictionDate().equals(tournament.getClosePredictionDate())) {
             tournament.setClosePredictionDate(request.getClosePredictionDate());
+            isScheduleUpdated = true;
         }
 
         if (tournament.getStartDate() != null && tournament.getEndDate() != null
@@ -186,8 +197,8 @@ public class TournamentServiceImpl implements TournamentService {
 
         tournament = tournamentRepository.save(tournament);
 
-        //khai
-        //khai
+        // khai
+        // khai
         if (oldStatus != com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED
                 && tournament.getStatus() == com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED) {
             List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
@@ -197,6 +208,33 @@ public class TournamentServiceImpl implements TournamentService {
                         .title("New Tournament " + tournament.getName())
                         .content("Tournament " + tournament.getName() + " is now published!")
                         .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.NEW_TOURNAMENT)
+                        .build();
+                notification = notificationRepository.save(notification);
+
+                // code moi (06/07)
+                // bo sung them gui thong bao
+                List<NotificationRecipient> recipients = new ArrayList<>();
+                for (User user : targetUsers) {
+                    NotificationRecipient recipient = NotificationRecipient.builder()
+                            .notification(notification)
+                            .recipient(user)
+                            .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                            .build();
+                    recipients.add(recipient);
+                }
+                notificationRecipientRepository.saveAll(recipients);
+            }
+        } else if (isScheduleUpdated
+                && tournament.getStatus() == com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED) {
+            List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
+            if (!targetUsers.isEmpty()) {
+                Notification notification = Notification.builder()
+                        .sender(null) // System notification
+                        .title("Tournament Schedule Updated: " + tournament.getName())
+                        .content("The schedule for tournament '" + tournament.getName()
+                                + "' has been updated. Please check the new timeline.")
+                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.TOURNAMENT_UPDATE)
+                        .createdAt(java.time.LocalDateTime.now())
                         .build();
                 notification = notificationRepository.save(notification);
 
@@ -222,8 +260,9 @@ public class TournamentServiceImpl implements TournamentService {
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
 
-        //khai
-        // BR_17 (Tiền đề): Cập nhật trạng thái CANCELLED, chờ logic hoàn tiền (refund) 100% Points/Vouchers.
+        // khai
+        // BR_17 (Tiền đề): Cập nhật trạng thái CANCELLED, chờ logic hoàn tiền (refund)
+        // 100% Points/Vouchers.
         tournament.setStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.CANCELLED);
         tournament.setCancelReason(request.getReason());
         tournamentRepository.save(tournament);
@@ -234,6 +273,32 @@ public class TournamentServiceImpl implements TournamentService {
             race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.CANCELLED);
         }
         raceRepository.saveAll(races);
+
+        // code moi (06/07)
+        // Gửi thông báo TOURNAMENT_CANCELLED cho JOCKEY, HORSE_OWNER, SPECTATOR
+        List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
+        if (!targetUsers.isEmpty()) {
+            Notification notification = Notification.builder()
+                    .sender(null) // System notification
+                    .title("Tournament Cancelled: " + tournament.getName())
+                    .content("Tournament " + tournament.getName() + " has been cancelled. Reason: "
+                            + request.getReason())
+                    .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.TOURNAMENT_CANCELLED)
+                    .createdAt(java.time.LocalDateTime.now())
+                    .build();
+            notification = notificationRepository.save(notification);
+
+            List<NotificationRecipient> recipients = new ArrayList<>();
+            for (User user : targetUsers) {
+                NotificationRecipient recipient = NotificationRecipient.builder()
+                        .notification(notification)
+                        .recipient(user)
+                        .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                        .build();
+                recipients.add(recipient);
+            }
+            notificationRecipientRepository.saveAll(recipients);
+        }
 
         return "Tournament and all related races have been successfully cancelled.";
     }
