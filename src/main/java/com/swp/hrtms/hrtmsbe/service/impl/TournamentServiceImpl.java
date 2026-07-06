@@ -36,6 +36,7 @@ public class TournamentServiceImpl implements TournamentService {
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationRecipientRepository notificationRecipientRepository;
+    private final com.swp.hrtms.hrtmsbe.service.RefundService refundService;
 
     @Override
     @Transactional
@@ -242,8 +243,7 @@ public class TournamentServiceImpl implements TournamentService {
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
 
         // khai
-        // BR_17 (Tiền đề): Cập nhật trạng thái CANCELLED, chờ logic hoàn tiền (refund)
-        // 100% Points/Vouchers.
+        refundService.refundForTournament(tournamentId, request.getReason());
         tournament.setStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.CANCELLED);
         tournament.setCancelReason(request.getReason());
         tournamentRepository.save(tournament);

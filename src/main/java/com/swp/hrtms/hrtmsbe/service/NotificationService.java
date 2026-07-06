@@ -10,10 +10,16 @@ import org.springframework.data.domain.Page;
 
 public interface NotificationService {
     List<NotificationResponse> getRecentCertificateNotifications(Integer jockeyId);
+
     Page<NotificationResponse> getAdminNotifications(Integer adminId, int page, int size, Boolean unreadOnly);
+
     void markAllAdminNotificationsAsRead(Integer adminId);
 
     List<HorseOwnerNotificationResponse> getHorseOwnerNotifications(Integer ownerId);
+
     List<RefereeInvitationResponse> getPendingRefereeInvitations(Integer refereeId);
+
     void respondToRefereeInvitation(Integer refereeId, Integer notificationId, RespondInvitationRequest request);
+
+    Page<NotificationResponse> getSpectatorNotifications(Integer spectatorId, int page, int size);
 }

@@ -13,10 +13,21 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private Integer walletId;
-    private Integer tournamentId;
-    private Integer raceId;
-    private Integer horseId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wallet_id")
+    private Wallet wallet;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tournament_id")
+    private Tournament tournament;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "race_id")
+    private Race race;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "horse_id")
+    private Horse horse;
     private Integer amount;
     private String type;
     private java.time.LocalDateTime createdAt;

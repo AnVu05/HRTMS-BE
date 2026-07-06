@@ -32,17 +32,17 @@ public class Jockey extends User {
     @Column(name = "professional_bio", columnDefinition = "TEXT")
     private String professionalBio;
 
-    @Column(columnDefinition = "bit")
-    private Boolean status;
+    @Column(name = "status", columnDefinition = "bit")
+    private Boolean jockeyStatus;
 
     @OneToMany(mappedBy = "jockey", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<JockeyCert> jockeyCerts;
 
-    public void setStatus(Boolean status) {
-        this.status = status;
-        if (Boolean.FALSE.equals(status) && this.jockeyCerts != null) {
+    public void setJockeyStatus(Boolean jockeyStatus) {
+        this.jockeyStatus = jockeyStatus;
+        if (Boolean.FALSE.equals(jockeyStatus) && this.jockeyCerts != null) {
             for (JockeyCert cert : this.jockeyCerts) {
                 cert.setStatus("REJECTED");
             }

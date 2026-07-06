@@ -20,6 +20,7 @@ import com.swp.hrtms.hrtmsbe.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.swp.hrtms.hrtmsbe.repository.SpectatorRepository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -66,6 +67,7 @@ public class NotificationServiceImpl implements NotificationService {
         private final RefereeRepository refereeRepository;
         private final RaceRepository raceRepository;
         private final NotificationRepository notificationRepository;
+        private final SpectatorRepository spectatorRepository;
 
         @Override
         @Transactional(readOnly = true)
@@ -332,5 +334,17 @@ public class NotificationServiceImpl implements NotificationService {
                                 .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
                                 .build();
                 notificationRecipientRepository.save(responseRecipient);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public Page<NotificationResponse> getSpectatorNotifications(Integer spectatorId, int page, int size) {
+                if (!spectatorRepository.existsById(spectatorId)) {
+                        throw new ResourceNotFoundException("Spectator not found with id: " + spectatorId);
+                }
+                Pageable pageable = PageRequest.of(page, size);
+                return notificationRecipientRepository
+                                .findByRecipient_IdOrderByNotification_CreatedAtDesc(spectatorId, pageable)
+                                .map(this::toResponse);
         }
 }

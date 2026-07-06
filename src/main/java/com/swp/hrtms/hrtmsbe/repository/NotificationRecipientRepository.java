@@ -85,4 +85,6 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
         List<NotificationRecipient> findPendingRefereeInvitations(@Param("refereeId") Integer refereeId);
 
         java.util.Optional<NotificationRecipient> findByIdAndRecipient_Id(Integer id, Integer recipientId);
+
+        Page<NotificationRecipient> findByRecipient_IdOrderByNotification_CreatedAtDesc(Integer recipientId, Pageable pageable);
 }

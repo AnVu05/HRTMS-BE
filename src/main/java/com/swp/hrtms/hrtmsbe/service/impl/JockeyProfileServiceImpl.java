@@ -139,7 +139,7 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
                 .yearOfExperience(jockey.getYearOfExperience())
                 .age(jockey.getAge())
                 .professionalBio(jockey.getProfessionalBio())
-                .status(jockey.getStatus())
+                .status(jockey.getJockeyStatus())
                 .build();
     }
 

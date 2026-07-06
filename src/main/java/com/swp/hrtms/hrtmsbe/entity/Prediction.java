@@ -13,9 +13,17 @@ public class Prediction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private Integer spectatorId;
-    private Integer raceId;
-    private Integer predictedHorseId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "spectator_id")
+    private Spectator spectator;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "race_id")
+    private Race race;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "predicted_horse_id")
+    private Horse predictedHorse;
     private Integer pointsInvested;
     @Enumerated(EnumType.STRING)
     @Builder.Default

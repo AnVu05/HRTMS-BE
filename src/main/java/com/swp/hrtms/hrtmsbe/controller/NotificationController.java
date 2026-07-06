@@ -8,12 +8,6 @@ import com.swp.hrtms.hrtmsbe.dto.request.RespondInvitationRequest;
 import com.swp.hrtms.hrtmsbe.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
@@ -93,5 +87,18 @@ public class NotificationController {
                 return ResponseEntity.ok(ApiResponse.success(
                                 null,
                                 "Responded to referee invitation successfully"));
+        }
+
+        @GetMapping("/spectators/{spectatorId}")
+        public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getSpectatorNotifications(
+                        @PathVariable Integer spectatorId,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size) {
+                Page<NotificationResponse> notifications = notificationService.getSpectatorNotifications(spectatorId,
+                                page,
+                                size);
+                return ResponseEntity.ok(ApiResponse.success(
+                                notifications,
+                                "Fetched spectator notifications successfully"));
         }
 }

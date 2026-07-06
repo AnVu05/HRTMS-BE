@@ -5,7 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface PredictionRepository extends JpaRepository<Prediction, Integer> {
-    boolean existsBySpectatorIdAndRaceId(Integer spectatorId, Integer raceId);
+    boolean existsBySpectator_IdAndRace_Id(Integer spectatorId, Integer raceId);
 
-    List<Prediction> findByRaceId(Integer raceId);
+    List<Prediction> findByRace_Id(Integer raceId);
+
+    List<Prediction> findByRace_Tournament_Id(Integer tournamentId);
 }
