@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,5 +26,6 @@ public class JockeyVerificationRequestResponse {
     private String jockeyName;
 
     @JsonProperty("pending_certificates")
-    private List<JockeyCertificateResponse> pendingCertificates;
+    private List<String> pendingCertificates;
 }
+

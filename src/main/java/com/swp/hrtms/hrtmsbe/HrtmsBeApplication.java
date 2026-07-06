@@ -1,6 +1,7 @@
 package com.swp.hrtms.hrtmsbe;
 
-import com.swp.hrtms.hrtmsbe.mock.MockData;
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
@@ -11,9 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class HrtmsBeApplication {
 
     public static void main(String[] args) {
-        ApplicationContext context = SpringApplication.run(HrtmsBeApplication.class, args);
-        MockData mockData = context.getBean(MockData.class);
-        mockData.generateData();
+        ApplicationContext context = SpringApplication.run(com.swp.hrtms.hrtmsbe.HrtmsBeApplication.class, args);
 
     }
 }

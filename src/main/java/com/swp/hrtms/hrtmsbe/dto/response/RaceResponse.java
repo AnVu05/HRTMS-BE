@@ -1,5 +1,8 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +16,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RaceResponse {
 
     private Integer id;
@@ -30,7 +34,8 @@ public class RaceResponse {
     @JsonProperty("end_time")
     private LocalTime endTime;
 
-    private Integer laps;
+    @JsonProperty("distance_m")
+    private Integer distanceM;
 
     @JsonProperty("num_horse")
     private Integer numHorse;
@@ -38,7 +43,20 @@ public class RaceResponse {
     @JsonProperty("referee_id")
     private Integer refereeId;
 
-    private String status;
+    private com.swp.hrtms.hrtmsbe.enums.RaceStatus status;
 
-    private String track;
+    private String reason;
+
+    @JsonProperty("race_rules_id")
+    private Integer raceRulesId;
+
+    @JsonProperty("expected_duration_minutes")
+    private Integer expectedDurationMinutes;
+
+    @JsonProperty("break_time_minutes")
+    private Integer breakTimeMinutes;
+
+    @JsonProperty("canceled_at")
+    private java.time.LocalDateTime canceledAt;
 }
+

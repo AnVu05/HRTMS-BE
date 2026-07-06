@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,9 +19,9 @@ public class RaceDashboardItem {
     private java.time.LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
-    private Integer laps;
-    private String status;
+    private Integer distanceM;
+    private com.swp.hrtms.hrtmsbe.enums.RaceStatus status;
     private Integer refereeId;
     private String refereeName;
-    private String track;
 }
+

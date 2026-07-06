@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Lob;
@@ -21,6 +23,9 @@ public class Spectator extends User {
     private String displayName;
 
     @Lob
-    @Column(name = "avatar_image", columnDefinition = "TEXT")
-    private String avatarImage;
+    @Column(name = "avatar", columnDefinition = "TEXT")
+    private String avatar;
 }
+
+
+

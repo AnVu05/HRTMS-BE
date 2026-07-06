@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,21 +33,20 @@ public class Notification {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type")
     @Builder.Default
-    private String type = "VERIFY_CERTIFICATE";
+    //khai
+    private com.swp.hrtms.hrtmsbe.enums.NotificationType type = com.swp.hrtms.hrtmsbe.enums.NotificationType.VERIFI_CERTIFICATE;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "race_id")
     private Race race;
 
-    // Khai: Link one certificate verification notification to one jockey certificate.
-    //nhiều noti có thể liên kết với một jockey certificate, nhưng một jockey certificate chỉ có thể liên kết với một notification.
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "jockey_cert_id")
-    private JockeyCert jockeyCert;
-
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }
+
+
+

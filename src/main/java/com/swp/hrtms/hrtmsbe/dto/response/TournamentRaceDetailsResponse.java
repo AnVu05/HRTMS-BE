@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +14,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TournamentRaceDetailsResponse {
-    private String tournamentStatus;
+    private com.swp.hrtms.hrtmsbe.enums.TournamentStatus tournamentStatus;
     private Long totalEntries;
     private List<RaceDashboardItem> races;
 }
+

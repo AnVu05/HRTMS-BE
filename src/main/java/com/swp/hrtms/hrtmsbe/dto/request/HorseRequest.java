@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.dto.request;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.swp.hrtms.hrtmsbe.entity.HorseStatus;
 
@@ -20,7 +22,10 @@ public class HorseRequest {
     private String name;
     private Integer age;
     private String breed;
+    private String sex;
+    private java.math.BigDecimal weightKg;
     private HorseStatus status;
 
     
 }
+

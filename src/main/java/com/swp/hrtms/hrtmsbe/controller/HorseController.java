@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.HorseRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.HorseResponse;
 import com.swp.hrtms.hrtmsbe.service.HorseService;
@@ -38,13 +40,6 @@ public class HorseController {
         return ResponseEntity.ok(ApiResponse.success(horseService.getAllHorses(), null));
     }
 
-    //Khai
-    @GetMapping("/owner/{ownerId}")
-    public ResponseEntity<ApiResponse<List<HorseResponse>>> getHorsesByOwnerId(@PathVariable Integer ownerId) {
-        return ResponseEntity.ok(ApiResponse.success(horseService.getHorsesByOwnerId(ownerId),
-                "Horses fetched successfully"));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<HorseResponse>> getHorseById(@PathVariable Integer id) {
         return ResponseEntity.ok(ApiResponse.success(horseService.getHorseById(id), null));
@@ -61,3 +56,5 @@ public class HorseController {
         return ResponseEntity.ok(ApiResponse.success(null, "Horse deleted successfully"));
     }
 }
+
+

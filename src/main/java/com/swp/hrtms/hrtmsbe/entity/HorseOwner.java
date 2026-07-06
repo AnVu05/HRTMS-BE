@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -29,8 +31,12 @@ public class HorseOwner {
     @JoinColumn(name = "user_id")
     private User user;
 
-    // @Column(name = "owner_name", nullable = false)
-    // private String ownerName;
+    @Column(name = "owner_name", nullable = true)
+    private String ownerName;
+
+    @jakarta.persistence.Lob
+    @Column(columnDefinition = "TEXT", nullable = true)
+    private String avatar;
 
     // private String phone;
 }

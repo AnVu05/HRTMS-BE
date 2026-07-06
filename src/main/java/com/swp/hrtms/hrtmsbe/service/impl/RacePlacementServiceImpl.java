@@ -1,0 +1,181 @@
+package com.swp.hrtms.hrtmsbe.service.impl;
+
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
+import com.swp.hrtms.hrtmsbe.dto.request.RacePlacementRequest;
+import com.swp.hrtms.hrtmsbe.dto.response.RacePlacementResponse;
+import com.swp.hrtms.hrtmsbe.entity.Race;
+import com.swp.hrtms.hrtmsbe.entity.RacePlacement;
+import com.swp.hrtms.hrtmsbe.entity.RaceResult;
+import com.swp.hrtms.hrtmsbe.entity.RegistrationForm;
+import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
+import com.swp.hrtms.hrtmsbe.repository.RacePlacementRepository;
+import com.swp.hrtms.hrtmsbe.repository.RaceResultRepository;
+import com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository;
+import com.swp.hrtms.hrtmsbe.service.RacePlacementService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class RacePlacementServiceImpl implements RacePlacementService {
+
+    private final RacePlacementRepository racePlacementRepository;
+    private final RaceResultRepository raceResultRepository;
+    private final RegistrationFormRepository registrationFormRepository;
+
+    @Override
+    @Transactional
+    public RacePlacementResponse create(RacePlacementRequest request) {
+        RacePlacement placement = RacePlacement.builder()
+                .raceResult(findRaceResultOrNull(request.getRaceResultId()))
+                .registrationForm(findRegistrationFormOrNull(request.getRegistrationFormId()))
+                .finishPosition(request.getFinishPosition())
+                .finishTime(request.getFinishTime())
+                .weighInWeight(request.getWeighInWeight())
+                .build();
+        validateFinishTimeAndPosition(placement);
+        placement = racePlacementRepository.save(placement);
+        return toResponse(placement);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RacePlacementResponse> getAll() {
+        return racePlacementRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RacePlacementResponse getById(Integer id) {
+        RacePlacement placement = racePlacementRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("RacePlacement not found with id: " + id));
+        return toResponse(placement);
+    }
+
+    @Override
+    @Transactional
+    public RacePlacementResponse update(Integer id, RacePlacementRequest request) {
+        RacePlacement placement = racePlacementRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("RacePlacement not found with id: " + id));
+        // Partial update — chỉ set nếu request không null
+        if (request.getRaceResultId() != null)
+            placement.setRaceResult(findRaceResultOrNull(request.getRaceResultId()));
+        if (request.getRegistrationFormId() != null)
+            placement.setRegistrationForm(findRegistrationFormOrNull(request.getRegistrationFormId()));
+        if (request.getFinishPosition() != null)
+            placement.setFinishPosition(request.getFinishPosition());
+        if (request.getFinishTime() != null)
+            placement.setFinishTime(request.getFinishTime());
+        if (request.getWeighInWeight() != null)
+            placement.setWeighInWeight(request.getWeighInWeight());
+        validateFinishTimeAndPosition(placement);
+        placement = racePlacementRepository.save(placement);
+        return toResponse(placement);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        // RacePlacement không có status field → hard delete
+        if (!racePlacementRepository.existsById(id)) {
+            throw new ResourceNotFoundException("RacePlacement not found with id: " + id);
+        }
+        racePlacementRepository.deleteById(id);
+    }
+
+    // -------------------------------------------------------
+    // Helper
+    // -------------------------------------------------------
+    private RaceResult findRaceResultOrNull(Integer raceResultId) {
+        if (raceResultId == null) {
+            return null;
+        }
+        return raceResultRepository.findById(raceResultId)
+                .orElseThrow(() -> new ResourceNotFoundException("RaceResult not found with id: " + raceResultId));
+    }
+
+    private RegistrationForm findRegistrationFormOrNull(Integer registrationFormId) {
+        if (registrationFormId == null) {
+            return null;
+        }
+        return registrationFormRepository.findById(registrationFormId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "RegistrationForm not found with id: " + registrationFormId));
+    }
+
+    private void validateFinishTimeAndPosition(RacePlacement placement) {
+        if (placement.getFinishTime() == null) {
+            throw new IllegalArgumentException("Finish time is required.");
+        }
+        if (placement.getFinishPosition() == null) {
+            throw new IllegalArgumentException("Finish position is required.");
+        }
+        if (placement.getFinishPosition() <= 0) {
+            throw new IllegalArgumentException("Finish position must be greater than 0.");
+        }
+        if (placement.getRaceResult() == null) {
+            throw new IllegalArgumentException("RaceResult is required to validate finish time.");
+        }
+
+        Race race = placement.getRaceResult().getRace();
+        if (race == null) {
+            throw new IllegalArgumentException("RaceResult must belong to a race.");
+        }
+        if (race.getDate() == null || race.getStartTime() == null) {
+            throw new IllegalArgumentException("Race date and start time are required to validate finish time.");
+        }
+
+        LocalDateTime raceStart = LocalDateTime.of(race.getDate(), race.getStartTime());
+        if (!placement.getFinishTime().isAfter(raceStart)) {
+            throw new IllegalArgumentException("Finish time must be after race start time.");
+        }
+
+        List<RacePlacement> sameRaceResultPlacements =
+                racePlacementRepository.findByRaceResult_Id(placement.getRaceResult().getId());
+        for (RacePlacement existing : sameRaceResultPlacements) {
+            if (placement.getId() != null && placement.getId().equals(existing.getId())) {
+                continue;
+            }
+            if (existing.getFinishPosition() == null || existing.getFinishTime() == null) {
+                continue;
+            }
+            if (placement.getFinishPosition().equals(existing.getFinishPosition())) {
+                throw new IllegalArgumentException(
+                        "Finish position already exists in this race result: " + placement.getFinishPosition());
+            }
+            if (placement.getFinishTime().equals(existing.getFinishTime())) {
+                throw new IllegalArgumentException("Finish time already exists in this race result.");
+            }
+            if (placement.getFinishPosition() < existing.getFinishPosition()
+                    && placement.getFinishTime().isAfter(existing.getFinishTime())) {
+                throw new IllegalArgumentException(
+                        "A higher ranked placement cannot have a slower finish time than a lower ranked placement.");
+            }
+            if (placement.getFinishPosition() > existing.getFinishPosition()
+                    && placement.getFinishTime().isBefore(existing.getFinishTime())) {
+                throw new IllegalArgumentException(
+                        "A lower ranked placement cannot have a faster finish time than a higher ranked placement.");
+            }
+        }
+    }
+
+    private RacePlacementResponse toResponse(RacePlacement placement) {
+        return RacePlacementResponse.builder()
+                .id(placement.getId())
+                .raceResultId(placement.getRaceResult() != null ? placement.getRaceResult().getId() : null)
+                .registrationFormId(placement.getRegistrationForm() != null ? placement.getRegistrationForm().getId() : null)
+                .finishPosition(placement.getFinishPosition())
+                .finishTime(placement.getFinishTime())
+                .weighInWeight(placement.getWeighInWeight())
+                .build();
+    }
+}

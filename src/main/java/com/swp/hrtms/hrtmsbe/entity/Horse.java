@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -39,6 +41,16 @@ public class Horse {
 
     private String breed;
 
+    @Column(length = 20)
+    private String sex;
+
+    @Column(nullable = false, columnDefinition = "DECIMAL(5,2)")
+    private java.math.BigDecimal weightKg;
+
     @Enumerated(EnumType.STRING)
     private HorseStatus status; //thêm class HorseStatus để ko bao giờ gõ sai status của ngựa
 }
+
+
+
+

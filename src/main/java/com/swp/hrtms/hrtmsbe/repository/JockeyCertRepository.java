@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.repository;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,3 +30,5 @@ public interface JockeyCertRepository extends JpaRepository<JockeyCert, Integer>
             @Param("certId") Integer certId,
             @Param("jockeyId") Integer jockeyId);
 }
+
+

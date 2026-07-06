@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,3 +19,4 @@ public class UserResponse {
     private String role;
     private LocalDateTime createdAt;
 }
+

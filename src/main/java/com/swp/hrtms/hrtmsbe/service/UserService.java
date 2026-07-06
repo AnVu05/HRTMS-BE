@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.LoginRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.RegisterRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.VerifyOtpRequest;
@@ -12,3 +14,5 @@ public interface UserService {
     LoginResponse login(LoginRequest request);
     VerifyOtpResponse verifyOtp(VerifyOtpRequest request);
 }
+
+

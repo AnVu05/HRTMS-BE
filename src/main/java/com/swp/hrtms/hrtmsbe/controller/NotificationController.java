@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.HorseOwnerNotificationResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.NotificationResponse;
@@ -51,9 +53,15 @@ public class NotificationController {
         }
 
         @PutMapping("/admin/{adminId}/read")
-        public ResponseEntity<ApiResponse<Void>> markAllAdminNotificationsAsRead(@PathVariable Integer adminId) {
-                notificationService.markAllAdminNotificationsAsRead(adminId);
-                return ResponseEntity.ok(ApiResponse.success(null, "All notifications have been read"));
+        public ResponseEntity<ApiResponse<List<NotificationResponse>>> markAllAdminNotificationsAsRead(@PathVariable Integer adminId) {
+                List<NotificationResponse> responses = notificationService.markAllAdminNotificationsAsRead(adminId);
+                return ResponseEntity.ok(ApiResponse.success(responses, "All notifications have been read"));
+        }
+
+        @PutMapping("/recipients/{recipientId}/read")
+        public ResponseEntity<ApiResponse<List<NotificationResponse>>> markAllNotificationsAsRead(@PathVariable Integer recipientId) {
+                List<NotificationResponse> responses = notificationService.markNotificationsAsReadByRecipient(recipientId);
+                return ResponseEntity.ok(ApiResponse.success(responses, "Notifications have been read"));
         }
 
         @GetMapping("/horse-owners/{ownerId}")
@@ -81,17 +89,19 @@ public class NotificationController {
         }
 
         @PutMapping("/referees/{refereeId}/invitations/{notificationId}/respond")
-        public ResponseEntity<ApiResponse<Void>> respondToRefereeInvitation(
+        public ResponseEntity<ApiResponse<RefereeInvitationResponse>> respondToRefereeInvitation(
                         @PathVariable Integer refereeId,
                         @PathVariable Integer notificationId,
                         @RequestBody RespondInvitationRequest request) {
                 // Thực thi việc cập nhật trạng thái đồng ý/từ chối của trọng tài đối với lời
                 // mời cuộc đua tương ứng
-                notificationService.respondToRefereeInvitation(refereeId, notificationId, request);
+                RefereeInvitationResponse response = notificationService.respondToRefereeInvitation(refereeId, notificationId, request);
 
-                // Trả về kết quả thành công không có dữ liệu kèm theo (Void)
+                // Trả về kết quả thành công với dữ liệu đã cập nhật
                 return ResponseEntity.ok(ApiResponse.success(
-                                null,
+                                response,
                                 "Responded to referee invitation successfully"));
         }
 }
+
+

@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.LoginRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.RegisterRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.VerifyOtpRequest;
@@ -11,15 +13,18 @@ import com.swp.hrtms.hrtmsbe.entity.Jockey;
 import com.swp.hrtms.hrtmsbe.entity.OtpCode;
 import com.swp.hrtms.hrtmsbe.entity.Spectator;
 import com.swp.hrtms.hrtmsbe.entity.User;
+import com.swp.hrtms.hrtmsbe.entity.Wallet;
 import com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository;
 import com.swp.hrtms.hrtmsbe.repository.OtpCodeRepository;
 import com.swp.hrtms.hrtmsbe.repository.UserRepository;
+import com.swp.hrtms.hrtmsbe.repository.WalletRepository;
 import com.swp.hrtms.hrtmsbe.security.JwtUtil;
 import com.swp.hrtms.hrtmsbe.service.EmailService;
 import com.swp.hrtms.hrtmsbe.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.swp.hrtms.hrtmsbe.repository.DoctorRepository;
 
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -30,9 +35,11 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final HorseOwnerRepository horseOwnerRepository;
-    private final OtpCodeRepository otpCodeRepository;
+    private final DoctorRepository doctorRepository;
+    private final WalletRepository walletRepository;
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
+    private final OtpCodeRepository otpCodeRepository;
 
     @Override
     @Transactional
@@ -52,7 +59,8 @@ public class UserServiceImpl implements UserService {
         }
 
         String role = request.getRole().trim().toUpperCase();
-        if (!role.equals("SPECTATOR") && !role.equals("HORSE_OWNER") && !role.equals("JOCKEY")) {
+        if (!role.equals("SPECTATOR") && !role.equals("HORSE_OWNER") && !role.equals("JOCKEY")
+                && !role.equals("DOCTOR") && !role.equals("REFEREE")) {
             throw new IllegalArgumentException("Registration is not allowed for role: " + role);
         }
 
@@ -86,13 +94,43 @@ public class UserServiceImpl implements UserService {
             spectator.setRole("SPECTATOR");
             spectator.setDisplayName(request.getUsername());
             savedUser = userRepository.save(spectator);
-        } else { // JOCKEY
+
+            // BR_14: Initial 1000 points to Spectator Wallet
+            Wallet wallet = Wallet.builder()
+                    .user(savedUser)
+                    .balance(1000)
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+            walletRepository.save(wallet);
+        } else if (role.equals("JOCKEY")) {
             Jockey jockey = new Jockey();
             jockey.setUsername(request.getUsername());
             jockey.setEmail(request.getEmail());
             jockey.setPassword(request.getPassword());
             jockey.setRole("JOCKEY");
             savedUser = userRepository.save(jockey);
+        } else if (role.equals("REFEREE")) {
+            com.swp.hrtms.hrtmsbe.entity.Referee referee = new com.swp.hrtms.hrtmsbe.entity.Referee();
+            referee.setUsername(request.getUsername());
+            referee.setEmail(request.getEmail());
+            referee.setPassword(request.getPassword());
+            referee.setRole("REFEREE");
+            // Referee có trường name, nhưng RegisterRequest không có, ta tạm để null hoặc
+            // username
+            referee.setName(request.getUsername());
+            savedUser = userRepository.save(referee);
+        } else { // DOCTOR
+            User user = new User();
+            user.setUsername(request.getUsername());
+            user.setEmail(request.getEmail());
+            user.setPassword(request.getPassword());
+            user.setRole("DOCTOR");
+            savedUser = userRepository.save(user);
+
+            com.swp.hrtms.hrtmsbe.entity.Doctor doctor = com.swp.hrtms.hrtmsbe.entity.Doctor.builder()
+                    .user(savedUser)
+                    .build();
+            doctorRepository.save(doctor);
         }
 
         // 4. Trả về kết quả sau khi đăng ký thành công
@@ -125,7 +163,7 @@ public class UserServiceImpl implements UserService {
         // Tạo mã OTP ngẫu nhiên gồm 6 chữ số
         String otp = String.format("%06d", new Random().nextInt(1000000));
 
-        // Xóa các OTP cũ của email này trước khi lưu mới
+        // Xóa các OTP cũ của user này trước khi lưu mới
         otpCodeRepository.deleteByEmail(user.getEmail());
 
         OtpCode otpCode = OtpCode.builder()

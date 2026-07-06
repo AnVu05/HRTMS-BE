@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.repository;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.entity.Referee;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,6 +21,7 @@ public interface RefereeRepository extends JpaRepository<Referee, Integer> {
            "AND race.date = :date " +
            "AND race.startTime < :endTime " +
            "AND race.endTime > :startTime " +
+           //khai
            "AND race.status != 'CANCELLED')")
     List<Referee> findAvailableReferees(@Param("date") LocalDate date, 
                                         @Param("startTime") LocalTime startTime, 
@@ -31,9 +34,11 @@ public interface RefereeRepository extends JpaRepository<Referee, Integer> {
            "AND race.date = :date " +
            "AND race.startTime < :endTime " +
            "AND race.endTime > :startTime " +
+           //khai
            "AND race.status != 'CANCELLED')")
     List<Referee> findAvailableRefereesExcludingRace(@Param("date") LocalDate date, 
                                                      @Param("startTime") LocalTime startTime, 
                                                      @Param("endTime") LocalTime endTime,
                                                      @Param("excludeRaceId") Integer excludeRaceId);
 }
+

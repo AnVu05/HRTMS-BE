@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyProfileUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertificateResponse;
@@ -23,3 +25,5 @@ public interface JockeyProfileService {
     // Khai: Permanently delete a certificate belonging to a jockey.
     void deleteCertificate(Integer jockeyId, Integer certId);
 }
+
+

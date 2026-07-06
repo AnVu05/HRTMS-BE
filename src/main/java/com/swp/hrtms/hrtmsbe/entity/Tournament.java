@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tournaments")
@@ -27,32 +30,32 @@ public class Tournament {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
     @Column(name = "start_date")
     private LocalDate startDate;
 
     @Column(name = "end_date")
     private LocalDate endDate;
 
-    //Khai: Dates displayed on the Create New Tournament form.
-    @Column(name = "announcement_date")
-    private LocalDate announcementDate;
+    // Khai: Dates displayed on the Create New Tournament form.
+    @Column(name = "published_date")
+    private LocalDate publishedDate;
 
-    @Column(name = "registration_open_date")
-    private LocalDate registrationOpenDate;
+    @Column(name = "open_prediction_date")
+    private LocalDate openPredictionDate;
 
-    @Column(name = "registration_close_date")
-    private LocalDate registrationCloseDate;
+    @Column(name = "close_prediction_date")
+    private LocalDate closePredictionDate;
 
-    @Column(name = "allowed_breed")
-    private String allowedBreed;
+    //khai
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status = com.swp.hrtms.hrtmsbe.enums.TournamentStatus.DRAFT;
 
-    @Column(name = "allowed_horse_age")
-    private Integer allowedHorseAge;
-
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
-    private String status; // "PUBLIC", "COMPLETED", "CANCELLED"
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
 
     @Column(name = "cancel_reason")
     private String cancelReason;

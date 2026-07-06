@@ -1,7 +1,9 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCreateRequest;
-import com.swp.hrtms.hrtmsbe.dto.response.TournamentDashboardResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.ActiveTournamentResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentResponse;
 import com.swp.hrtms.hrtmsbe.service.TournamentService;
 import lombok.RequiredArgsConstructor;
@@ -27,18 +29,25 @@ public class TournamentController {
                 HttpStatus.CREATED);
     }
 
+    //khai
     @GetMapping("/dashboard")
-    public ResponseEntity<ApiResponse<List<TournamentDashboardResponse>>> getTournamentsForDashboard() {
-        List<TournamentDashboardResponse> tournaments = tournamentService.getTournamentsForDashboard();
+    public ResponseEntity<ApiResponse<List<TournamentResponse>>> getTournamentsForDashboard() {
+        List<TournamentResponse> tournaments = tournamentService.getTournamentsForDashboard();
         return ResponseEntity.ok(ApiResponse.success(tournaments, null));
     }
 
-    // @GetMapping("/active")
-    // public ResponseEntity<ApiResponse<List<ActiveTournamentResponse>>>
-    // getActiveTournaments() {
-    // List<ActiveTournamentResponse> tournaments =
-    // tournamentService.getActiveTournaments();
-    // return ResponseEntity.ok(ApiResponse.success(tournaments, null));
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<ActiveTournamentResponse>>> getActiveTournaments() {
+        List<ActiveTournamentResponse> tournaments = tournamentService.getActiveTournaments();
+        return ResponseEntity.ok(ApiResponse.success(tournaments, null));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<TournamentResponse>> getTournamentById(@PathVariable("id") Integer id) {
+        TournamentResponse tournament = tournamentService.getTournamentById(id);
+        return ResponseEntity.ok(ApiResponse.success(tournament, null));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<TournamentResponse>> updateTournament(
             @PathVariable("id") Integer id,
@@ -54,3 +63,5 @@ public class TournamentController {
         return ResponseEntity.ok(ApiResponse.success(null, response));
     }
 }
+
+

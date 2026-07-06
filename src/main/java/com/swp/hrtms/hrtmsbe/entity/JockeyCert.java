@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,13 +24,22 @@ public class JockeyCert {
     private String certName;
 
     @Lob
-    @Column(name = "cert_img", columnDefinition = "TEXT")
-    private String certImg;
+    @Column(name = "cert_image_base64", columnDefinition = "VARCHAR(MAX)")
+    private String certImageBase64;
+
+    @Column(name = "issued_at")
+    private java.time.LocalDate issuedAt;
 
     @Builder.Default
-    private String status = "PENDING";
+    @Enumerated(EnumType.STRING)
+    //khai
+    private com.swp.hrtms.hrtmsbe.enums.CertificateStatus status = com.swp.hrtms.hrtmsbe.enums.CertificateStatus.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "jockey_id")
     private Jockey jockey;
 }
+
+
+
+

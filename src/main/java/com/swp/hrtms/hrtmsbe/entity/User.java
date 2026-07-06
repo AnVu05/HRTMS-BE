@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,7 +34,16 @@ public class User {
     @Column(nullable = false)
     private String role; // 'ADMIN', 'SPECTATOR', 'HORSE_OWNER', 'JOCKEY', 'DOCTOR', 'REFEREE'
 
+    //khai
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private com.swp.hrtms.hrtmsbe.enums.UserStatus status = com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }
+
+
+
+

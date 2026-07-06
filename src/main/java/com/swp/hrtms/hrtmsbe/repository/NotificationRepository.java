@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.repository;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.entity.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -11,11 +13,20 @@ import org.springframework.data.repository.query.Param;
 public interface NotificationRepository extends JpaRepository<Notification, Integer> {
 
     @org.springframework.data.jpa.repository.Modifying
-    @Query("UPDATE Notification n SET n.type = 'DONE_VERIFY' WHERE n.sender.id = :jockeyId AND n.type = 'VERIFY_CERTIFICATE'")
+    //khai
+    @Query("UPDATE Notification n SET n.type = 'DONE' WHERE n.sender.id = :jockeyId AND n.type = 'VERIFI_CERTIFICATE'")
     void updateTypeToDoneVerify(@Param("jockeyId") Integer jockeyId);
 
-    // Khai: Finish only the notification linked to the selected jockey certificate.
     @org.springframework.data.jpa.repository.Modifying
-    @Query("UPDATE Notification n SET n.type = 'DONE_VERIFY' WHERE n.jockeyCert.id = :certId AND n.type = 'VERIFY_CERTIFICATE'")
-    void updateCertificateNotificationTypeToDoneVerify(@Param("certId") Integer certId);
+    @Query("UPDATE Notification n SET n.type = 'DONE' WHERE n.sender.id = :ownerId AND n.type = 'JOCKEY_INVITATION' AND n.id IN (SELECT nr.notification.id FROM NotificationRecipient nr WHERE nr.recipient.id = :jockeyId)")
+    void updateJockeyInvitationToDone(@Param("ownerId") Integer ownerId, @Param("jockeyId") Integer jockeyId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Notification n SET n.type = 'DONE' WHERE n.sender.id = :ownerId AND n.type = 'REGISTRATION_VERIFY' AND n.id IN (SELECT nr.notification.id FROM NotificationRecipient nr WHERE nr.recipient.id = :adminId)")
+    void updateRegistrationVerifyToDone(@Param("ownerId") Integer ownerId, @Param("adminId") Integer adminId);
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Notification n SET n.type = 'DONE' WHERE n.sender.id = :adminId AND n.type = 'DOCTOR_INVITATION' AND n.id IN (SELECT nr.notification.id FROM NotificationRecipient nr WHERE nr.recipient.id = :doctorId)")
+    void updateDoctorInvitationToDone(@Param("adminId") Integer adminId, @Param("doctorId") Integer doctorId);
 }
+
+
