@@ -315,6 +315,37 @@ public class RaceServiceImpl implements RaceService {
             race.setTournament(tournament);
         }
 
+        // Validate updated fields if the race is/was published
+        if (oldStatus == RaceStatus.PUBLISHED
+                || race.getStatus() == RaceStatus.PUBLISHED) {
+            if (race.getStartTime() != null && race.getEndTime() != null
+                    && !race.getStartTime().isBefore(race.getEndTime())) {
+                throw new IllegalArgumentException("Start time must be before end time.");
+            }
+
+            if (race.getDistanceM() != null && race.getDistanceM() <= 0) {
+                throw new IllegalArgumentException("Distance must be greater than 0 meters.");
+            }
+
+            if (race.getTournament() != null && race.getDate() != null && race.getStartTime() != null
+                    && race.getEndTime() != null) {
+                if (raceRepository.existsOverlappingInTournamentExcludingRace(
+                        race.getTournament().getId(), race.getId(), race.getDate(), race.getStartTime(),
+                        race.getEndTime())) {
+                    throw new IllegalArgumentException("Updated race time overlaps with another race in the tournament.");
+                }
+            }
+
+            if (race.getReferee() != null && race.getDate() != null && race.getStartTime() != null
+                    && race.getEndTime() != null) {
+                if (raceRepository.existsOverlappingForRefereeExcludingRace(
+                        race.getReferee().getId(), race.getId(), race.getDate(), race.getStartTime(),
+                        race.getEndTime())) {
+                    throw new IllegalArgumentException("Referee is already assigned to another overlapping race.");
+                }
+            }
+        }
+
         race = raceRepository.save(race);
 
         if (refereeChanged) {
@@ -333,6 +364,34 @@ public class RaceServiceImpl implements RaceService {
                         .title("New Race: " + race.getName())
                         .content("A new race has been published in the tournament.")
                         .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.NEW_RACE)
+                        .race(race)
+                        .build();
+                notification = notificationRepository.save(notification);
+
+                List<NotificationRecipient> recipients = new ArrayList<>();
+                for (User user : targetUsers) {
+                    NotificationRecipient recipient = NotificationRecipient
+                            .builder()
+                            .notification(notification)
+                            .recipient(user)
+                            .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                            .build();
+                    recipients.add(recipient);
+                }
+                notificationRecipientRepository.saveAll(recipients);
+            }
+        } else if (oldStatus == RaceStatus.PUBLISHED
+                && race.getStatus() == RaceStatus.PUBLISHED) {
+            // Broadcast RACE_UPDATE if already published and updated
+            List<User> targetUsers = userRepository
+                    .findByRoleIn(java.util.Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
+            if (!targetUsers.isEmpty()) {
+                Notification notification = Notification
+                        .builder()
+                        .sender(null) // System notification
+                        .title("Race Updated: " + race.getName())
+                        .content("The race '" + race.getName() + "' has been updated.")
+                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.RACE_UPDATE)
                         .race(race)
                         .build();
                 notification = notificationRepository.save(notification);
@@ -682,7 +741,12 @@ public class RaceServiceImpl implements RaceService {
             }
         }
 
-        if (recipientsSet.isEmpty()) {
+        // C. Trọng tài được phân công
+        if (race.getReferee() != null) {
+            recipientsSet.add(race.getReferee());
+        }
+
+        if (recipientsSet.isEmpty()) {//Note: neu ko co ng.t.gia -> bang noti se hong co luu lai(or thong bao)
             return;
         }
 

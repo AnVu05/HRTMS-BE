@@ -1,7 +1,10 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "healthchecks")
@@ -26,3 +29,8 @@ public class HealthCheck {
     private String medicalNotes;
     private java.time.LocalDateTime checkDate;
 }
+
+
+
+
+

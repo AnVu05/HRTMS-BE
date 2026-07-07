@@ -201,7 +201,7 @@ public class TournamentServiceImpl implements TournamentService {
         // khai
         if (oldStatus != com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED
                 && tournament.getStatus() == com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED) {
-            List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
+            List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR","REFEREE"));
             if (!targetUsers.isEmpty()) {
                 Notification notification = Notification.builder()
                         .sender(null) // System notification
@@ -226,7 +226,7 @@ public class TournamentServiceImpl implements TournamentService {
             }
         } else if (isScheduleUpdated
                 && tournament.getStatus() == com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED) {
-            List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
+            List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR","REFEREE"));
             if (!targetUsers.isEmpty()) {
                 Notification notification = Notification.builder()
                         .sender(null) // System notification
@@ -276,7 +276,7 @@ public class TournamentServiceImpl implements TournamentService {
 
         // code moi (06/07)
         // Gửi thông báo TOURNAMENT_CANCELLED cho JOCKEY, HORSE_OWNER, SPECTATOR
-        List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
+        List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR","REFEREE"));
         if (!targetUsers.isEmpty()) {
             Notification notification = Notification.builder()
                     .sender(null) // System notification

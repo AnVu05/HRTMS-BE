@@ -17,6 +17,9 @@ public interface NotificationService {
     List<HorseOwnerNotificationResponse> getHorseOwnerNotifications(Integer ownerId);
     List<RefereeInvitationResponse> getPendingRefereeInvitations(Integer refereeId);
     RefereeInvitationResponse respondToRefereeInvitation(Integer refereeId, Integer notificationId, RespondInvitationRequest request);
+
+    List<NotificationResponse> getJockeyNotifications(Integer jockeyId);
+    List<NotificationResponse> getRefereeNotifications(Integer refereeId);
 }
 
 

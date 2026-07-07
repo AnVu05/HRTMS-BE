@@ -94,6 +94,24 @@ public class NotificationController {
                                 response,
                                 "Responded to referee invitation successfully"));
         }
+
+        @GetMapping("/jockeys/{jockeyId}")
+        public ResponseEntity<ApiResponse<List<NotificationResponse>>> getJockeyNotifications(
+                        @PathVariable Integer jockeyId) {
+                List<NotificationResponse> notifications = notificationService.getJockeyNotifications(jockeyId);
+                return ResponseEntity.ok(ApiResponse.success(
+                                notifications,
+                                "Fetched jockey notifications successfully"));
+        }
+
+        @GetMapping("/referees/{refereeId}")
+        public ResponseEntity<ApiResponse<List<NotificationResponse>>> getRefereeNotifications(
+                        @PathVariable Integer refereeId) {
+                List<NotificationResponse> notifications = notificationService.getRefereeNotifications(refereeId);
+                return ResponseEntity.ok(ApiResponse.success(
+                                notifications,
+                                "Fetched referee notifications successfully"));
+        }
 }
 
 

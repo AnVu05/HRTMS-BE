@@ -119,7 +119,7 @@ public class VerificationServiceImpl implements VerificationService {
                         // khai
                         cert.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.VERIFIED);
                 }
-                certs = jockeyCertRepository.saveAll(certs);
+                certs = jockeyCertRepository.saveAll(certs);// luu duoc "Dong Y"
 
                 // 2. Mark original notification as 'Accept'
                 notificationRecipientRepository.markVerificationRequestAsAccepted(adminId, jockeyId);
@@ -170,7 +170,7 @@ public class VerificationServiceImpl implements VerificationService {
                         // khai
                         cert.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.REJECTED);
                 }
-                certs = jockeyCertRepository.saveAll(certs);
+                certs = jockeyCertRepository.saveAll(certs);//luu bi "Tu Choi"
 
                 // 2. Mark original notification as 'Reject'
                 notificationRecipientRepository.markVerificationRequestAsRejected(adminId, jockeyId);

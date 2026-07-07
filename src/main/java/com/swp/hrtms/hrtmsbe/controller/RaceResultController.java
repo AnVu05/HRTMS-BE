@@ -1,38 +1,38 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
-import com.swp.hrtms.hrtmsbe.dto.request.TransactionRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.RaceResultRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
-import com.swp.hrtms.hrtmsbe.dto.response.TransactionResponse;
-import com.swp.hrtms.hrtmsbe.service.TransactionService;
+import com.swp.hrtms.hrtmsbe.dto.response.RaceResultResponse;
+import com.swp.hrtms.hrtmsbe.service.RaceResultService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/transactions")
-public class TransactionController {
-    private final TransactionService service;
+@RequestMapping("/api/raceresults")
+public class RaceResultController {
+    private final RaceResultService service;
 
-    public TransactionController(TransactionService service) { this.service = service; }
+    public RaceResultController(RaceResultService service) { this.service = service; }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<TransactionResponse>> create(@RequestBody TransactionRequest request) {
+    public ResponseEntity<ApiResponse<RaceResultResponse>> create(@RequestBody RaceResultRequest request) {
         return ResponseEntity.ok(ApiResponse.success(service.create(request), "Created successfully"));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getAll() {
+    public ResponseEntity<ApiResponse<List<RaceResultResponse>>> getAll() {
         return ResponseEntity.ok(ApiResponse.success(service.getAll(), null));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<TransactionResponse>> getById(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<RaceResultResponse>> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(ApiResponse.success(service.getById(id), null));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<TransactionResponse>> update(@PathVariable Integer id, @RequestBody TransactionRequest request) {
+    public ResponseEntity<ApiResponse<RaceResultResponse>> update(@PathVariable Integer id, @RequestBody RaceResultRequest request) {
         return ResponseEntity.ok(ApiResponse.success(service.update(id, request), "Updated successfully"));
     }
 

@@ -1,7 +1,10 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "doctors")
@@ -19,4 +22,6 @@ public class Doctor {
     @JoinColumn(name = "user_id")
     private User user;
 }
+
+
 

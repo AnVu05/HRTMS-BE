@@ -1,18 +1,20 @@
 package com.swp.hrtms.hrtmsbe.mock;
 
-import org.springframework.stereotype.Component;
+import com.swp.hrtms.hrtmsbe.entity.*;
+import com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus;
+import com.swp.hrtms.hrtmsbe.enums.RaceStatus;
+import com.swp.hrtms.hrtmsbe.enums.TournamentStatus;
+import com.swp.hrtms.hrtmsbe.enums.UserStatus;
+import com.swp.hrtms.hrtmsbe.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.swp.hrtms.hrtmsbe.entity.*;
-import com.swp.hrtms.hrtmsbe.enums.*;
-import com.swp.hrtms.hrtmsbe.repository.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Component
 public class MockData {

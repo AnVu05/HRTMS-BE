@@ -81,7 +81,7 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
                         JOIN n.race r
                         WHERE nr.recipient.id = :refereeId
                           AND nr.status = 'UNREAD'
-                          AND n.type = 'SYSTEM'
+                          AND n.type = 'REFEREE_INVITATION'
                           AND r.referee.id = :refereeId
                           AND r.status = 'PENDING_REFEREE'
                         """)
@@ -104,6 +104,8 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
         java.util.Optional<NotificationRecipient> findByNotification_IdAndRecipient_Id(Integer notificationId, Integer recipientId);
         
         java.util.Optional<NotificationRecipient> findByIdAndRecipient_Id(Integer id, Integer recipientId);
+
+        List<NotificationRecipient> findByRecipient_IdOrderByNotification_CreatedAtDesc(Integer recipientId);
 }
 
 
