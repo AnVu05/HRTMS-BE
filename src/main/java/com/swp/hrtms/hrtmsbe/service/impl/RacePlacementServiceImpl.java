@@ -44,6 +44,51 @@ public class RacePlacementServiceImpl implements RacePlacementService {
         return toResponse(placement);
     }
 
+    private void shiftRanksForPositionChange(RacePlacement placement, Integer newPosition) {
+        if (newPosition == null) {
+            return;
+        }
+        if (newPosition <= 0) {
+            throw new IllegalArgumentException("Finish position must be greater than 0.");
+        }
+        if (placement.getRaceResult() == null || placement.getRaceResult().getId() == null) {
+            return;
+        }
+
+        Integer oldPosition = placement.getFinishPosition();
+        if (oldPosition != null && oldPosition.equals(newPosition)) {
+            return;
+        }
+
+        List<RacePlacement> sameRaceResultPlacements =
+                racePlacementRepository.findByRaceResult_Id(placement.getRaceResult().getId());
+        for (RacePlacement existing : sameRaceResultPlacements) {
+            if (placement.getId() != null && placement.getId().equals(existing.getId())) {
+                continue;
+            }
+            if (existing.getFinishPosition() == null) {
+                continue;
+            }
+
+            if (oldPosition == null) {
+                if (existing.getFinishPosition() >= newPosition) {
+                    existing.setFinishPosition(existing.getFinishPosition() + 1);
+                    racePlacementRepository.save(existing);
+                }
+            } else if (newPosition < oldPosition) {
+                if (existing.getFinishPosition() >= newPosition && existing.getFinishPosition() < oldPosition) {
+                    existing.setFinishPosition(existing.getFinishPosition() + 1);
+                    racePlacementRepository.save(existing);
+                }
+            } else if (newPosition > oldPosition) {
+                if (existing.getFinishPosition() <= newPosition && existing.getFinishPosition() > oldPosition) {
+                    existing.setFinishPosition(existing.getFinishPosition() - 1);
+                    racePlacementRepository.save(existing);
+                }
+            }
+        }
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<RacePlacementResponse> getAll() {
@@ -67,12 +112,20 @@ public class RacePlacementServiceImpl implements RacePlacementService {
         RacePlacement placement = racePlacementRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("RacePlacement not found with id: " + id));
         // Partial update — chỉ set nếu request không null
-        if (request.getRaceResultId() != null)
-            placement.setRaceResult(findRaceResultOrNull(request.getRaceResultId()));
-        if (request.getRegistrationFormId() != null)
-            placement.setRegistrationForm(findRegistrationFormOrNull(request.getRegistrationFormId()));
-        if (request.getFinishPosition() != null)
+        if (request.getRaceResultId() != null
+                && (placement.getRaceResult() == null
+                        || !request.getRaceResultId().equals(placement.getRaceResult().getId()))) {
+            throw new IllegalArgumentException("RaceResult cannot be changed after a placement is created.");
+        }
+        if (request.getRegistrationFormId() != null
+                && (placement.getRegistrationForm() == null
+                        || !request.getRegistrationFormId().equals(placement.getRegistrationForm().getId()))) {
+            throw new IllegalArgumentException("RegistrationForm cannot be changed after a placement is created.");
+        }
+        if (request.getFinishPosition() != null) {
+            shiftRanksForPositionChange(placement, request.getFinishPosition());
             placement.setFinishPosition(request.getFinishPosition());
+        }
         if (request.getFinishTime() != null)
             placement.setFinishTime(request.getFinishTime());
         if (request.getWeighInWeight() != null)
@@ -151,17 +204,6 @@ public class RacePlacementServiceImpl implements RacePlacementService {
             if (placement.getFinishPosition().equals(existing.getFinishPosition())) {
                 continue;
             }
-            if (placement.getFinishPosition() < existing.getFinishPosition()
-                    && placement.getFinishTime().isAfter(existing.getFinishTime())) {
-                throw new IllegalArgumentException(
-                        "A higher ranked placement cannot have a slower finish time than a lower ranked placement.");
-            }
-            if (placement.getFinishPosition() > existing.getFinishPosition()
-                    && placement.getFinishTime().isBefore(existing.getFinishTime())) {
-                throw new IllegalArgumentException(
-                        "A lower ranked placement cannot have a faster finish time than a higher ranked placement.");
-            }
-
         }
     }
 

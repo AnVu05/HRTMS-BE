@@ -26,8 +26,11 @@ public class RaceResult {
     @Builder.Default
     private com.swp.hrtms.hrtmsbe.enums.RaceResultStatus status = com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.TEMPORARY;
     private java.time.LocalDateTime createdAt;
-}
 
+    @Lob
+    @Column(name = "photo_finish_image", columnDefinition = "TEXT")
+    private String photoFinishImage;
+}
 
 
 

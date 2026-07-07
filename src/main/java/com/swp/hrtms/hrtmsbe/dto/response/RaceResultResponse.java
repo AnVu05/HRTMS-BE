@@ -18,6 +18,6 @@ public class RaceResultResponse {
     private Integer refereeId;
     private com.swp.hrtms.hrtmsbe.enums.RaceResultStatus status;
     private LocalDateTime createdAt;
+    private String photoFinishImage;
 }
-
 

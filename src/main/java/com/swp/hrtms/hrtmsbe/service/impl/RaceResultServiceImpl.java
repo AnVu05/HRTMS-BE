@@ -82,17 +82,23 @@ public class RaceResultServiceImpl implements RaceResultService {
     @Override
     @Transactional
     public RaceResultResponse create(RaceResultRequest request) {
+        com.swp.hrtms.hrtmsbe.enums.RaceResultStatus status = request.getStatus() != null
+                ? request.getStatus()
+                : com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.TEMPORARY;
+        validateOfficialEvidence(status, request.getPhotoFinishImage());
+
         RaceResult result = RaceResult.builder()
                 .race(findRaceOrNull(request.getRaceId()))
                 .referee(findRefereeOrNull(request.getRefereeId()))
-                .status(request.getStatus())
+                .status(status)
                 .createdAt(request.getCreatedAt() != null ? request.getCreatedAt() : LocalDateTime.now())
+                .photoFinishImage(request.getPhotoFinishImage())
                 .build();
         
         result = raceResultRepository.save(result);
 
         //khai
-        if (request.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL) {
+        if (status == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL) {
             processRewards(result.getId(), request.getRaceId());
         }
 
@@ -109,17 +115,31 @@ public class RaceResultServiceImpl implements RaceResultService {
             throw new IllegalArgumentException("Official race result cannot be updated.");
         }
 
-        result.setRace(findRaceOrNull(request.getRaceId()));
-        result.setReferee(findRefereeOrNull(request.getRefereeId()));
-        result.setStatus(request.getStatus());
+        String photoFinishImage = request.getPhotoFinishImage() != null
+                ? request.getPhotoFinishImage()
+                : result.getPhotoFinishImage();
+        com.swp.hrtms.hrtmsbe.enums.RaceResultStatus status = request.getStatus() != null
+                ? request.getStatus()
+                : result.getStatus();
+        validateOfficialEvidence(status, photoFinishImage);
+
+        if (request.getRaceId() != null) {
+            result.setRace(findRaceOrNull(request.getRaceId()));
+        }
+        if (request.getRefereeId() != null) {
+            result.setReferee(findRefereeOrNull(request.getRefereeId()));
+        }
+        result.setStatus(status);
+        result.setPhotoFinishImage(photoFinishImage);
         if (request.getCreatedAt() != null) {
             result.setCreatedAt(request.getCreatedAt());
         }
         result = raceResultRepository.save(result);
 
         // If changed to OFFICIAL, process rewards
-        if (request.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL) {
-            processRewards(result.getId(), request.getRaceId());
+        if (status == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL) {
+            Integer raceId = result.getRace() != null ? result.getRace().getId() : null;
+            processRewards(result.getId(), raceId);
         }
 
         return toResponse(result);
@@ -233,6 +253,13 @@ public class RaceResultServiceImpl implements RaceResultService {
         notificationRecipientRepository.save(recipient);
     }
 
+    private void validateOfficialEvidence(com.swp.hrtms.hrtmsbe.enums.RaceResultStatus status, String photoFinishImage) {
+        if (status == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL
+                && (photoFinishImage == null || photoFinishImage.isBlank())) {
+            throw new IllegalArgumentException("Photo-finish image is required before marking race result as official.");
+        }
+    }
+
     @Override
     public List<RaceResultResponse> getAll() {
         return raceResultRepository.findAll().stream()
@@ -283,9 +310,8 @@ public class RaceResultServiceImpl implements RaceResultService {
                 .refereeId(result.getReferee() != null ? result.getReferee().getId() : null)
                 .status(result.getStatus())
                 .createdAt(result.getCreatedAt())
+                .photoFinishImage(result.getPhotoFinishImage())
                 .build();
     }
 }
-
-
 

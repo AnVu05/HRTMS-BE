@@ -52,6 +52,8 @@ public class RaceServiceImpl implements RaceService {
     private final com.swp.hrtms.hrtmsbe.repository.RaceFormatRepository raceFormatRepository;
     private final com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository;
     private final com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository registrationFormRepository;
+    private final com.swp.hrtms.hrtmsbe.repository.RaceResultRepository raceResultRepository;
+    private final com.swp.hrtms.hrtmsbe.repository.RacePlacementRepository racePlacementRepository;
 
     @Override
     @Transactional
@@ -635,7 +637,8 @@ public class RaceServiceImpl implements RaceService {
             throw new IllegalArgumentException("Can only late scratch a horse before the race starts.");
         }
 
-        disqualifyRegistrationForm(raceId, horseId);
+        com.swp.hrtms.hrtmsbe.entity.RegistrationForm form = disqualifyRegistrationForm(raceId, horseId);
+        removePlacementAndShiftRanks(raceId, form.getId());
 
         // 2. Cancel and Refund all predictions for this horse
         List<Prediction> predictions = predictionRepository.findByRace_Id(raceId);
@@ -661,7 +664,8 @@ public class RaceServiceImpl implements RaceService {
             throw new IllegalArgumentException("Can only disqualify a horse before race completion.");
         }
 
-        disqualifyRegistrationForm(raceId, horseId);
+        com.swp.hrtms.hrtmsbe.entity.RegistrationForm form = disqualifyRegistrationForm(raceId, horseId);
+        removePlacementAndShiftRanks(raceId, form.getId());
 
         List<Prediction> predictions = predictionRepository.findByRace_Id(raceId);
         for (Prediction p : predictions) {
@@ -674,14 +678,50 @@ public class RaceServiceImpl implements RaceService {
         return mapToRaceResponse(race);
     }
 
-    private void disqualifyRegistrationForm(Integer raceId, Integer horseId) {
+    private com.swp.hrtms.hrtmsbe.entity.RegistrationForm disqualifyRegistrationForm(Integer raceId, Integer horseId) {
         com.swp.hrtms.hrtmsbe.entity.RegistrationForm form = registrationFormRepository.findByRace_Id(raceId).stream()
                 .filter(f -> f.getHorse() != null && f.getHorse().getId().equals(horseId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Horse is not registered in this race."));
 
         form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED);
-        registrationFormRepository.save(form);
+        return registrationFormRepository.save(form);
+    }
+
+    private void removePlacementAndShiftRanks(Integer raceId, Integer registrationFormId) {
+        com.swp.hrtms.hrtmsbe.entity.RaceResult raceResult = raceResultRepository.findByRace_Id(raceId).orElse(null);
+        if (raceResult == null) {
+            return;
+        }
+
+        List<com.swp.hrtms.hrtmsbe.entity.RacePlacement> placements =
+                racePlacementRepository.findByRaceResult_Id(raceResult.getId());
+        com.swp.hrtms.hrtmsbe.entity.RacePlacement disqualifiedPlacement = placements.stream()
+                .filter(p -> p.getRegistrationForm() != null
+                        && p.getRegistrationForm().getId().equals(registrationFormId))
+                .findFirst()
+                .orElse(null);
+
+        if (disqualifiedPlacement == null) {
+            return;
+        }
+
+        Integer removedPosition = disqualifiedPlacement.getFinishPosition();
+        racePlacementRepository.delete(disqualifiedPlacement);
+
+        if (removedPosition == null) {
+            return;
+        }
+
+        for (com.swp.hrtms.hrtmsbe.entity.RacePlacement placement : placements) {
+            if (placement.getId().equals(disqualifiedPlacement.getId())
+                    || placement.getFinishPosition() == null
+                    || placement.getFinishPosition() <= removedPosition) {
+                continue;
+            }
+            placement.setFinishPosition(placement.getFinishPosition() - 1);
+            racePlacementRepository.save(placement);
+        }
     }
 
     @Override
