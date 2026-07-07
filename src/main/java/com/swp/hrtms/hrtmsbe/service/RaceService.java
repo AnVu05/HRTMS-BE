@@ -25,9 +25,9 @@ public interface RaceService {
     String updateRaceTime(Integer raceId, com.swp.hrtms.hrtmsbe.dto.request.RaceUpdateTimeRequest request);
     void predictScheduleUpdate();
     RaceResponse lateScratch(Integer raceId, Integer horseId, String reason);
+    RaceResponse disqualifyHorse(Integer raceId, Integer horseId, String reason);
     RaceResponse startRace(Integer raceId);
 }
-
 
 
 

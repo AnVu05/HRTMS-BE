@@ -53,14 +53,14 @@ public class PredictionServiceImpl implements PredictionService {
         Race race = raceRepository.findById(request.getRaceId())
                 .orElseThrow(() -> new IllegalArgumentException("Race not found."));
 
-        if (race.getStatus() == RaceStatus.WALK_OVER || race.getStatus() == RaceStatus.CANCELLED) {
-            throw new IllegalArgumentException("Race is already cancelled or walkover.");
+        if (race.getStatus() != RaceStatus.PUBLISHED && race.getStatus() != RaceStatus.PREPARE) {
+            throw new IllegalArgumentException("Predictions are only allowed before the race starts.");
         }
         // BR_09: Predicted Time (Only enabled 1 hour beforehand and locks when race
         // begins)
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
-        if (now.isBefore(raceStartDateTime.minusHours(1)) || now.isAfter(raceStartDateTime)) {
+        if (now.isBefore(raceStartDateTime.minusHours(1)) || !now.isBefore(raceStartDateTime)) {
             throw new IllegalArgumentException("Predictions are only allowed within 1 hour before the race starts.");
         }
 
@@ -105,9 +105,7 @@ public class PredictionServiceImpl implements PredictionService {
                         ? horseRepository.getReferenceById(request.getPredictedHorseId())
                         : null)
                 .pointsInvested(request.getPointsInvested())
-                // khai
-                .status(request.getStatus() != null ? request.getStatus()
-                        : com.swp.hrtms.hrtmsbe.enums.PredictionStatus.PENDING)
+                .status(com.swp.hrtms.hrtmsbe.enums.PredictionStatus.PENDING)
                 .createdAt(request.getCreatedAt() != null ? request.getCreatedAt() : now)
                 .build();
 
@@ -144,20 +142,7 @@ public class PredictionServiceImpl implements PredictionService {
         if (isDeleted(prediction)) {
             throw new IllegalArgumentException("Prediction not found.");
         }
-        if (request.getSpectatorId() != null) {
-            prediction.setSpectator(spectatorRepository.getReferenceById(request.getSpectatorId()));
-        }
-        if (request.getRaceId() != null) {
-            prediction.setRace(raceRepository.getReferenceById(request.getRaceId()));
-        }
-        if (request.getPredictedHorseId() != null) {
-            prediction.setPredictedHorse(horseRepository.getReferenceById(request.getPredictedHorseId()));
-        }
-        if (request.getPointsInvested() != null) {
-            prediction.setPointsInvested(request.getPointsInvested());
-        }
-        prediction = predictionRepository.save(prediction);
-        return toResponse(prediction);
+        throw new IllegalArgumentException("Predictions cannot be updated after submission.");
     }
 
     @Override
@@ -166,9 +151,10 @@ public class PredictionServiceImpl implements PredictionService {
         // khai
         Prediction prediction = predictionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Prediction not found."));
-        // khai
-        prediction.setStatus(com.swp.hrtms.hrtmsbe.enums.PredictionStatus.CANCELLED);
-        predictionRepository.save(prediction);
+        if (isDeleted(prediction)) {
+            throw new IllegalArgumentException("Prediction not found.");
+        }
+        throw new IllegalArgumentException("Predictions cannot be deleted after submission.");
     }
 
     // khai

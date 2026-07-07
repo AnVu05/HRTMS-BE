@@ -72,6 +72,17 @@ public class RaceController {
                 .build());
     }
 
+    @PutMapping("/{id}/disqualify")
+    public ResponseEntity<ApiResponse<RaceResponse>> disqualifyHorse(@PathVariable Integer id,
+            @RequestParam Integer horseId, @RequestParam String reason) {
+        RaceResponse race = raceService.disqualifyHorse(id, horseId, reason);
+        return ResponseEntity.ok(ApiResponse.<RaceResponse>builder()
+                .status("success")
+                .message("Horse disqualification processed successfully.")
+                .data(race)
+                .build());
+    }
+
     @PutMapping("/{id}/start")
     public ResponseEntity<ApiResponse<RaceResponse>> startRace(@PathVariable Integer id) {
         RaceResponse race = raceService.startRace(id);

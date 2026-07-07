@@ -149,11 +149,7 @@ public class RacePlacementServiceImpl implements RacePlacementService {
                 continue;
             }
             if (placement.getFinishPosition().equals(existing.getFinishPosition())) {
-                throw new IllegalArgumentException(
-                        "Finish position already exists in this race result: " + placement.getFinishPosition());
-            }
-            if (placement.getFinishTime().equals(existing.getFinishTime())) {
-                throw new IllegalArgumentException("Finish time already exists in this race result.");
+                continue;
             }
             if (placement.getFinishPosition() < existing.getFinishPosition()
                     && placement.getFinishTime().isAfter(existing.getFinishTime())) {
@@ -165,6 +161,7 @@ public class RacePlacementServiceImpl implements RacePlacementService {
                 throw new IllegalArgumentException(
                         "A lower ranked placement cannot have a faster finish time than a higher ranked placement.");
             }
+
         }
     }
 

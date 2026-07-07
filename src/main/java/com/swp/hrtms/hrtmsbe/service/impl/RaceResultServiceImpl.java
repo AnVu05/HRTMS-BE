@@ -8,9 +8,13 @@ import com.swp.hrtms.hrtmsbe.entity.Prediction;
 import com.swp.hrtms.hrtmsbe.entity.Wallet;
 import com.swp.hrtms.hrtmsbe.entity.Transaction;
 import com.swp.hrtms.hrtmsbe.entity.Race;
+import com.swp.hrtms.hrtmsbe.entity.Notification;
+import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
 import com.swp.hrtms.hrtmsbe.entity.Referee;
 import com.swp.hrtms.hrtmsbe.entity.RegistrationForm;
 import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
 import com.swp.hrtms.hrtmsbe.repository.RaceResultRepository;
 import com.swp.hrtms.hrtmsbe.repository.RacePlacementRepository;
 import com.swp.hrtms.hrtmsbe.repository.PredictionRepository;
@@ -28,8 +32,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,6 +50,8 @@ public class RaceResultServiceImpl implements RaceResultService {
     private final TournamentRepository tournamentRepository;
     private final RefereeRepository refereeRepository;
     private final HorseRepository horseRepository;
+    private final NotificationRepository notificationRepository;
+    private final NotificationRecipientRepository notificationRecipientRepository;
 
     public RaceResultServiceImpl(RaceResultRepository raceResultRepository,
                                  RacePlacementRepository racePlacementRepository,
@@ -55,7 +62,9 @@ public class RaceResultServiceImpl implements RaceResultService {
                                  RegistrationFormRepository registrationFormRepository,
                                  TournamentRepository tournamentRepository,
                                  RefereeRepository refereeRepository,
-                                 HorseRepository horseRepository) {
+                                 HorseRepository horseRepository,
+                                 NotificationRepository notificationRepository,
+                                 NotificationRecipientRepository notificationRecipientRepository) {
         this.raceResultRepository = raceResultRepository;
         this.racePlacementRepository = racePlacementRepository;
         this.predictionRepository = predictionRepository;
@@ -66,6 +75,8 @@ public class RaceResultServiceImpl implements RaceResultService {
         this.tournamentRepository = tournamentRepository;
         this.refereeRepository = refereeRepository;
         this.horseRepository = horseRepository;
+        this.notificationRepository = notificationRepository;
+        this.notificationRecipientRepository = notificationRecipientRepository;
     }
 
     @Override
@@ -94,8 +105,10 @@ public class RaceResultServiceImpl implements RaceResultService {
         RaceResult result = raceResultRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("RaceResult not found with id: " + id));
         
-        //khai
-        boolean wasFinished = result.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL;
+        if (result.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL) {
+            throw new IllegalArgumentException("Official race result cannot be updated.");
+        }
+
         result.setRace(findRaceOrNull(request.getRaceId()));
         result.setReferee(findRefereeOrNull(request.getRefereeId()));
         result.setStatus(request.getStatus());
@@ -105,7 +118,7 @@ public class RaceResultServiceImpl implements RaceResultService {
         result = raceResultRepository.save(result);
 
         // If changed to OFFICIAL, process rewards
-        if (!wasFinished && request.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL) {
+        if (request.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL) {
             processRewards(result.getId(), request.getRaceId());
         }
 
@@ -113,57 +126,52 @@ public class RaceResultServiceImpl implements RaceResultService {
     }
 
     private void processRewards(Integer raceResultId, Integer raceId) {
-        // BR_11: Automatic Rewards (1-to-2 ratio)
-        // Find the winning horse
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Race not found with id: " + raceId));
+
         List<RacePlacement> placements = racePlacementRepository.findByRaceResult_Id(raceResultId);
-        Optional<RacePlacement> winnerPlacement = placements.stream()
+        Set<Integer> winningHorseIds = placements.stream()
                 .filter(p -> p.getFinishPosition() != null && p.getFinishPosition() == 1)
-                .findFirst();
+                .map(RacePlacement::getRegistrationForm)
+                .filter(form -> form != null && form.getHorse() != null)
+                .map(form -> form.getHorse().getId())
+                .collect(Collectors.toCollection(HashSet::new));
 
-        if (winnerPlacement.isPresent()) {
-            Integer winningFormId = winnerPlacement.get().getRegistrationForm() != null ? winnerPlacement.get().getRegistrationForm().getId() : null;
-            RegistrationForm winningForm = winningFormId != null ? registrationFormRepository.findById(winningFormId).orElse(null) : null;
+        List<Prediction> predictions = predictionRepository.findByRace_Id(raceId);
+        for (Prediction p : predictions) {
+            if (p.getStatus() != com.swp.hrtms.hrtmsbe.enums.PredictionStatus.LOCKED) {
+                continue;
+            }
 
-            if (winningForm != null) {
-                Integer winningHorseId = winningForm.getHorse() != null ? winningForm.getHorse().getId() : null;
+            Integer predictedHorseId = p.getPredictedHorse() != null ? p.getPredictedHorse().getId() : null;
+            boolean winner = predictedHorseId != null && winningHorseIds.contains(predictedHorseId);
+            Integer reward = 0;
 
-                // Find all predictions for this race
-                List<Prediction> predictions = predictionRepository.findByRace_Id(raceId);
-                for (Prediction p : predictions) {
-                    if (p.getPredictedHorse() != null && p.getPredictedHorse().getId().equals(winningHorseId) && p.getStatus() == com.swp.hrtms.hrtmsbe.enums.PredictionStatus.LOCKED) {
-                        // Winner! Reward = invested * 2
-                        Integer reward = p.getPointsInvested() * 2;
-                        //khai
-                        p.setStatus(com.swp.hrtms.hrtmsbe.enums.PredictionStatus.DONE);
-                        predictionRepository.save(p);
+            if (winner) {
+                reward = p.getPointsInvested() * 2;
+                Integer spectatorUserId = p.getSpectator() != null ? p.getSpectator().getId() : null;
+                Wallet wallet = spectatorUserId != null ? walletRepository.findByUser_Id(spectatorUserId).orElse(null) : null;
+                if (wallet != null) {
+                    wallet.setBalance(wallet.getBalance() + reward);
+                    wallet.setUpdatedAt(LocalDateTime.now());
+                    walletRepository.save(wallet);
 
-                        // Add to wallet
-                        Integer spectatorUserId = p.getSpectator() != null ? p.getSpectator().getId() : null;
-                        Wallet wallet = spectatorUserId != null ? walletRepository.findByUser_Id(spectatorUserId).orElse(null) : null;
-                        if (wallet != null) {
-                            wallet.setBalance(wallet.getBalance() + reward);
-                            wallet.setUpdatedAt(LocalDateTime.now());
-                            walletRepository.save(wallet);
-
-                            // Save transaction
-        Transaction tx = Transaction.builder()
-                .wallet(wallet)
-                .race(raceRepository.findById(raceId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Race not found with id: " + raceId)))
-                .horse(horseRepository.findById(winningHorseId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Horse not found with id: " + winningHorseId)))
-                .amount(reward)
-                .type("PREDICTION_REWARD")
-                .createdAt(LocalDateTime.now())
-                                    .build();
-                            transactionRepository.save(tx);
-                        }
-                    } else if (p.getStatus() == com.swp.hrtms.hrtmsbe.enums.PredictionStatus.LOCKED) {
-                        p.setStatus(com.swp.hrtms.hrtmsbe.enums.PredictionStatus.DONE);
-                        predictionRepository.save(p);
-                    }
+                    Transaction tx = Transaction.builder()
+                            .wallet(wallet)
+                            .race(race)
+                            .horse(horseRepository.findById(predictedHorseId)
+                                    .orElseThrow(() -> new ResourceNotFoundException("Horse not found with id: " + predictedHorseId)))
+                            .amount(reward)
+                            .type("PREDICTION_REWARD")
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                    transactionRepository.save(tx);
                 }
             }
+
+            p.setStatus(com.swp.hrtms.hrtmsbe.enums.PredictionStatus.DONE);
+            predictionRepository.save(p);
+            notifyPredictionResult(p, winner, reward);
         }
         
         // Cập nhật trạng thái các đội đua (RegistrationForm) thành COMPLETE
@@ -174,7 +182,6 @@ public class RaceResultServiceImpl implements RaceResultService {
         registrationFormRepository.saveAll(forms);
 
         // Also update Race status
-        Race race = raceRepository.findById(raceId).orElse(null);
         if (race != null) {
             //khai
             race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.COMPLETE);
@@ -193,6 +200,37 @@ public class RaceResultServiceImpl implements RaceResultService {
                 }
             }
         }
+    }
+
+    private void notifyPredictionResult(Prediction prediction, boolean winner, Integer reward) {
+        if (prediction.getSpectator() == null) {
+            return;
+        }
+
+        Race race = prediction.getRace();
+        String raceName = race != null ? race.getName() : "the race";
+        String horseName = prediction.getPredictedHorse() != null ? prediction.getPredictedHorse().getName() : "your selected horse";
+        String title = winner ? "Prediction reward" : "Prediction result";
+        String content = winner
+                ? "Your prediction for " + horseName + " in " + raceName + " won. " + reward + " points have been added to your wallet."
+                : "Your prediction for " + horseName + " in " + raceName + " did not win.";
+
+        Notification notification = Notification.builder()
+                .sender(race != null && race.getTournament() != null ? race.getTournament().getAdmin() : null)
+                .race(race)
+                .title(title)
+                .content(content)
+                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.SYSTEM)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notification = notificationRepository.save(notification);
+
+        NotificationRecipient recipient = NotificationRecipient.builder()
+                .notification(notification)
+                .recipient(prediction.getSpectator())
+                .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                .build();
+        notificationRecipientRepository.save(recipient);
     }
 
     @Override
@@ -248,7 +286,6 @@ public class RaceResultServiceImpl implements RaceResultService {
                 .build();
     }
 }
-
 
 
 

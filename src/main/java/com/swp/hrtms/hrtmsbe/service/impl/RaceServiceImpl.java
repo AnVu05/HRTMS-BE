@@ -51,6 +51,7 @@ public class RaceServiceImpl implements RaceService {
     private final NotificationRecipientRepository notificationRecipientRepository;
     private final com.swp.hrtms.hrtmsbe.repository.RaceFormatRepository raceFormatRepository;
     private final com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository;
+    private final com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository registrationFormRepository;
 
     @Override
     @Transactional
@@ -450,10 +451,18 @@ public class RaceServiceImpl implements RaceService {
         List<Prediction> predictions = predictionRepository.findByRace_Id(raceId);
 
         for (Prediction p : predictions) {
-            if ("PENDING".equalsIgnoreCase(p.getStatus() == null ? "" : p.getStatus().name())) {
+            if (isRefundablePrediction(p)) {
                 refundPrediction(p);
             }
         }
+    }
+
+    private boolean isRefundablePrediction(Prediction prediction) {
+        if (prediction == null || prediction.getStatus() == null) {
+            return false;
+        }
+        return prediction.getStatus() == com.swp.hrtms.hrtmsbe.enums.PredictionStatus.PENDING
+                || prediction.getStatus() == com.swp.hrtms.hrtmsbe.enums.PredictionStatus.LOCKED;
     }
 
     private void refundPrediction(Prediction prediction) {
@@ -626,32 +635,53 @@ public class RaceServiceImpl implements RaceService {
             throw new IllegalArgumentException("Can only late scratch a horse before the race starts.");
         }
 
-        // 1. Disqualify the registration form for this horse in this race
-        com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository regRepo = org.springframework.web.context.support.WebApplicationContextUtils
-                .getRequiredWebApplicationContext(
-                        ((org.springframework.web.context.request.ServletRequestAttributes) org.springframework.web.context.request.RequestContextHolder
-                                .getRequestAttributes()).getRequest().getServletContext())
-                .getBean(com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository.class);
-
-        com.swp.hrtms.hrtmsbe.entity.RegistrationForm form = regRepo.findAll().stream()
-                .filter(f -> f.getRace() != null && f.getRace().getId().equals(raceId))
-                .filter(f -> f.getHorse() != null && f.getHorse().getId().equals(horseId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Horse is not registered in this race."));
-
-        form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED);
-        regRepo.save(form);
+        disqualifyRegistrationForm(raceId, horseId);
 
         // 2. Cancel and Refund all predictions for this horse
         List<Prediction> predictions = predictionRepository.findByRace_Id(raceId);
         for (Prediction p : predictions) {
             if (p.getPredictedHorse() != null && p.getPredictedHorse().getId().equals(horseId)
-                    && p.getStatus() != com.swp.hrtms.hrtmsbe.enums.PredictionStatus.CANCELLED) {
+                    && isRefundablePrediction(p)) {
                 refundPrediction(p);
             }
         }
 
         return mapToRaceResponse(race);
+    }
+
+    @Override
+    @Transactional
+    public RaceResponse disqualifyHorse(Integer raceId, Integer horseId, String reason) {
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Race not found with id: " + raceId));
+
+        if (race.getStatus() != com.swp.hrtms.hrtmsbe.enums.RaceStatus.ONGOING
+                && race.getStatus() != com.swp.hrtms.hrtmsbe.enums.RaceStatus.PREPARE
+                && race.getStatus() != com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED) {
+            throw new IllegalArgumentException("Can only disqualify a horse before race completion.");
+        }
+
+        disqualifyRegistrationForm(raceId, horseId);
+
+        List<Prediction> predictions = predictionRepository.findByRace_Id(raceId);
+        for (Prediction p : predictions) {
+            if (p.getPredictedHorse() != null && p.getPredictedHorse().getId().equals(horseId)
+                    && isRefundablePrediction(p)) {
+                refundPrediction(p);
+            }
+        }
+
+        return mapToRaceResponse(race);
+    }
+
+    private void disqualifyRegistrationForm(Integer raceId, Integer horseId) {
+        com.swp.hrtms.hrtmsbe.entity.RegistrationForm form = registrationFormRepository.findByRace_Id(raceId).stream()
+                .filter(f -> f.getHorse() != null && f.getHorse().getId().equals(horseId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Horse is not registered in this race."));
+
+        form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED);
+        registrationFormRepository.save(form);
     }
 
     @Override
