@@ -37,6 +37,15 @@ public class HorseServiceImpl implements HorseService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<HorseResponse> getHorsesByOwner(Integer ownerId) {
+        return horseRepository.findByOwnerUserId(ownerId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public HorseResponse getHorseById(Integer id) {
         Horse horse = findHorseById(id);
         return toResponse(horse);
@@ -58,9 +67,7 @@ public class HorseServiceImpl implements HorseService {
     private HorseResponse toResponse(Horse horse) {
         HorseOwner owner = horse.getOwner();
         Integer ownerId = owner != null ? owner.getUserId() : null;
-        String ownerName = owner != null ? owner.getUser().getUsername() : null;// xóa field ownerName trong entity
-                                                                                // HorseOwner rồi lấy username từ user
-                                                                                // để trả về response
+        String ownerName = owner != null ? owner.getOwnerName() : null;
 
         return new HorseResponse(
                 horse.getId(),
@@ -69,6 +76,8 @@ public class HorseServiceImpl implements HorseService {
                 horse.getName(),
                 horse.getAge(),
                 horse.getBreed(),
+                horse.getSex(),
+                horse.getWeightKg(),
                 horse.getStatus());
     }
 

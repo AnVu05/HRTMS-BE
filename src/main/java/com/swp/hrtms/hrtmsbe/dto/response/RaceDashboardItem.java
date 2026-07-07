@@ -17,9 +17,8 @@ public class RaceDashboardItem {
     private java.time.LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
-    private Integer laps;
+    private Integer distanceM;
     private com.swp.hrtms.hrtmsbe.enums.RaceStatus status;
     private Integer refereeId;
     private String refereeName;
-    private String track;
 }

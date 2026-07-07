@@ -70,6 +70,10 @@ public class RefereeServiceImpl implements RefereeService {
         // Ánh xạ danh sách cuộc đua sang DTO trả về cho Client
         return races.stream().map(race -> {
             String tournamentName = (race.getTournament() != null) ? race.getTournament().getName() : null;
+            Integer refId = (race.getReferee() != null) ? race.getReferee().getId() : null;
+            String refName = (race.getReferee() != null) ? race.getReferee().getName() : null;
+            Integer rulesId = (race.getRaceRules() != null) ? race.getRaceRules().getId() : null;
+            String rulesName = (race.getRaceRules() != null) ? race.getRaceRules().getName() : null;
 
             return RefereeScheduledRaceResponse.builder()
                     .id(race.getId())
@@ -79,10 +83,17 @@ public class RefereeServiceImpl implements RefereeService {
                     .date(race.getDate())
                     .startTime(race.getStartTime())
                     .endTime(race.getEndTime())
-                    // .laps(race.getLaps())
-                    // .numHorse(race.getNumHorse())
+                    .distanceM(race.getDistanceM())
+                    .numHorse(race.getNumHorse())
+                    .refereeId(refId)
+                    .refereeName(refName)
                     .status(race.getStatus())
-                    .track(race.getTrack())
+                    .reason(race.getReason())
+                    .raceRulesId(rulesId)
+                    .raceRulesName(rulesName)
+                    .expectedDurationMinutes(race.getExpectedDurationMinutes())
+                    .breakTimeMinutes(race.getBreakTimeMinutes())
+                    .canceledAt(race.getCanceledAt())
                     .build();
         }).toList();
     }

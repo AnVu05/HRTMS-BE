@@ -55,6 +55,7 @@ public class RaceServiceImpl implements RaceService {
     private final com.swp.hrtms.hrtmsbe.repository.PredictionRepository predictionRepository;
     private final com.swp.hrtms.hrtmsbe.repository.WalletRepository walletRepository;
     private final com.swp.hrtms.hrtmsbe.repository.TransactionRepository transactionRepository;
+    private final com.swp.hrtms.hrtmsbe.repository.RaceFormatRepository raceFormatRepository;
 
     @Override
     @Transactional
@@ -77,7 +78,7 @@ public class RaceServiceImpl implements RaceService {
                         "Start time cannot be after end time for race '" + raceReq.getName() + "'.");
             }
 
-            // 1. Validation: Overlap in DB (Tournament)
+            // 1. Validation: Overlap in DB (Tournament) (BR_05: No scheduling conflicts)
             if (raceRepository.existsOverlappingInTournament(tournament.getId(), raceReq.getDate(),
                     raceReq.getStartTime(), raceReq.getEndTime())) {
                 throw new IllegalArgumentException(
@@ -101,7 +102,7 @@ public class RaceServiceImpl implements RaceService {
                         .orElseThrow(() -> new IllegalArgumentException(
                                 "Referee not found with id: " + raceReq.getRefereeId()));
 
-                // 3. Validation: Overlap in DB (Referee)
+                // 3. Validation: Overlap in DB (Referee) (BR_05: No scheduling conflicts)
                 if (raceRepository.existsOverlappingForReferee(referee.getId(), raceReq.getDate(),
                         raceReq.getStartTime(), raceReq.getEndTime())) {
                     throw new IllegalArgumentException("Referee is already assigned to another overlapping race.");
@@ -120,17 +121,26 @@ public class RaceServiceImpl implements RaceService {
                 }
             }
 
+            com.swp.hrtms.hrtmsbe.entity.RaceFormat raceRules = null;
+            if (raceReq.getRaceRulesId() != null) {
+                raceRules = raceFormatRepository.findById(raceReq.getRaceRulesId())
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Race rules not found with id: " + raceReq.getRaceRulesId()));
+            }
+
             Race race = Race.builder()
                     .tournament(tournament)
                     .name(raceReq.getName())
                     .date(raceReq.getDate())
                     .startTime(raceReq.getStartTime())
                     .endTime(raceReq.getEndTime())
-                    // .laps(raceReq.getLaps())
-                    // .numHorse(raceReq.getNumHorse())
+                    .distanceM(raceReq.getDistanceM())
+                    .numHorse(raceReq.getNumHorse())
                     .referee(referee)
                     .status(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PENDING_REFEREE)
-                    .track(raceReq.getTrack()) // Ánh xạ trường track địa điểm thi đấu
+                    .raceRules(raceRules)
+                    .expectedDurationMinutes(raceReq.getExpectedDurationMinutes())
+                    .breakTimeMinutes(raceReq.getBreakTimeMinutes())
                     .build();
 
             racesToSave.add(race);
@@ -140,23 +150,9 @@ public class RaceServiceImpl implements RaceService {
 
         List<RaceResponse> responses = new ArrayList<>();
         for (Race r : racesToSave) {
-            // Gửi thông báo lời mời cho trọng tài nếu được phân công trong đợt tạo hàng
-            // loạt
             sendRefereeInvitation(r);
 
-            responses.add(RaceResponse.builder()
-                    .id(r.getId())
-                    .tournamentId(r.getTournament().getId())
-                    .name(r.getName())
-                    .date(r.getDate())
-                    .startTime(r.getStartTime())
-                    .endTime(r.getEndTime())
-                    // .laps(r.getLaps())
-                    // .numHorse(r.getNumHorse())
-                    .refereeId(r.getReferee() != null ? r.getReferee().getId() : null)
-                    .status(r.getStatus())
-                    .track(r.getTrack()) // Ánh xạ trường track trả về cho client
-                    .build());
+            responses.add(mapToRaceResponse(r));
         }
 
         return responses;
@@ -164,17 +160,14 @@ public class RaceServiceImpl implements RaceService {
 
     @Override
     @Transactional
-    // Khai
     public RaceResponse createSingleRace(
             com.swp.hrtms.hrtmsbe.dto.request.RaceRequest request) {
         if (request.getTournamentId() == null || request.getDate() == null ||
                 request.getStartTime() == null || request.getEndTime() == null ||
                 request.getName() == null || request.getName().isBlank() ||
-                request.getDistanceM() == null || request.getHorseBreed() == null ||
-                request.getHorseBreed().isBlank() || request.getWeightKg() == null ||
-                request.getHorseAge() == null) {
+                request.getDistanceM() == null) {
             throw new IllegalArgumentException(
-                    "Tournament ID, race name, date, distance, start time, end time, horse breed, weight, and horse age are required.");
+                    "Tournament ID, race name, date, distance, start time, and end time are required.");
         }
 
         if (!request.getStartTime().isBefore(request.getEndTime())) {
@@ -184,38 +177,6 @@ public class RaceServiceImpl implements RaceService {
 
         if (request.getDistanceM() <= 0) {
             throw new IllegalArgumentException("Distance must be greater than 0 meters.");
-        }
-
-        if (request.getWeightKg().signum() <= 0) {
-            throw new IllegalArgumentException("Weight must be greater than 0 kilograms.");
-        }
-
-        if (request.getHorseAge() <= 0) {
-            throw new IllegalArgumentException("Horse age must be greater than 0 years.");
-        }
-
-        if (request.getBettingReward() != null && request.getBettingReward() < 0) {
-            throw new IllegalArgumentException("Betting reward cannot be negative.");
-        }
-
-        List<RacePrizeRequest> requestedPrizes = request.getJockeyPrizes() == null
-                ? List.of()
-                : request.getJockeyPrizes();
-        Set<Integer> receivedRanks = new HashSet<>();
-
-        for (RacePrizeRequest prize : requestedPrizes) {
-            if (prize == null || prize.getRank() == null || prize.getAmount() == null) {
-                throw new IllegalArgumentException("Each jockey prize must include rank and amount.");
-            }
-            if (prize.getRank() < 1 || prize.getRank() > 3) {
-                throw new IllegalArgumentException("Jockey prize rank must be between 1 and 3.");
-            }
-            if (!receivedRanks.add(prize.getRank())) {
-                throw new IllegalArgumentException("Jockey prize ranks cannot be duplicated.");
-            }
-            if (prize.getAmount() < 0) {
-                throw new IllegalArgumentException("Jockey prize amount cannot be negative.");
-            }
         }
 
         Tournament tournament = tournamentRepository.findById(request.getTournamentId())
@@ -240,6 +201,13 @@ public class RaceServiceImpl implements RaceService {
             }
         }
 
+        com.swp.hrtms.hrtmsbe.entity.RaceFormat raceRules = null;
+        if (request.getRaceRulesId() != null) {
+            raceRules = raceFormatRepository.findById(request.getRaceRulesId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Race rules not found with id: " + request.getRaceRulesId()));
+        }
+
         Race race = Race.builder()
                 .tournament(tournament)
                 .name(request.getName())
@@ -247,33 +215,16 @@ public class RaceServiceImpl implements RaceService {
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .distanceM(request.getDistanceM())
-                .horseBreed(request.getHorseBreed() != null ? request.getHorseBreed().trim() : null)
-                .weightKg(request.getWeightKg())
-                .horseAge(request.getHorseAge())
-                .bettingReward(request.getBettingReward() == null ? 0L : request.getBettingReward())
+                .numHorse(request.getNumHorse())
                 .referee(referee)
                 .status(request.getStatus() != null ? request.getStatus()
                         : com.swp.hrtms.hrtmsbe.enums.RaceStatus.PENDING_REFEREE)
                 .reason(request.getReason())
+                .raceRules(raceRules)
                 .expectedDurationMinutes(request.getExpectedDurationMinutes())
                 .breakTimeMinutes(request.getBreakTimeMinutes())
                 .canceledAt(request.getCanceledAt())
                 .build();
-
-        for (int rank = 1; rank <= 3; rank++) {
-            final int currentRank = rank;
-            Long amount = requestedPrizes.stream()
-                    .filter(prize -> prize.getRank() == currentRank)
-                    .map(RacePrizeRequest::getAmount)
-                    .findFirst()
-                    .orElse(0L);
-
-            race.getJockeyPrizes().add(RacePrize.builder()
-                    .race(race)
-                    .rank(rank)
-                    .amount(amount)
-                    .build());
-        }
 
         race = raceRepository.save(race);
 
@@ -291,20 +242,9 @@ public class RaceServiceImpl implements RaceService {
                 .startTime(race.getStartTime())
                 .endTime(race.getEndTime())
                 .distanceM(race.getDistanceM())
-                .horseBreed(race.getHorseBreed())
-                .weightKg(race.getWeightKg())
-                .horseAge(race.getHorseAge())
-                .bettingReward(race.getBettingReward())
-                .jockeyPrizes(race.getJockeyPrizes().stream()
-                        .sorted(Comparator.comparing(RacePrize::getRank))
-                        .map(prize -> RacePrizeResponse.builder()
-                                .rank(prize.getRank())
-                                .amount(prize.getAmount())
-                                .build())
-                        .toList())
+                .numHorse(race.getNumHorse())
                 .refereeId(race.getReferee() != null ? race.getReferee().getId() : null)
                 .status(race.getStatus())
-                .track(race.getTrack())
                 .reason(race.getReason())
                 .raceRulesId(race.getRaceRules() != null ? race.getRaceRules().getId() : null)
                 .expectedDurationMinutes(race.getExpectedDurationMinutes())
@@ -319,8 +259,8 @@ public class RaceServiceImpl implements RaceService {
         Race race = raceRepository.findById(raceId)
                 .orElseThrow(() -> new RuntimeException("Race not found"));
 
+        com.swp.hrtms.hrtmsbe.enums.RaceStatus oldStatus = race.getStatus();
         boolean refereeChanged = false;
-        boolean timeChanged = false;
 
         if (request.getRefereeId() != null) {
             if (race.getReferee() == null || !race.getReferee().getId().equals(request.getRefereeId())) {
@@ -339,13 +279,12 @@ public class RaceServiceImpl implements RaceService {
             }
         }
 
-        // if (request.getRaceRulesId() != null) {
-        // com.swp.hrtms.hrtmsbe.entity.RaceFormat raceRules =
-        // raceFormatRepository.findById(request.getRaceRulesId())
-        // .orElseThrow(() -> new IllegalArgumentException(
-        // "Race rules not found with id: " + request.getRaceRulesId()));
-        // race.setRaceRules(raceRules);
-        // }
+        if (request.getRaceRulesId() != null) {
+            com.swp.hrtms.hrtmsbe.entity.RaceFormat raceRules = raceFormatRepository.findById(request.getRaceRulesId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Race rules not found with id: " + request.getRaceRulesId()));
+            race.setRaceRules(raceRules);
+        }
 
         if (request.getExpectedDurationMinutes() != null) {
             race.setExpectedDurationMinutes(request.getExpectedDurationMinutes());
@@ -357,28 +296,16 @@ public class RaceServiceImpl implements RaceService {
 
         if (request.getName() != null)
             race.setName(request.getName());
-        if (request.getDate() != null && !request.getDate().equals(race.getDate())) {
+        if (request.getDate() != null)
             race.setDate(request.getDate());
-            timeChanged = true;
-        }
-        if (request.getStartTime() != null && !request.getStartTime().equals(race.getStartTime())) {
+        if (request.getStartTime() != null)
             race.setStartTime(request.getStartTime());
-            timeChanged = true;
-        }
-        if (request.getEndTime() != null && !request.getEndTime().equals(race.getEndTime())) {
+        if (request.getEndTime() != null)
             race.setEndTime(request.getEndTime());
-            timeChanged = true;
-        }
         if (request.getDistanceM() != null)
             race.setDistanceM(request.getDistanceM());
-        if (request.getHorseBreed() != null)
-            race.setHorseBreed(request.getHorseBreed());
-        if (request.getWeightKg() != null)
-            race.setWeightKg(request.getWeightKg());
-        if (request.getHorseAge() != null)
-            race.setHorseAge(request.getHorseAge());
-        if (request.getBettingReward() != null)
-            race.setBettingReward(request.getBettingReward());
+        if (request.getNumHorse() != null)
+            race.setNumHorse(request.getNumHorse());
         if (request.getStatus() != null && !com.swp.hrtms.hrtmsbe.enums.RaceStatus.PENDING_REFEREE
                 .equals(request.getStatus() == null ? "" : request.getStatus().name()))
             race.setStatus(request.getStatus());
@@ -399,8 +326,34 @@ public class RaceServiceImpl implements RaceService {
             sendRefereeInvitation(race);
         }
 
-        if (timeChanged) {
-            predictScheduleUpdate(race);
+        // Broadcast NEW_RACE if published
+        if (oldStatus != com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED
+                && race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED) {
+            java.util.List<com.swp.hrtms.hrtmsbe.entity.User> targetUsers = userRepository
+                    .findByRoleIn(java.util.Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
+            if (!targetUsers.isEmpty()) {
+                com.swp.hrtms.hrtmsbe.entity.Notification notification = com.swp.hrtms.hrtmsbe.entity.Notification
+                        .builder()
+                        .sender(null) // System notification
+                        .title("New Race: " + race.getName())
+                        .content("A new race has been published in the tournament.")
+                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.NEW_RACE)
+                        .race(race)
+                        .build();
+                notification = notificationRepository.save(notification);
+
+                java.util.List<com.swp.hrtms.hrtmsbe.entity.NotificationRecipient> recipients = new ArrayList<>();
+                for (com.swp.hrtms.hrtmsbe.entity.User user : targetUsers) {
+                    com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                            .builder()
+                            .notification(notification)
+                            .recipient(user)
+                            .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                            .build();
+                    recipients.add(recipient);
+                }
+                notificationRecipientRepository.saveAll(recipients);
+            }
         }
 
         return mapToRaceResponse(race);
@@ -413,8 +366,10 @@ public class RaceServiceImpl implements RaceService {
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
 
         List<Race> races = raceRepository.findByTournamentId(tournamentId);
-        List<RaceDashboardItem> raceItems = new ArrayList<>();
+
         long totalEntries = 0;
+        List<RaceDashboardItem> raceItems = new ArrayList<>();
+
         for (Race race : races) {
             RaceDashboardItem item = RaceDashboardItem.builder()
                     .id(race.getId())
@@ -425,11 +380,10 @@ public class RaceServiceImpl implements RaceService {
                     .status(race.getStatus())
                     .refereeId(race.getReferee() != null ? race.getReferee().getId() : null)
                     .refereeName(race.getReferee() != null ? race.getReferee().getName() : null)
-                    .track(race.getTrack())
+                    .distanceM(race.getDistanceM())
                     .build();
             raceItems.add(item);
         }
-
         return TournamentRaceDetailsResponse.builder()
                 .tournamentStatus(tournament.getStatus())
                 .totalEntries(totalEntries)

@@ -1,12 +1,12 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -14,6 +14,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RaceResponse {
 
     private Integer id;
@@ -34,27 +35,13 @@ public class RaceResponse {
     @JsonProperty("distance_m")
     private Integer distanceM;
 
-    @JsonProperty("horse_breed")
-    private String horseBreed;
-
-    @JsonProperty("weight_kg")
-    private BigDecimal weightKg;
-
-    @JsonProperty("horse_age")
-    private Integer horseAge;
-
-    @JsonProperty("betting_reward")
-    private Long bettingReward;
-
-    @JsonProperty("jockey_prizes")
-    private java.util.List<RacePrizeResponse> jockeyPrizes;
+    @JsonProperty("num_horse")
+    private Integer numHorse;
 
     @JsonProperty("referee_id")
     private Integer refereeId;
 
     private com.swp.hrtms.hrtmsbe.enums.RaceStatus status;
-
-    private String track;
 
     private String reason;
 

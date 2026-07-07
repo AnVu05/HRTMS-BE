@@ -32,6 +32,7 @@ public class Race {
     @Column(nullable = false)
     private String name;
 
+    // luu ngay tao
     private LocalDate date;
 
     @Column(name = "start_time")
@@ -40,32 +41,30 @@ public class Race {
     @Column(name = "end_time")
     private LocalTime endTime;
 
-    // private Integer laps;
-
-    // @Column(name = "num_horse")
-    // private Integer numHorse;
+    @Column(name = "num_horse")
+    private Integer numHorse;
 
     // Khai: Race requirements displayed on the Add New Race form.
     @Column(name = "distance_m")
     private Integer distanceM;
 
-    @Column(name = "horse_breed")
-    private String horseBreed;
+    // @Column(name = "horse_breed")
+    // private String horseBreed;
 
-    @Column(name = "weight_kg", precision = 10, scale = 2)
-    private BigDecimal weightKg;
+    // @Column(name = "weight_kg", precision = 10, scale = 2)
+    // private BigDecimal weightKg;
 
-    @Column(name = "horse_age")
-    private Integer horseAge;
+    // @Column(name = "horse_age")
+    // private Integer horseAge;
 
-    // Khai: VND awarded to each spectator who predicts the winner correctly.
-    @Column(name = "betting_reward")
-    private Long bettingReward;
+    // @Column(name = "betting_reward")
+    // private Long bettingReward;
 
     // Khai
-    @OneToMany(mappedBy = "race", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<RacePrize> jockeyPrizes = new ArrayList<>();
+    // @OneToMany(mappedBy = "race", cascade = CascadeType.ALL, orphanRemoval =
+    // true)
+    // @Builder.Default
+    // private List<RacePrize> jockeyPrizes = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "referee_id")
@@ -75,7 +74,7 @@ public class Race {
     @Builder.Default
     private com.swp.hrtms.hrtmsbe.enums.RaceStatus status = com.swp.hrtms.hrtmsbe.enums.RaceStatus.PENDING_REFEREE;
 
-    private String track;
+    // private String track;
 
     @Column(name = "reason")
     private String reason;

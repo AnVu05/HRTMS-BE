@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Data
@@ -19,8 +20,15 @@ public class RefereeScheduledRaceResponse {
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
-    private Integer laps;
     private Integer numHorse;
+    private Integer distanceM;
+    private Integer refereeId;
+    private String refereeName;
     private com.swp.hrtms.hrtmsbe.enums.RaceStatus status;
-    private String track;
+    private String reason;
+    private Integer raceRulesId;
+    private String raceRulesName;
+    private Integer expectedDurationMinutes;
+    private Integer breakTimeMinutes;
+    private LocalDateTime canceledAt;
 }

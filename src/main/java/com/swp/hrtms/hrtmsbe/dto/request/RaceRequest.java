@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -31,20 +30,8 @@ public class RaceRequest {
     @JsonProperty("distance_m")
     private Integer distanceM;
 
-    @JsonProperty("horse_breed")
-    private String horseBreed;
-
-    @JsonProperty("weight_kg")
-    private BigDecimal weightKg;
-
-    @JsonProperty("horse_age")
-    private Integer horseAge;
-
-    @JsonProperty("betting_reward")
-    private Long bettingReward;
-
-    @JsonProperty("jockey_prizes")
-    private java.util.List<RacePrizeRequest> jockeyPrizes;
+    @JsonProperty("num_horse")
+    private Integer numHorse;
 
     @JsonProperty("referee_id")
     private Integer refereeId;

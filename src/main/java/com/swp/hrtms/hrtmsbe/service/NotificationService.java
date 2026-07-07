@@ -15,7 +15,9 @@ public interface NotificationService {
 
     void markAllAdminNotificationsAsRead(Integer adminId);
 
-    List<HorseOwnerNotificationResponse> getHorseOwnerNotifications(Integer ownerId);
+    Page<HorseOwnerNotificationResponse> getHorseOwnerNotifications(Integer ownerId, int page, int size);
+
+    Page<NotificationResponse> getJockeyNotifications(Integer jockeyId, int page, int size);
 
     List<RefereeInvitationResponse> getPendingRefereeInvitations(Integer refereeId);
 

@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
+import com.swp.hrtms.hrtmsbe.enums.NotificationType;
 import com.swp.hrtms.hrtmsbe.dto.response.NotificationResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.RefereeInvitationResponse;
 import com.swp.hrtms.hrtmsbe.dto.request.RespondInvitationRequest;
@@ -33,36 +34,52 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
-        private static final List<String> CERTIFICATE_NOTIFICATION_TYPES = List.of(
-                        "ACCEPT_CERTIFICATE",
-                        "REJECT_CERTIFICATE");
+        private static final List<NotificationType> CERTIFICATE_NOTIFICATION_TYPES = List.of(
+                        NotificationType.ACCEPT_CERTIFICATE,
+                        NotificationType.REJECT_CERTIFICATE);
 
-        private static final List<String> ADMIN_NOTIFICATION_TYPES = List.of(
-                        "REFEREE_ACCEPTED",
-                        "REFEREE_REJECTED",
-                        "REGISTRATION_VERIFY",
-                        "VERIFY_CERTIFICATE",
-                        "DOCTOR_ACCEPTED",
-                        "DOCTOR_REJECTED");
+        private static final List<NotificationType> ADMIN_NOTIFICATION_TYPES = List.of(
+                        NotificationType.REFEREE_ACCEPTED,
+                        NotificationType.REFEREE_REJECTED,
+                        NotificationType.REGISTRATION_VERIFY,
+                        NotificationType.VERIFI_CERTIFICATE,
+                        NotificationType.DOCTOR_ACCEPTED,
+                        NotificationType.DOCTOR_REJECTED);
 
         private final NotificationRecipientRepository notificationRecipientRepository;
         private final JockeyRepository jockeyRepository;
         private final AdminRepository adminRepository;
-        private static final List<String> HORSE_OWNER_ADMIN_NOTIFICATION_TYPES = List.of(
-                        "NEW_TOURNAMENT",
-                        "TOURNAMENT_UPDATE",
-                        "TOURNAMENT_CANCELLED",
+        private static final List<NotificationType> HORSE_OWNER_ADMIN_NOTIFICATION_TYPES = List.of(
+                        NotificationType.NEW_TOURNAMENT,
+                        NotificationType.TOURNAMENT_UPDATE,
+                        NotificationType.TOURNAMENT_CANCELLED,
 
-                        "NEW_RACE",
-                        "RACE_UPDATE",
-                        "RACE_CANCELLED",
+                        NotificationType.NEW_RACE,
+                        NotificationType.RACE_UPDATE,
+                        NotificationType.RACE_CANCELLED,
 
-                        "REGISTRATION_APPROVED",
-                        "REGISTRATION_REJECTED");
+                        NotificationType.REGISTRATION_APPROVED,
+                        NotificationType.REGISTRATION_REJECTED);
 
-        private static final List<String> HORSE_OWNER_JOCKEY_NOTIFICATION_TYPES = List.of(
-                        "INVITATION_ACCEPTED",
-                        "INVITATION_REJECTED");
+        private static final List<NotificationType> HORSE_OWNER_JOCKEY_NOTIFICATION_TYPES = List.of(
+                        NotificationType.JOCKEY_ACCEPTED,
+                        NotificationType.JOCKEY_REJECTED);
+        
+        private static final List<NotificationType> JOCKEY_NOTIFICATION_TYPES = List.of(
+                        NotificationType.ACCEPT_CERTIFICATE,
+                        NotificationType.REJECT_CERTIFICATE,
+                        NotificationType.JOCKEY_INVITATION,
+                        NotificationType.NEW_TOURNAMENT,
+                        NotificationType.TOURNAMENT_UPDATE,
+                        NotificationType.TOURNAMENT_CANCELLED,
+                        NotificationType.NEW_RACE,
+                        NotificationType.RACE_UPDATE,
+                        NotificationType.RACE_CANCELLED,
+                        NotificationType.REGISTRATION_APPROVED,
+                        NotificationType.REGISTRATION_REJECTED,
+                        NotificationType.DONE,
+                        NotificationType.SYSTEM);
+        
         private final HorseOwnerRepository horseOwnerRepository;
         private final RefereeRepository refereeRepository;
         private final RaceRepository raceRepository;
@@ -86,12 +103,15 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         @Override
-        @Transactional(readOnly = true)
+        @Transactional
         public Page<NotificationResponse> getAdminNotifications(Integer adminId, int page, int size,
                         Boolean unreadOnly) {
                 if (!adminRepository.existsById(adminId)) {
                         throw new ResourceNotFoundException("Admin not found with id: " + adminId);
                 }
+
+                // Tự động đánh dấu là đã đọc khi Admin xem danh sách
+                notificationRecipientRepository.markAllAsReadByRecipientId(adminId);
 
                 Pageable pageable = PageRequest.of(page, size);
 
@@ -127,19 +147,45 @@ public class NotificationServiceImpl implements NotificationService {
                 return toResponse(notification, recipient);
         }
 
-        public List<HorseOwnerNotificationResponse> getHorseOwnerNotifications(Integer ownerId) {
+        @Override
+        @Transactional
+        public Page<HorseOwnerNotificationResponse> getHorseOwnerNotifications(Integer ownerId, int page, int size) {
                 if (!horseOwnerRepository.existsById(ownerId)) {
                         throw new ResourceNotFoundException("Horse owner not found with id: " + ownerId);
                 }
+
+                // Đánh dấu tất cả thông báo là đã đọc khi chủ ngựa xem danh sách
+                notificationRecipientRepository.markAllAsReadByRecipientId(ownerId);
+
+                Pageable pageable = PageRequest.of(page, size);
 
                 return notificationRecipientRepository
                                 .findHorseOwnerNotifications(
                                                 ownerId,
                                                 HORSE_OWNER_ADMIN_NOTIFICATION_TYPES,
-                                                HORSE_OWNER_JOCKEY_NOTIFICATION_TYPES)
-                                .stream()
-                                .map(this::toHorseOwnerResponse)
-                                .toList();
+                                                HORSE_OWNER_JOCKEY_NOTIFICATION_TYPES,
+                                                pageable)
+                                .map(this::toHorseOwnerResponse);
+        }
+
+        @Override
+        @Transactional
+        public Page<NotificationResponse> getJockeyNotifications(Integer jockeyId, int page, int size) {
+                if (!jockeyRepository.existsById(jockeyId)) {
+                        throw new ResourceNotFoundException("Jockey not found with id: " + jockeyId);
+                }
+
+                // Đánh dấu tất cả thông báo là đã đọc
+                notificationRecipientRepository.markAllAsReadByRecipientId(jockeyId);
+
+                Pageable pageable = PageRequest.of(page, size);
+
+                return notificationRecipientRepository
+                                .findByRecipient_IdAndNotification_TypeInOrderByNotification_CreatedAtDesc(
+                                                jockeyId,
+                                                JOCKEY_NOTIFICATION_TYPES,
+                                                pageable)
+                                .map(this::toResponse);
         }
 
         private NotificationResponse toResponse(Notification notification, NotificationRecipient recipient) {
@@ -196,14 +242,25 @@ public class NotificationServiceImpl implements NotificationService {
                                         : null;
 
                         return RefereeInvitationResponse.builder()
-                                        .notificationId(recipient.getId())
+                                        .notificationId(notification.getId())
+                                        .senderId(notification.getSender() != null ? notification.getSender().getId()
+                                                        : null)
+                                        .title(notification.getTitle())
+                                        .content(notification.getContent())
+                                        .type(notification.getType())
+                                        .createdAt(notification.getCreatedAt())
+                                        .recipientRecordId(recipient.getId())
+                                        .recipientId(recipient.getRecipient() != null ? recipient.getRecipient().getId()
+                                                        : null)
+                                        .status(recipient.getStatus())
+                                        .readAt(recipient.getReadAt())
                                         .raceId(race != null ? race.getId() : null)
                                         .raceName(race != null ? race.getName() : null)
                                         .tournamentName(tournamentName)
                                         .date(race != null ? race.getDate() : null)
                                         .startTime(race != null ? race.getStartTime() : null)
                                         .endTime(race != null ? race.getEndTime() : null)
-                                        .track(race != null ? race.getTrack() : null)
+                                        .distanceM(race != null ? race.getDistanceM() : null)
                                         .build();
                 }).toList();
         }

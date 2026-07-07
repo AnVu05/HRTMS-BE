@@ -1,6 +1,7 @@
 package com.swp.hrtms.hrtmsbe.repository;
 
 import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
+import com.swp.hrtms.hrtmsbe.enums.NotificationType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,7 +18,7 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
 
         List<NotificationRecipient> findTop3ByRecipient_IdAndNotification_TypeInOrderByNotification_CreatedAtDesc(
                         Integer recipientId,
-                        Collection<String> types);
+                        Collection<NotificationType> types);
 
         @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :recipientId AND nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE'")
         List<NotificationRecipient> findPendingVerificationRequests(@Param("recipientId") Integer recipientId);
@@ -34,18 +35,26 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
         @Query("UPDATE NotificationRecipient nr SET nr.status = 'DONE_VERIFY' WHERE nr.status = 'None' AND nr.notification.type = 'VERIFY_CERTIFICATE' AND nr.notification.sender.id = :jockeyId")
         void markAllOtherVerificationRequestsAsDoneVerify(@Param("jockeyId") Integer jockeyId);
 
+        @org.springframework.data.jpa.repository.Modifying
+        @Query("UPDATE NotificationRecipient nr SET nr.status = 'READ', nr.readAt = CURRENT_TIMESTAMP WHERE nr.recipient.id = :jockeyId AND nr.status = 'UNREAD' AND nr.notification.id IN (SELECT n.id FROM Notification n WHERE n.sender.id = :ownerId AND n.type = 'JOCKEY_INVITATION')")
+        void markJockeyInvitationAsRead(@Param("ownerId") Integer ownerId, @Param("jockeyId") Integer jockeyId);
+
+        @org.springframework.data.jpa.repository.Modifying
+        @Query("UPDATE NotificationRecipient nr SET nr.status = 'READ', nr.readAt = CURRENT_TIMESTAMP WHERE nr.recipient.id = :adminId AND nr.status = 'UNREAD' AND nr.notification.id IN (SELECT n.id FROM Notification n WHERE n.sender.id = :ownerId AND n.type = 'REGISTRATION_VERIFY')")
+        void markRegistrationVerifyAsRead(@Param("ownerId") Integer ownerId, @Param("adminId") Integer adminId);
+
         Page<NotificationRecipient> findByRecipient_IdAndNotification_TypeInOrderByNotification_CreatedAtDesc(
                         Integer recipientId,
-                        Collection<String> types,
+                        Collection<NotificationType> types,
                         Pageable pageable);
 
         Page<NotificationRecipient> findByRecipient_IdAndNotification_TypeInAndStatusAndReadAtIsNullOrderByNotification_CreatedAtDesc(
                         Integer recipientId,
-                        Collection<String> types,
+                        Collection<NotificationType> types,
                         String status,
                         Pageable pageable);
 
-        @Query("""
+        @Query(value = """
                         SELECT nr
                         FROM NotificationRecipient nr
                         JOIN FETCH nr.notification n
@@ -57,11 +66,24 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
                                 (sender.role = 'JOCKEY' AND n.type IN :jockeyTypes)
                               )
                         ORDER BY n.createdAt DESC
+                        """,
+               countQuery = """
+                        SELECT count(nr)
+                        FROM NotificationRecipient nr
+                        JOIN nr.notification n
+                        JOIN n.sender sender
+                        WHERE nr.recipient.id = :ownerId
+                          AND (
+                                (sender.role = 'ADMIN' AND n.type IN :adminTypes)
+                                OR
+                                (sender.role = 'JOCKEY' AND n.type IN :jockeyTypes)
+                              )
                         """)
-        List<NotificationRecipient> findHorseOwnerNotifications(
+        Page<NotificationRecipient> findHorseOwnerNotifications(
                         @Param("ownerId") Integer ownerId,
-                        @Param("adminTypes") Collection<String> adminTypes,
-                        @Param("jockeyTypes") Collection<String> jockeyTypes);
+                        @Param("adminTypes") Collection<NotificationType> adminTypes,
+                        @Param("jockeyTypes") Collection<NotificationType> jockeyTypes,
+                        Pageable pageable);
 
         @org.springframework.data.jpa.repository.Modifying
         @Query("UPDATE NotificationRecipient nr SET nr.status = 'READ', nr.readAt = CURRENT_TIMESTAMP WHERE nr.recipient.id = :adminId AND nr.status = 'UNREAD'")
