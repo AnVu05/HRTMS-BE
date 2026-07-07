@@ -1,20 +1,18 @@
 package com.swp.hrtms.hrtmsbe.mock;
 
-import com.swp.hrtms.hrtmsbe.entity.*;
-import com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus;
-import com.swp.hrtms.hrtmsbe.enums.RaceStatus;
-import com.swp.hrtms.hrtmsbe.enums.TournamentStatus;
-import com.swp.hrtms.hrtmsbe.enums.UserStatus;
-import com.swp.hrtms.hrtmsbe.repository.*;
+import org.springframework.stereotype.Component;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.swp.hrtms.hrtmsbe.entity.*;
+import com.swp.hrtms.hrtmsbe.enums.*;
+import com.swp.hrtms.hrtmsbe.repository.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Component
 public class MockData {
@@ -33,7 +31,10 @@ public class MockData {
             WalletRepository walletRepository,
             RaceFormatRepository raceFormatRepository,
             TournamentRepository tournamentRepository,
-            RaceRepository raceRepository) {
+            RaceRepository raceRepository,
+            JockeyCertRepository jockeyCertRepository,
+            NotificationRepository notificationRepository,
+            NotificationRecipientRepository notificationRecipientRepository) {
         return args -> {
             if (userRepository.findByUsername("admin").isEmpty()) {
                 // 1. Seed Admin
@@ -104,8 +105,44 @@ public class MockData {
                 jockey.setExperienceYears(5);
                 jockey.setAge(25);
                 jockey.setProfessionalBio("Nài ngựa chuyên nghiệp");
-                jockeyRepository.save(jockey);
+                Jockey savedJockey = jockeyRepository.save(jockey);
                 System.out.println("Mock Jockey created.");
+
+                // 5.5 Seed Jockey Certificates & Verification request for Jockey D
+                JockeyCert cert1 = JockeyCert.builder()
+                        .certName("Bằng lái ngựa hạng A (Chuyên nghiệp)")
+                        .certImageBase64("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAC80lEQVR4nO2ag")
+                        .issuedAt(LocalDate.now().minusYears(1))
+                        .status(CertificateStatus.PENDING)
+                        .jockey(savedJockey)
+                        .build();
+                jockeyCertRepository.save(cert1);
+
+                JockeyCert cert2 = JockeyCert.builder()
+                        .certName("Chứng nhận thú y & chăm sóc ngựa")
+                        .certImageBase64("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAC80lEQVR4nO2ag")
+                        .issuedAt(LocalDate.now().minusMonths(6))
+                        .status(CertificateStatus.PENDING)
+                        .jockey(savedJockey)
+                        .build();
+                jockeyCertRepository.save(cert2);
+
+                Notification certNotification = Notification.builder()
+                        .sender(savedJockey)
+                        .title("Certificate Verification Request")
+                        .content("A jockey has requested verification for all pending certificates.")
+                        .type(NotificationType.VERIFI_CERTIFICATE)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                certNotification = notificationRepository.save(certNotification);
+
+                NotificationRecipient adminRecipient = NotificationRecipient.builder()
+                        .notification(certNotification)
+                        .recipient(admin)
+                        .status(NotificationStatus.UNREAD)
+                        .build();
+                notificationRecipientRepository.save(adminRecipient);
+                System.out.println("Mock Jockey Certificates and Verification Request created.");
 
                 // 6. Seed Doctor
                 User doctorUser = new User();
