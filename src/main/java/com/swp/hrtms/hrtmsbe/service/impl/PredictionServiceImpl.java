@@ -13,6 +13,7 @@ import com.swp.hrtms.hrtmsbe.repository.WalletRepository;
 import com.swp.hrtms.hrtmsbe.repository.TransactionRepository;
 import com.swp.hrtms.hrtmsbe.repository.SpectatorRepository;
 import com.swp.hrtms.hrtmsbe.repository.HorseRepository;
+import com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository;
 import com.swp.hrtms.hrtmsbe.service.PredictionService;
 import com.swp.hrtms.hrtmsbe.dto.request.PredictionRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.PredictionResponse;
@@ -32,19 +33,22 @@ public class PredictionServiceImpl implements PredictionService {
     private final TransactionRepository transactionRepository;
     private final SpectatorRepository spectatorRepository;
     private final HorseRepository horseRepository;
+    private final RegistrationFormRepository registrationFormRepository;
 
     public PredictionServiceImpl(PredictionRepository predictionRepository,
             RaceRepository raceRepository,
             WalletRepository walletRepository,
             TransactionRepository transactionRepository,
             SpectatorRepository spectatorRepository,
-            HorseRepository horseRepository) {
+            HorseRepository horseRepository,
+            RegistrationFormRepository registrationFormRepository) {
         this.predictionRepository = predictionRepository;
         this.raceRepository = raceRepository;
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.spectatorRepository = spectatorRepository;
         this.horseRepository = horseRepository;
+        this.registrationFormRepository = registrationFormRepository;
     }
 
     @Override
@@ -56,6 +60,11 @@ public class PredictionServiceImpl implements PredictionService {
         if (race.getStatus() != RaceStatus.PUBLISHED && race.getStatus() != RaceStatus.PREPARE) {
             throw new IllegalArgumentException("Predictions are only allowed before the race starts.");
         }
+
+        if (!isHorseEligibleForPrediction(request.getRaceId(), request.getPredictedHorseId())) {
+            throw new IllegalArgumentException("This horse is not eligible for prediction in this race.");
+        }
+
         // BR_09: Predicted Time (Only enabled 1 hour beforehand and locks when race
         // begins)
         LocalDateTime now = LocalDateTime.now();
@@ -161,6 +170,16 @@ public class PredictionServiceImpl implements PredictionService {
     private boolean isDeleted(Prediction prediction) {
         // khai
         return "CANCELLED".equalsIgnoreCase(prediction.getStatus() == null ? "" : prediction.getStatus().name());
+    }
+
+    private boolean isHorseEligibleForPrediction(Integer raceId, Integer horseId) {
+        if (raceId == null || horseId == null) {
+            return false;
+        }
+        return registrationFormRepository.findByRace_Id(raceId).stream()
+                .anyMatch(form -> form.getHorse() != null
+                        && horseId.equals(form.getHorse().getId())
+                        && form.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING);
     }
 
     private PredictionResponse toResponse(Prediction prediction) {

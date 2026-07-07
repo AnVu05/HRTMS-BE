@@ -444,8 +444,6 @@ public class RaceServiceImpl implements RaceService {
         race.setReason("There is currently only one horse competing");
         raceRepository.save(race);
 
-        processRefunds(raceId);
-
         return "Race has been successfully converted to WALK_OVER.";
     }
 

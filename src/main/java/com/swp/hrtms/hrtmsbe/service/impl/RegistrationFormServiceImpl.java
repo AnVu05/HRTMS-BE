@@ -385,6 +385,10 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
         RegistrationForm form = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Form not found."));
 
+        if (isLockedAfterHealthCheck(form)) {
+            throw new IllegalArgumentException("Registration form cannot be updated after health check.");
+        }
+
         Integer oldJockeyId = form.getJockey() != null ? form.getJockey().getId() : null;
         Integer newJockeyId = request.getJockeyId();
 
@@ -434,6 +438,12 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
         }
 
         return toResponse(form);
+    }
+
+    private boolean isLockedAfterHealthCheck(RegistrationForm form) {
+        return form.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING
+                || form.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED
+                || form.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE;
     }
 
     @Override

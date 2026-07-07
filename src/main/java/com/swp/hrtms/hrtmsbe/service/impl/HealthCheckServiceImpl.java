@@ -28,7 +28,6 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     private final RaceRepository raceRepository;
     private final RaceService raceService;
     private final DoctorRepository doctorRepository;
-    private final com.swp.hrtms.hrtmsbe.repository.PredictionRepository predictionRepository;
     private final com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository;
     private final com.swp.hrtms.hrtmsbe.repository.NotificationRepository notificationRepository;
     private final com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository notificationRecipientRepository;
@@ -38,7 +37,6 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             RaceRepository raceRepository,
             RaceService raceService,
             DoctorRepository doctorRepository,
-            com.swp.hrtms.hrtmsbe.repository.PredictionRepository predictionRepository,
             com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository,
             com.swp.hrtms.hrtmsbe.repository.NotificationRepository notificationRepository,
             com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository notificationRecipientRepository) {
@@ -47,7 +45,6 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         this.raceRepository = raceRepository;
         this.raceService = raceService;
         this.doctorRepository = doctorRepository;
-        this.predictionRepository = predictionRepository;
         this.userRepository = userRepository;
         this.notificationRepository = notificationRepository;
         this.notificationRecipientRepository = notificationRecipientRepository;
@@ -115,45 +112,12 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED);
             registrationFormRepository.save(form);
 
-            // Missing logic: Remove horse from prediction form -> Notification -> If total
-            // horse in race < 2 -> walk over (cancel)
-            if (race != null) {
-                // Cancel predictions
-                List<com.swp.hrtms.hrtmsbe.entity.Prediction> predictions = predictionRepository
-                        .findByRace_Id(race.getId());
-                for (com.swp.hrtms.hrtmsbe.entity.Prediction p : predictions) {
-                    if (p.getPredictedHorse() != null && form.getHorse() != null
-                            && p.getPredictedHorse().getId().equals(form.getHorse().getId())) {
-                        p.setStatus(com.swp.hrtms.hrtmsbe.enums.PredictionStatus.CANCELLED);
-                        predictionRepository.save(p);
-                        // TODO: Implement Refund 100% and notify spectator
-                    }
-                }
-
-                // Check remaining horses in race
-                List<com.swp.hrtms.hrtmsbe.entity.RegistrationForm> allForms = registrationFormRepository.findAll()
-                        .stream()
-                        .filter(f -> f.getRace() != null && f.getRace().getId().equals(race.getId()))
-                        .filter(f -> f.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PREPARE
-                                || f.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING)
-                        .toList();
-
-                if (allForms.size() < 2) {
-                    race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.CANCELLED);
-                    raceRepository.save(race);
-                    // Cancel all other predictions and refund
-                    for (com.swp.hrtms.hrtmsbe.entity.Prediction p : predictions) {
-                        if (p.getStatus() != com.swp.hrtms.hrtmsbe.enums.PredictionStatus.CANCELLED) {
-                            p.setStatus(com.swp.hrtms.hrtmsbe.enums.PredictionStatus.CANCELLED);
-                            predictionRepository.save(p);
-                            // TODO: Refund
-                        }
-                    }
-                }
-            }
+            sendHealthCheckFailedToOwner(form, request.getDoctorId());
+            walkOverRaceIfInsufficientRemainingHorses(race);
         } else if ("ACCEPT".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
-            form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PREPARE);
+            form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING);
             registrationFormRepository.save(form);
+            sendReadyRacingToOwner(form, request.getDoctorId());
         } else if (com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.PENDING_DOCTOR.equals(request.getStatus())) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.HEALTH_CHECKING);
             registrationFormRepository.save(form);
@@ -335,52 +299,29 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             }
 
             if (race != null) {
-                // Cancel predictions for this specific horse
-                List<com.swp.hrtms.hrtmsbe.entity.Prediction> predictions = predictionRepository
-                        .findByRace_Id(race.getId());
-                for (com.swp.hrtms.hrtmsbe.entity.Prediction p : predictions) {
-                    if (p.getPredictedHorse() != null && form.getHorse() != null
-                            && p.getPredictedHorse().getId().equals(form.getHorse().getId())) {
-                        p.setStatus(com.swp.hrtms.hrtmsbe.enums.PredictionStatus.CANCELLED);
-                        predictionRepository.save(p);
-                        // TODO: Implement Refund 100% and notify spectator
-                    }
-                }
-
-                // Check remaining horses in race
-                List<com.swp.hrtms.hrtmsbe.entity.RegistrationForm> allForms = registrationFormRepository.findAll()
-                        .stream()
-                        .filter(f -> f.getRace() != null && f.getRace().getId().equals(race.getId()))
-                        .filter(f -> f.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PREPARE
-                                || f.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING)
-                        .toList();
-
-                if (allForms.size() < 2) {
-                    // Trigger Walk Over using RaceService
-                    raceService.walkOverRace(race.getId());
-                }
+                walkOverRaceIfInsufficientRemainingHorses(race);
             }
         } else if ("ACCEPT".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
-            form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PREPARE);
+            form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING);
             registrationFormRepository.save(form);
 
-            // Send Health Check Passed to Admin
-            com.swp.hrtms.hrtmsbe.entity.User admin = form.getAdmin();
+            // Send READY_RACING to owner.
             com.swp.hrtms.hrtmsbe.entity.User doctor = userRepository.findById(request.getDoctorId()).orElse(null);
-            if (admin != null && doctor != null) {
+            com.swp.hrtms.hrtmsbe.entity.User owner = form.getOwner() != null ? form.getOwner().getUser() : null;
+            if (owner != null && doctor != null) {
                 com.swp.hrtms.hrtmsbe.entity.Notification notif = com.swp.hrtms.hrtmsbe.entity.Notification.builder()
                         .sender(doctor)
-                        .title("Health Check Passed")
-                        .content("Horse ID: " + (form.getHorse() != null ? form.getHorse().getId() : null)
+                        .title("Ready Racing")
+                        .content("Your horse ID: " + (form.getHorse() != null ? form.getHorse().getId() : null)
                                 + " passed the health check and is ready for the race.")
-                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.SYSTEM)
+                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.READY_RACING)
                         .build();
                 notif = notificationRepository.save(notif);
 
                 com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
                         .builder()
                         .notification(notif)
-                        .recipient(admin)
+                        .recipient(owner)
                         .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
                         .build();
                 notificationRecipientRepository.save(rec);
@@ -427,7 +368,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
         for (Race race : upcomingRaces) {
             List<RegistrationForm> passedForms = registrationFormRepository.findByRace_IdAndStatus(race.getId(),
-                    com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PREPARE);
+                    com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING);
             if (passedForms.size() < 2) {
                 // BR_15
                 raceService.walkOverRace(race.getId());
@@ -493,6 +434,75 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 .medicalNotes(check.getMedicalNotes())
                 .checkDate(check.getCheckDate())
                 .build();
+    }
+
+    private void sendReadyRacingToOwner(RegistrationForm form, Integer doctorId) {
+        com.swp.hrtms.hrtmsbe.entity.User doctor = userRepository.findById(doctorId).orElse(null);
+        com.swp.hrtms.hrtmsbe.entity.User owner = form.getOwner() != null ? form.getOwner().getUser() : null;
+        if (doctor == null || owner == null) {
+            return;
+        }
+
+        com.swp.hrtms.hrtmsbe.entity.Notification notif = com.swp.hrtms.hrtmsbe.entity.Notification.builder()
+                .sender(doctor)
+                .title("Ready Racing")
+                .content("Your horse ID: " + (form.getHorse() != null ? form.getHorse().getId() : null)
+                        + " passed the health check and is ready for the race.")
+                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.READY_RACING)
+                .build();
+        notif = notificationRepository.save(notif);
+
+        com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                .builder()
+                .notification(notif)
+                .recipient(owner)
+                .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                .build();
+        notificationRecipientRepository.save(rec);
+    }
+
+    private void sendHealthCheckFailedToOwner(RegistrationForm form, Integer doctorId) {
+        com.swp.hrtms.hrtmsbe.entity.User doctor = userRepository.findById(doctorId).orElse(null);
+        com.swp.hrtms.hrtmsbe.entity.User owner = form.getOwner() != null ? form.getOwner().getUser() : null;
+        if (doctor == null || owner == null) {
+            return;
+        }
+
+        com.swp.hrtms.hrtmsbe.entity.Notification notif = com.swp.hrtms.hrtmsbe.entity.Notification.builder()
+                .sender(doctor)
+                .title("Health Check Failed")
+                .content("Your horse ID: " + (form.getHorse() != null ? form.getHorse().getId() : null)
+                        + " failed the health check and has been disqualified.")
+                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.REGISTRATION_REJECTED)
+                .build();
+        notif = notificationRepository.save(notif);
+
+        com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                .builder()
+                .notification(notif)
+                .recipient(owner)
+                .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                .build();
+        notificationRecipientRepository.save(rec);
+    }
+
+    private void walkOverRaceIfInsufficientRemainingHorses(Race race) {
+        if (race == null || race.getId() == null) {
+            return;
+        }
+        if (race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.WALK_OVER
+                || race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.CANCELLED
+                || race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.DELETE) {
+            return;
+        }
+
+        long remainingForms = registrationFormRepository.findByRace_Id(race.getId()).stream()
+                .filter(form -> form.getStatus() != com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED)
+                .filter(form -> form.getStatus() != com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE)
+                .count();
+        if (remainingForms < 2) {
+            raceService.walkOverRace(race.getId());
+        }
     }
 
 }
