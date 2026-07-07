@@ -27,6 +27,7 @@ public class VerificationController {
         return ResponseEntity.ok(ApiResponse.success(responses, "Fetched verification requests successfully"));
     }
 
+    //Lay toan bo cert dang PENDING tuog ung voi jockeyId (Thien)
     @GetMapping("/jockey-certs/{jockeyId}/images")
     public ResponseEntity<ApiResponse<List<JockeyCert>>> getPendingCertImages(
             @PathVariable("jockeyId") Integer jockeyId) {

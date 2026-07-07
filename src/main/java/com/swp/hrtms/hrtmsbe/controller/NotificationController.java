@@ -31,6 +31,8 @@ public class NotificationController {
                                 "Fetched recent certificate notifications successfully"));
         }
 
+        //Lay tat ca cac th.bao (theo nhieu loai) cua Admin (voi ID) - s.dung co che phan PAGE cua Spring
+        //Vi th.bao danh cho ADMIN co k.nang se nhieu nen can phan trang
         @GetMapping("/admin/{adminId}")
         public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAdminNotifications(
                         @PathVariable Integer adminId,
@@ -56,6 +58,7 @@ public class NotificationController {
                 return ResponseEntity.ok(ApiResponse.success(responses, "Notifications have been read"));
         }
 
+        //Doc thong bao cho Horse-Owner (a Khai)
         @GetMapping("/horse-owners/{ownerId}")
         public ResponseEntity<ApiResponse<List<HorseOwnerNotificationResponse>>> getHorseOwnerNotifications(
                         @PathVariable Integer ownerId) {
@@ -67,6 +70,7 @@ public class NotificationController {
                                 "Fetched horse owner notifications successfully"));
         }
 
+        //Lay tat ca loi moi dang cho xu li voi refereeId tuong ung (Thien)
         @GetMapping("/referees/{refereeId}/invitations")
         public ResponseEntity<ApiResponse<List<RefereeInvitationResponse>>> getPendingRefereeInvitations(
                         @PathVariable Integer refereeId) {
@@ -95,6 +99,7 @@ public class NotificationController {
                                 "Responded to referee invitation successfully"));
         }
 
+        //Lay tat ca th.bao cho Jockey voi jockeyId tuong ung
         @GetMapping("/jockeys/{jockeyId}")
         public ResponseEntity<ApiResponse<List<NotificationResponse>>> getJockeyNotifications(
                         @PathVariable Integer jockeyId) {
@@ -104,6 +109,7 @@ public class NotificationController {
                                 "Fetched jockey notifications successfully"));
         }
 
+        //Lay tat ca th.bao cho referee voi refereeId tuong ung
         @GetMapping("/referees/{refereeId}")
         public ResponseEntity<ApiResponse<List<NotificationResponse>>> getRefereeNotifications(
                         @PathVariable Integer refereeId) {
