@@ -30,7 +30,7 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     @Transactional
     public TournamentResponse createTournament(Integer adminId, TournamentCreateRequest request) {
-        // Khai
+        
         if (request.getName() == null || request.getName().isBlank()) {
             throw new IllegalArgumentException("Tournament name is required");
         }
@@ -123,7 +123,6 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     @Transactional(readOnly = true)
     public List<TournamentResponse> getTournamentsForDashboard() {
-        // khai
         return tournamentRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -132,7 +131,7 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     @Transactional(readOnly = true)
     public List<ActiveTournamentResponse> getActiveTournaments() {
-        // khai
+       
         return tournamentRepository.findByStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED).stream()
                 .map(t -> ActiveTournamentResponse.builder()
                         .id(t.getId())
@@ -197,8 +196,7 @@ public class TournamentServiceImpl implements TournamentService {
 
         tournament = tournamentRepository.save(tournament);
 
-        // khai
-        // khai
+        
         if (oldStatus != com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED
                 && tournament.getStatus() == com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED) {
             List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR","REFEREE"));
@@ -260,7 +258,7 @@ public class TournamentServiceImpl implements TournamentService {
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
 
-        // khai
+       
         // BR_17 (Tiền đề): Cập nhật trạng thái CANCELLED, chờ logic hoàn tiền (refund)
         // 100% Points/Vouchers.
         tournament.setStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.CANCELLED);
@@ -311,7 +309,7 @@ public class TournamentServiceImpl implements TournamentService {
                 .createdAt(tournament.getCreatedAt())
                 .startDate(tournament.getStartDate())
                 .endDate(tournament.getEndDate())
-                // Khai
+                
                 .publishedDate(tournament.getPublishedDate())
                 .openPredictionDate(tournament.getOpenPredictionDate())
                 .closePredictionDate(tournament.getClosePredictionDate())

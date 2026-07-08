@@ -1,15 +1,17 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
-import com.swp.hrtms.hrtmsbe.dto.request.RespondInvitationRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.HorseOwnerNotificationResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.NotificationResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.RefereeInvitationResponse;
+import com.swp.hrtms.hrtmsbe.dto.request.RespondInvitationRequest;
 import com.swp.hrtms.hrtmsbe.service.NotificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import java.util.List;
 
@@ -29,6 +31,15 @@ public class NotificationController {
                 return ResponseEntity.ok(ApiResponse.success(
                                 notifications,
                                 "Fetched recent certificate notifications successfully"));
+        }
+
+        @GetMapping("/doctors/{doctorId}/invitations")
+        public ResponseEntity<ApiResponse<List<NotificationResponse>>> getDoctorInvitations(
+                        @PathVariable Integer doctorId) {
+                List<NotificationResponse> invitations = notificationService.getDoctorInvitations(doctorId);
+                return ResponseEntity.ok(ApiResponse.success(
+                                invitations,
+                                "Fetched doctor invitations successfully"));
         }
 
         //Lay tat ca cac th.bao (theo nhieu loai) cua Admin (voi ID) - s.dung co che phan PAGE cua Spring

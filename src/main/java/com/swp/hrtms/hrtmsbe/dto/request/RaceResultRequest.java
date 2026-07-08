@@ -15,6 +15,6 @@ public class RaceResultRequest {
     //khai
     private com.swp.hrtms.hrtmsbe.enums.RaceResultStatus status; // "TEMPORARY" or "OFFICIAL"
     private java.time.LocalDateTime createdAt;
+    private String photoFinishImage;
 }
-
 

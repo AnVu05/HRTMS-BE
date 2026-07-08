@@ -1,15 +1,15 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
 import com.swp.hrtms.hrtmsbe.dto.request.RaceBatchCreateRequest;
-import com.swp.hrtms.hrtmsbe.dto.request.RaceRequest;
-import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.RaceResponse;
+import com.swp.hrtms.hrtmsbe.dto.request.RaceRequest;
 import com.swp.hrtms.hrtmsbe.service.RaceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import java.util.List;
 
 @RestController
@@ -66,6 +66,17 @@ public class RaceController {
         return ResponseEntity.ok(ApiResponse.<RaceResponse>builder()
                 .status("success")
                 .message("Late scratch processed successfully.")
+                .data(race)
+                .build());
+    }
+
+    @PutMapping("/{id}/disqualify")
+    public ResponseEntity<ApiResponse<RaceResponse>> disqualifyHorse(@PathVariable Integer id,
+            @RequestParam Integer horseId, @RequestParam String reason) {
+        RaceResponse race = raceService.disqualifyHorse(id, horseId, reason);
+        return ResponseEntity.ok(ApiResponse.<RaceResponse>builder()
+                .status("success")
+                .message("Horse disqualification processed successfully.")
                 .data(race)
                 .build());
     }

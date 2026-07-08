@@ -6,10 +6,12 @@ import java.util.List;
 
 public interface RaceResultService {
     RaceResultResponse create(RaceResultRequest request);
+
     List<RaceResultResponse> getAll();
+
     RaceResultResponse getById(Integer id);
+
     RaceResultResponse update(Integer id, RaceResultRequest request);
+
     void delete(Integer id);
 }
-
-

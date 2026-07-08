@@ -1,7 +1,8 @@
 package com.swp.hrtms.hrtmsbe.service;
 
-import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
+
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyProfileUpdateRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertificateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyProfileResponse;
 

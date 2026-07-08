@@ -1,9 +1,10 @@
 package com.swp.hrtms.hrtmsbe.service;
 
+
 import com.swp.hrtms.hrtmsbe.dto.request.RaceBatchCreateRequest;
-import com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.RaceResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse;
+import com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest;
 
 import java.util.List;
 
@@ -22,9 +23,6 @@ public interface RaceService {
     String updateRaceTime(Integer raceId, com.swp.hrtms.hrtmsbe.dto.request.RaceUpdateTimeRequest request);
     void predictScheduleUpdate();
     RaceResponse lateScratch(Integer raceId, Integer horseId, String reason);
+    RaceResponse disqualifyHorse(Integer raceId, Integer horseId, String reason);
     RaceResponse startRace(Integer raceId);
 }
-
-
-
-

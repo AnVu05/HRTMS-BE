@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,7 +31,6 @@ public class JockeyCert {
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    //khai
     private com.swp.hrtms.hrtmsbe.enums.CertificateStatus status = com.swp.hrtms.hrtmsbe.enums.CertificateStatus.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY)

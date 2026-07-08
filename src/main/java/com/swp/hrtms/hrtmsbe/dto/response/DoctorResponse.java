@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class DoctorResponse {
-    //khai
     private Integer userId;
     private String username;
     private String email;

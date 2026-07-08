@@ -10,8 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class HrtmsBeApplication {
 
     public static void main(String[] args) {
-        ApplicationContext context = SpringApplication.run(HrtmsBeApplication.class, args);
+        ApplicationContext context = SpringApplication.run(com.swp.hrtms.hrtmsbe.HrtmsBeApplication.class, args);
 
-        System.out.println("Hello World !");
     }
 }

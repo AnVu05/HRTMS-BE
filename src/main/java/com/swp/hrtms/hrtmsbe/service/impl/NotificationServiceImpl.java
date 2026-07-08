@@ -1,19 +1,31 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-import com.swp.hrtms.hrtmsbe.dto.request.RespondInvitationRequest;
-import com.swp.hrtms.hrtmsbe.dto.response.HorseOwnerNotificationResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.NotificationResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.RefereeInvitationResponse;
-import com.swp.hrtms.hrtmsbe.entity.*;
+import com.swp.hrtms.hrtmsbe.dto.request.RespondInvitationRequest;
+import com.swp.hrtms.hrtmsbe.dto.response.HorseOwnerNotificationResponse;
+import com.swp.hrtms.hrtmsbe.entity.Notification;
+import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
+import com.swp.hrtms.hrtmsbe.entity.Race;
+import com.swp.hrtms.hrtmsbe.entity.Referee;
+import com.swp.hrtms.hrtmsbe.entity.User;
 import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
-import com.swp.hrtms.hrtmsbe.repository.*;
+import com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository;
+import com.swp.hrtms.hrtmsbe.repository.JockeyRepository;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
+import com.swp.hrtms.hrtmsbe.repository.RefereeRepository;
+import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
 import com.swp.hrtms.hrtmsbe.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.swp.hrtms.hrtmsbe.repository.AdminRepository;
+import com.swp.hrtms.hrtmsbe.repository.DoctorRepository;
 
 import java.util.List;
 
@@ -36,6 +48,7 @@ public class NotificationServiceImpl implements NotificationService {
         private final NotificationRecipientRepository notificationRecipientRepository;
         private final JockeyRepository jockeyRepository;
         private final AdminRepository adminRepository;
+        private final DoctorRepository doctorRepository;
         private static final List<com.swp.hrtms.hrtmsbe.enums.NotificationType> HORSE_OWNER_ADMIN_NOTIFICATION_TYPES = List.of(
                         com.swp.hrtms.hrtmsbe.enums.NotificationType.NEW_TOURNAMENT,
                         com.swp.hrtms.hrtmsbe.enums.NotificationType.TOURNAMENT_UPDATE,
@@ -70,6 +83,30 @@ public class NotificationServiceImpl implements NotificationService {
                                 .stream()
                                 .map(this::toResponse)
                                 .toList();
+        }
+
+        @Override
+        @Transactional
+        public List<NotificationResponse> getDoctorInvitations(Integer doctorId) {
+                if (!doctorRepository.existsById(doctorId)) {
+                        throw new ResourceNotFoundException("Doctor not found with id: " + doctorId);
+                }
+
+                List<NotificationRecipient> invitations = notificationRecipientRepository
+                                .findByRecipient_IdAndNotification_TypeOrderByNotification_CreatedAtDesc(
+                                                doctorId,
+                                                com.swp.hrtms.hrtmsbe.enums.NotificationType.DOCTOR_INVITATION);
+
+                java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                invitations.stream()
+                                .filter(nr -> nr.getStatus() == com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                                .forEach(nr -> {
+                                        nr.setStatus(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.READ);
+                                        nr.setReadAt(now);
+                                });
+                notificationRecipientRepository.saveAll(invitations);
+
+                return invitations.stream().map(this::toResponse).toList();
         }
 
         @Override
@@ -112,7 +149,7 @@ public class NotificationServiceImpl implements NotificationService {
                                                 adminId,
                                                 ADMIN_NOTIFICATION_TYPES,
                                                 com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD,
-                                                Pageable.unpaged());
+                                                org.springframework.data.domain.Pageable.unpaged());
                 List<NotificationRecipient> unread = unreadPage.getContent();
 
                 notificationRecipientRepository.markAllAsReadByRecipientId(adminId);
@@ -133,7 +170,7 @@ public class NotificationServiceImpl implements NotificationService {
             List<NotificationRecipient> unreadRecipients = notificationRecipientRepository
                     .findByRecipient_IdAndNotification_TypeInAndStatusAndReadAtIsNullOrderByNotification_CreatedAtDesc(
                             recipientId,
-                            List.of(
+                            java.util.List.of(
                                 com.swp.hrtms.hrtmsbe.enums.NotificationType.REFEREE_INVITATION,
                                 com.swp.hrtms.hrtmsbe.enums.NotificationType.REFEREE_ACCEPTED,
                                 com.swp.hrtms.hrtmsbe.enums.NotificationType.REFEREE_REJECTED,
@@ -155,7 +192,7 @@ public class NotificationServiceImpl implements NotificationService {
                                 com.swp.hrtms.hrtmsbe.enums.NotificationType.REJECT_CERTIFICATE
                             ),
                             com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD,
-                            Pageable.unpaged()
+                            org.springframework.data.domain.Pageable.unpaged()
                     ).getContent();
 
             // Perform the bulk update
@@ -169,7 +206,7 @@ public class NotificationServiceImpl implements NotificationService {
             }).toList();
         }
 
-        private NotificationResponse toResponse(NotificationRecipient recipient) {
+        private NotificationResponse toResponse(com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient) {
                 Notification notification = recipient.getNotification();
                 return toResponse(notification, recipient);
         }
@@ -456,9 +493,9 @@ public class NotificationServiceImpl implements NotificationService {
             notificationRecipientRepository.save(nr);
             raceRepository.save(race);
         }
-    }
+}   
 
-    @Override
+        @Override
     @Transactional(readOnly = true)
     public List<NotificationResponse> getJockeyNotifications(Integer jockeyId) {
         if (!jockeyRepository.existsById(jockeyId)) {
@@ -486,3 +523,4 @@ public class NotificationServiceImpl implements NotificationService {
                 .toList();
     }
 }
+

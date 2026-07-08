@@ -2,11 +2,10 @@ package com.swp.hrtms.hrtmsbe.controller;
 
 import com.swp.hrtms.hrtmsbe.dto.request.AdminRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.AdminResponse;
-import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.service.AdminService;
+import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController

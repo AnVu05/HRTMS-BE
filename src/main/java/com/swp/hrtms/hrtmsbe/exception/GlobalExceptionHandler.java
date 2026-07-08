@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.exception;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

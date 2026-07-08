@@ -20,7 +20,7 @@ public interface RefereeRepository extends JpaRepository<Referee, Integer> {
            "AND race.startTime < :endTime " +
            "AND race.endTime > :startTime " +
            //khai
-           "AND race.status != 'CANCEL')")
+           "AND race.status != 'CANCELLED')")
     List<Referee> findAvailableReferees(@Param("date") LocalDate date, 
                                         @Param("startTime") LocalTime startTime, 
                                         @Param("endTime") LocalTime endTime);
@@ -33,11 +33,10 @@ public interface RefereeRepository extends JpaRepository<Referee, Integer> {
            "AND race.startTime < :endTime " +
            "AND race.endTime > :startTime " +
            //khai
-           "AND race.status != 'CANCEL')")
+           "AND race.status != 'CANCELLED')")
     List<Referee> findAvailableRefereesExcludingRace(@Param("date") LocalDate date, 
                                                      @Param("startTime") LocalTime startTime, 
                                                      @Param("endTime") LocalTime endTime,
                                                      @Param("excludeRaceId") Integer excludeRaceId);
 }
-
 

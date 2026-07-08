@@ -1,9 +1,13 @@
 package com.swp.hrtms.hrtmsbe.service;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertCreateRequest;
 import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 
 import java.util.List;
+
+import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 
 public interface VerificationService {
     List<JockeyCert> getJockeyVerificationRequests(Integer recipientId);

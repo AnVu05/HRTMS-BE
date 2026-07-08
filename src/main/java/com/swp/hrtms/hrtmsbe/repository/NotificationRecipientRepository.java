@@ -1,15 +1,18 @@
 package com.swp.hrtms.hrtmsbe.repository;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Collection;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface NotificationRecipientRepository extends JpaRepository<NotificationRecipient, Integer> {
@@ -17,6 +20,10 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
         List<NotificationRecipient> findTop3ByRecipient_IdAndNotification_TypeInOrderByNotification_CreatedAtDesc(
                         Integer recipientId,
                         Collection<com.swp.hrtms.hrtmsbe.enums.NotificationType> types);
+
+        List<NotificationRecipient> findByRecipient_IdAndNotification_TypeOrderByNotification_CreatedAtDesc(
+                        Integer recipientId,
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType type);
 
         //khai
         @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :recipientId AND nr.status = 'UNREAD' AND nr.notification.type = 'VERIFI_CERTIFICATE'")
@@ -81,7 +88,7 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
                         JOIN n.race r
                         WHERE nr.recipient.id = :refereeId
                           AND nr.status = 'UNREAD'
-                          AND n.type = 'REFEREE_INVITATION'
+                          AND n.type = 'SYSTEM'
                           AND r.referee.id = :refereeId
                           AND r.status = 'PENDING_REFEREE'
                         """)
@@ -107,6 +114,5 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
 
         List<NotificationRecipient> findByRecipient_IdOrderByNotification_CreatedAtDesc(Integer recipientId);
 }
-
 
 
