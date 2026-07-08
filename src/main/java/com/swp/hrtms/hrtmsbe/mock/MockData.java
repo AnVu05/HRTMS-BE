@@ -37,8 +37,6 @@ import com.swp.hrtms.hrtmsbe.repository.TournamentRepository;
 import com.swp.hrtms.hrtmsbe.repository.TransactionRepository;
 import com.swp.hrtms.hrtmsbe.repository.UserRepository;
 import com.swp.hrtms.hrtmsbe.repository.WalletRepository;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Component
@@ -255,7 +254,8 @@ public class MockData {
             System.out.println("4) POST /api/raceplacements with raceResultId from step 2 and registrationFormId="
                     + formTwo.getId() + ", finishPosition=2");
             System.out.println("5) PUT /api/raceresults/{raceResultId} {\"raceId\":" + race.getId()
-                    + ",\"refereeId\":" + referee.getId() + ",\"status\":\"OFFICIAL\"}");
+                    + ",\"refereeId\":" + referee.getId()
+                    + ",\"status\":\"OFFICIAL\",\"photoFinishImage\":\"demo-photo-finish.jpg\"}");
             System.out.println("======================================");
         };
     }
@@ -455,7 +455,7 @@ public class MockData {
             HealthCheck acceptHealthCheck = healthCheckRepository.save(HealthCheck.builder()
                     .registrationForm(acceptTargetForm)
                     .doctor(doctor)
-                    .status(HealthCheckStatus.PENDING_DOCTOR)
+                    .status(HealthCheckStatus.CHECKING)
                     .medicalNotes("Demo data: update this health check to ACCEPT.")
                     .checkDate(now.minusHours(1))
                     .build());

@@ -71,10 +71,10 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         // Temporarily disabled for Swagger testing with manually entered checkDate.
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
-        // if (now.isAfter(raceStartDateTime.minusHours(24))) {
-        //     throw new IllegalArgumentException(
-        //             "Health checks must be updated no later than 24 hours before the race begins.");
-        // }
+        if (now.isAfter(raceStartDateTime.minusHours(24))) {
+            throw new IllegalArgumentException(
+                    "Health checks must be updated no later than 24 hours before the race begins.");
+        }
 
         HealthCheckStatus status = resolveCreateStatus(request);
 
@@ -148,6 +148,9 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         RegistrationForm form = check.getRegistrationForm();
         if (form == null) {
             throw new IllegalArgumentException("Registration form not found");
+        }
+        if (request.getRegistrationFormId() != null && !request.getRegistrationFormId().equals(form.getId())) {
+            throw new IllegalArgumentException("Registration form id does not match this health check.");
         }
 
         Race race = form.getRace();
@@ -370,7 +373,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             Integer doctorId = check.getDoctor().getUserId();
 
             // Mark DOCTOR_INVITATION as DONE
-            notificationRepository.updateDoctorInvitationToDone(adminId, doctorId);
+            notificationRepository.updateDoctorInvitationToDoneByRegistrationForm(adminId, doctorId, form.getId());
 
             // Send expiration notification to Admin
             com.swp.hrtms.hrtmsbe.entity.User admin = form.getAdmin();
@@ -414,14 +417,14 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
     private void markDoctorInvitationDone(HealthCheckRequest request, RegistrationForm form) {
         Integer adminId = form.getAdmin() != null ? form.getAdmin().getId() : null;
-        Integer raceId = form.getRace() != null ? form.getRace().getId() : null;
-        if (adminId == null || raceId == null) {
-            throw new IllegalArgumentException("Cannot resolve doctor invitation without admin and race context.");
+        Integer registrationFormId = form.getId();
+        if (adminId == null || registrationFormId == null) {
+            throw new IllegalArgumentException("Cannot resolve doctor invitation without admin and registration form context.");
         }
-        int updated = notificationRepository.updateDoctorInvitationToDoneByContext(
+        int updated = notificationRepository.updateDoctorInvitationToDoneByRegistrationForm(
                 adminId,
                 request.getDoctorId(),
-                raceId);
+                registrationFormId);
         if (updated == 0) {
             throw new IllegalArgumentException("Doctor invitation not found or already responded.");
         }
@@ -448,6 +451,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                         + (form.getHorse() != null ? form.getHorse().getId() : null))
                 .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.DOCTOR_INVITATION)
                 .race(race)
+                .registrationForm(form)
                 .build();
         notif = notificationRepository.save(notif);
 

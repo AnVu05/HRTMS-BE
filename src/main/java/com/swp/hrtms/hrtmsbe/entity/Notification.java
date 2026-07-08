@@ -41,6 +41,10 @@ public class Notification {
     @JoinColumn(name = "race_id")
     private Race race;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "registration_form_id")
+    private RegistrationForm registrationForm;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

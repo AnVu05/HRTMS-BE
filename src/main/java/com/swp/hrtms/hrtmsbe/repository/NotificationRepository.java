@@ -35,4 +35,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     int updateDoctorInvitationToDoneByContext(@Param("adminId") Integer adminId,
             @Param("doctorId") Integer doctorId,
             @Param("raceId") Integer raceId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Notification n SET n.type = 'DONE' WHERE n.sender.id = :adminId AND n.type = 'DOCTOR_INVITATION' AND n.registrationForm.id = :registrationFormId AND n.id IN (SELECT nr.notification.id FROM NotificationRecipient nr WHERE nr.recipient.id = :doctorId)")
+    int updateDoctorInvitationToDoneByRegistrationForm(@Param("adminId") Integer adminId,
+            @Param("doctorId") Integer doctorId,
+            @Param("registrationFormId") Integer registrationFormId);
 }
