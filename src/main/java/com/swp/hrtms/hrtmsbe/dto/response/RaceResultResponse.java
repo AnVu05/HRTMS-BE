@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,9 @@ public class RaceResultResponse {
     private Integer refereeId;
     private com.swp.hrtms.hrtmsbe.enums.RaceResultStatus status;
     private LocalDateTime createdAt;
+    private String photoFinishImage;
 }
+
+
 
 

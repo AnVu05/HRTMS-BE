@@ -1,5 +1,8 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
+import jakarta.persistence.*;
+import lombok.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +30,10 @@ public class RaceResult {
     @Builder.Default
     private com.swp.hrtms.hrtmsbe.enums.RaceResultStatus status = com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.TEMPORARY;
     private java.time.LocalDateTime createdAt;
+
+    @Lob
+    @Column(name = "photo_finish_image", columnDefinition = "TEXT")
+    private String photoFinishImage;
 }
 
 

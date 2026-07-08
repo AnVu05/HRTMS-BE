@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-//Khai: Jockey prize for one finishing rank in a race.
 @Entity
 @Table(
         name = "race_prizes",

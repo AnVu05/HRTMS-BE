@@ -1,10 +1,9 @@
 package com.swp.hrtms.hrtmsbe.service;
 
-import com.swp.hrtms.hrtmsbe.dto.request.RespondInvitationRequest;
-import com.swp.hrtms.hrtmsbe.dto.response.HorseOwnerNotificationResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.NotificationResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.HorseOwnerNotificationResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.RefereeInvitationResponse;
-import org.springframework.data.domain.Page;
+import com.swp.hrtms.hrtmsbe.dto.request.RespondInvitationRequest;
 
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -17,7 +16,7 @@ public interface NotificationService {
     List<NotificationResponse> markAllAdminNotificationsAsRead(Integer adminId);
 
     List<NotificationResponse> markNotificationsAsReadByRecipient(Integer recipientId);
-
+    List<NotificationResponse> getDoctorInvitations(Integer doctorId);
     List<HorseOwnerNotificationResponse> getHorseOwnerNotifications(Integer ownerId);
 
     List<RefereeInvitationResponse> getPendingRefereeInvitations(Integer refereeId);

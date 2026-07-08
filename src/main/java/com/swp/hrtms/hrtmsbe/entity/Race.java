@@ -1,12 +1,15 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-//Khai
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -41,7 +44,6 @@ public class Race {
     @Column(name = "num_horse")
     private Integer numHorse;
 
-    // Khai: Race requirements displayed on the Add New Race form.
     @Column(name = "distance_m")
     private Integer distanceM;
 
@@ -57,7 +59,6 @@ public class Race {
     // @Column(name = "betting_reward")
     // private Long bettingReward;
 
-    // Khai
     // @OneToMany(mappedBy = "race", cascade = CascadeType.ALL, orphanRemoval =
     // true)
     // @Builder.Default

@@ -13,8 +13,7 @@ public class HealthCheckRequest {
     private Integer registrationFormId;
     private Integer doctorId;
     //khai
-    private com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus status; // "PENDING_DOCTOR", "ACCEPT", or "REJECT"
+    private com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus status;
     private String medicalNotes;
     private java.time.LocalDateTime checkDate;
 }
-

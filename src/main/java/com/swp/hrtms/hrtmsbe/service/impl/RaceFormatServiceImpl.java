@@ -1,14 +1,13 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-import com.swp.hrtms.hrtmsbe.dto.request.RaceFormatRequest;
-import com.swp.hrtms.hrtmsbe.dto.response.RaceFormatResponse;
 import com.swp.hrtms.hrtmsbe.entity.RaceFormat;
 import com.swp.hrtms.hrtmsbe.repository.RaceFormatRepository;
 import com.swp.hrtms.hrtmsbe.service.RaceFormatService;
-import lombok.RequiredArgsConstructor;
+import com.swp.hrtms.hrtmsbe.dto.request.RaceFormatRequest;
+import com.swp.hrtms.hrtmsbe.dto.response.RaceFormatResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-
+import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.stream.Collectors;
 

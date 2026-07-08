@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;

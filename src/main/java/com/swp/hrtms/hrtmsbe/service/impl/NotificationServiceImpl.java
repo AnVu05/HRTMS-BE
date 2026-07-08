@@ -10,7 +10,18 @@ import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
 import com.swp.hrtms.hrtmsbe.entity.Race;
 import com.swp.hrtms.hrtmsbe.entity.Referee;
 import com.swp.hrtms.hrtmsbe.entity.User;
+import com.swp.hrtms.hrtmsbe.entity.Notification;
+import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
+import com.swp.hrtms.hrtmsbe.entity.Race;
+import com.swp.hrtms.hrtmsbe.entity.Referee;
+import com.swp.hrtms.hrtmsbe.entity.User;
 import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
+import com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository;
+import com.swp.hrtms.hrtmsbe.repository.JockeyRepository;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
+import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
+import com.swp.hrtms.hrtmsbe.repository.RefereeRepository;
+import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
 import com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository;
 import com.swp.hrtms.hrtmsbe.repository.JockeyRepository;
 import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
@@ -27,6 +38,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import com.swp.hrtms.hrtmsbe.repository.AdminRepository;
+import com.swp.hrtms.hrtmsbe.repository.DoctorRepository;
 
 import java.util.List;
 
@@ -459,22 +471,36 @@ public class NotificationServiceImpl implements NotificationService {
                         if (referee == null)
                                 continue;
 
-                        // Mark invitation as READ/DONE
-                        nr.setStatus(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.READ);
-                        n.setType(com.swp.hrtms.hrtmsbe.enums.NotificationType.DONE);
-
-                        // Create response notification to Admin (type: REFEREE_REJECTED)
-                        createResponseNotification(referee, race, false);
-
-                        // Clear referee and keep race status PENDING_REFEREE
-                        race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PENDING_REFEREE);
-                        race.setReferee(null);
-
-                        notificationRepository.save(n);
-                        notificationRecipientRepository.save(nr);
-                        raceRepository.save(race);
-                }
+            // Mark invitation as READ/DONE
+            nr.setStatus(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.READ);
+            n.setType(com.swp.hrtms.hrtmsbe.enums.NotificationType.DONE);
+            
+            // Create response notification to Admin (type: REFEREE_REJECTED)
+            createResponseNotification(referee, race, false);
+            
+            // Clear referee and keep race status PENDING_REFEREE
+            race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PENDING_REFEREE);
+            race.setReferee(null);
+            
+            notificationRepository.save(n);
+            notificationRecipientRepository.save(nr);
+            raceRepository.save(race);
         }
+}   
+
+        @Override
+    @Transactional(readOnly = true)
+    public List<NotificationResponse> getJockeyNotifications(Integer jockeyId) {
+        if (!jockeyRepository.existsById(jockeyId)) {
+            throw new ResourceNotFoundException("Jockey not found with id: " + jockeyId);
+        }
+
+        return notificationRecipientRepository
+                .findByRecipient_IdOrderByNotification_CreatedAtDesc(jockeyId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
         @Override
         @Transactional(readOnly = true)
@@ -483,48 +509,11 @@ public class NotificationServiceImpl implements NotificationService {
                         throw new ResourceNotFoundException("Referee not found with id: " + refereeId);
                 }
 
-                return notificationRecipientRepository
-                                .findByRecipient_IdOrderByNotification_CreatedAtDesc(refereeId)
-                                .stream()
-                                .map(this::toResponse)
-                                .toList();
-        }
-
-        @Override
-        public List<NotificationResponse> markAllAdminNotificationsAsRead(Integer adminId) {
-                if (!adminRepository.existsById(adminId)) {
-                        throw new ResourceNotFoundException("Admin not found with id: " + adminId);
-                }
-
-                Page<NotificationRecipient> unreadPage = notificationRecipientRepository
-                                .findByRecipient_IdAndNotification_TypeInAndStatusAndReadAtIsNullOrderByNotification_CreatedAtDesc(
-                                                adminId,
-                                                ADMIN_NOTIFICATION_TYPES,
-                                                com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD,
-                                                org.springframework.data.domain.Pageable.unpaged());
-                List<NotificationRecipient> unread = unreadPage.getContent();
-
-                notificationRecipientRepository.markAllAsReadByRecipientId(adminId);
-
-                java.time.LocalDateTime now = java.time.LocalDateTime.now();
-                unread.forEach(nr -> {
-                        nr.setStatus(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.READ);
-                        nr.setReadAt(now);
-                });
-
-                return unread.stream().map(this::toResponse).toList();
-        }
-
-        @Override
-        public List<HorseOwnerNotificationResponse> getHorseOwnerNotifications(Integer ownerId) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'getHorseOwnerNotifications'");
-        }
-
-        @Override
-        public Page<NotificationResponse> getSpectatorNotifications(Integer spectatorId, int page, int size) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'getSpectatorNotifications'");
-        }
-
+        return notificationRecipientRepository
+                .findByRecipient_IdOrderByNotification_CreatedAtDesc(refereeId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
 }
+

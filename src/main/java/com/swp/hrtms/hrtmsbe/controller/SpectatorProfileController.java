@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.SpectatorAvatarUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.SpectatorProfileUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;

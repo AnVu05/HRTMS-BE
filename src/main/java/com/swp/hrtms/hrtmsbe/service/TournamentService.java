@@ -1,7 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service;
 
-import com.swp.hrtms.hrtmsbe.dto.request.TournamentCancelRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCreateRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.TournamentCancelRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ActiveTournamentResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentResponse;
 
@@ -24,5 +24,3 @@ public interface TournamentService {
 
     void updateTournamentStatuses();
 }
-
-

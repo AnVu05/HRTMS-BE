@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+
 import com.swp.hrtms.hrtmsbe.entity.HorseStatus;
 
 import lombok.AllArgsConstructor;

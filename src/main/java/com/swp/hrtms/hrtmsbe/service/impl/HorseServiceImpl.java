@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.HorseRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.HorseResponse;
 import com.swp.hrtms.hrtmsbe.entity.Horse;

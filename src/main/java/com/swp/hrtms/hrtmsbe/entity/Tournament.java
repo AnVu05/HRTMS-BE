@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,7 +48,6 @@ public class Tournament {
     @Column(name = "close_prediction_date")
     private LocalDate closePredictionDate;
 
-    //khai
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status = com.swp.hrtms.hrtmsbe.enums.TournamentStatus.DRAFT;

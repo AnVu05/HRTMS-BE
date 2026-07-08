@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,13 +17,13 @@ public class NotificationResponse {
 
     @com.fasterxml.jackson.annotation.JsonProperty("sender_id")
     private Integer senderId;
-
+    
     private String title;
     private String content;
 
     @com.fasterxml.jackson.annotation.JsonProperty("created_at")
     private LocalDateTime createdAt;
-
+    
     private com.swp.hrtms.hrtmsbe.enums.NotificationType type;
 
     @com.fasterxml.jackson.annotation.JsonProperty("race_id")
