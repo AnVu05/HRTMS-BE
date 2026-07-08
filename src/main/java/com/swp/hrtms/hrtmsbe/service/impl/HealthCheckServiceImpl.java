@@ -81,11 +81,11 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         // BR_12: Pre-match medical check-up no later than 24h before
         // Temporarily disabled for Swagger testing with manually entered checkDate.
         LocalDateTime now = LocalDateTime.now();
-        // LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
-        // if (now.isAfter(raceStartDateTime.minusHours(24))) {
-        //     throw new IllegalArgumentException(
-        //             "Health checks must be updated no later than 24 hours before the race begins.");
-        // }
+        LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
+        if (now.isAfter(raceStartDateTime.minusHours(24))) {
+            throw new IllegalArgumentException(
+                    "Health checks must be updated no later than 24 hours before the race begins.");
+        }
 
         HealthCheckStatus status = resolveCreateStatus(request);
 
@@ -173,11 +173,11 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         // BR_12
         // Temporarily disabled for Swagger testing with manually entered checkDate.
         LocalDateTime now = LocalDateTime.now();
-        // LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
-        // if (now.isAfter(raceStartDateTime.minusHours(24))) {
-        //     throw new IllegalArgumentException(
-        //             "Health checks must be updated no later than 24 hours before the race begins.");
-        // }
+        LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
+        if (now.isAfter(raceStartDateTime.minusHours(24))) {
+            throw new IllegalArgumentException(
+                    "Health checks must be updated no later than 24 hours before the race begins.");
+        }
 
         if ("DECLINE_INVITATION".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
             check.setDoctor(null);
