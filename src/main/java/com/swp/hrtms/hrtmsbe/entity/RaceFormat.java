@@ -1,7 +1,10 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "raceformats")
@@ -30,8 +33,3 @@ public class RaceFormat {
     @Builder.Default
     private com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus status = com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus.ACTIVE;
 }
-
-
-
-
-

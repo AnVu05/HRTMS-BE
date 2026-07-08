@@ -43,3 +43,4 @@ public class RaceCreateRequest {
     @JsonProperty("break_time_minutes")
     private Integer breakTimeMinutes;
 }
+

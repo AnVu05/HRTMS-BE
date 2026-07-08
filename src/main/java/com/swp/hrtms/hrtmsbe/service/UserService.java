@@ -12,3 +12,5 @@ public interface UserService {
     LoginResponse login(LoginRequest request);
     VerifyOtpResponse verifyOtp(VerifyOtpRequest request);
 }
+
+

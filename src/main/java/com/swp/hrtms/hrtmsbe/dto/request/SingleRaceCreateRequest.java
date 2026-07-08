@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 //Khai
-import java.math.BigDecimal;
-import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -32,25 +30,12 @@ public class SingleRaceCreateRequest {
     @JsonProperty("end_time")
     private LocalTime endTime;
 
-    // Khai: Fields required by the Add New Race form.
+    //Khai: Fields required by the Add New Race form.
     @JsonProperty("distance_m")
     private Integer distanceM;
 
-    @JsonProperty("horse_breed")
-    private String horseBreed;
-
-    @JsonProperty("weight_kg")
-    private BigDecimal weightKg;
-
-    @JsonProperty("horse_age")
-    private Integer horseAge;
-
-    // Khai
-    @JsonProperty("jockey_prizes")
-    private List<RacePrizeRequest> jockeyPrizes;
-
-    @JsonProperty("betting_reward")
-    private Long bettingReward;
+    @JsonProperty("num_horse")
+    private Integer numHorse;
 
     @JsonProperty("referee_id")
     private Integer refereeId;
@@ -64,3 +49,4 @@ public class SingleRaceCreateRequest {
     @JsonProperty("break_time_minutes")
     private Integer breakTimeMinutes;
 }
+

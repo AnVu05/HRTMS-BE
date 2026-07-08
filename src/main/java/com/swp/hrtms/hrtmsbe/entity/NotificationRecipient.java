@@ -31,9 +31,13 @@ public class NotificationRecipient {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    // khai
+    //khai
     private com.swp.hrtms.hrtmsbe.enums.NotificationStatus status = com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD;
 
     @Column(name = "read_at")
     private LocalDateTime readAt;
 }
+
+
+
+

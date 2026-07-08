@@ -19,13 +19,5 @@ public class TournamentDashboardResponse {
     private LocalDate endDate;
     private Long numRaces;
     private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status;
-
-    @JsonProperty("allowed_breed")
-    private String allowedBreed;
-
-    @JsonProperty("allowed_horse_age")
-    private Integer allowedHorseAge;
-
-    @JsonProperty("tournament_description")
-    private String description;
 }
+

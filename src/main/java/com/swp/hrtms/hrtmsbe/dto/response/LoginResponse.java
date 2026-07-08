@@ -13,3 +13,4 @@ public class LoginResponse {
     private boolean otpRequired;
     private String email;
 }
+

@@ -1,12 +1,11 @@
 package com.swp.hrtms.hrtmsbe.service;
 
 import com.swp.hrtms.hrtmsbe.dto.request.RaceBatchCreateRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.RaceResponse;
 //Khai
 import com.swp.hrtms.hrtmsbe.dto.response.SingleRaceCreateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse;
-
-import com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest;
 
 import java.util.List;
 
@@ -16,15 +15,21 @@ public interface RaceService {
     TournamentRaceDetailsResponse getRaceDetailsByTournament(Integer tournamentId);
 
     String cancelRace(Integer raceId, RaceCancelRequest request);
-
-    // Khai
+    
+    //Khai
     RaceResponse createSingleRace(com.swp.hrtms.hrtmsbe.dto.request.RaceRequest request);
-
+    List<RaceResponse> getAllRaces();
+    RaceResponse getRaceById(Integer id);
     RaceResponse updateRace(Integer raceId, com.swp.hrtms.hrtmsbe.dto.request.RaceRequest request);
-
+    
+    String walkOverRace(Integer raceId);
     String updateRaceTime(Integer raceId, com.swp.hrtms.hrtmsbe.dto.request.RaceUpdateTimeRequest request);
 
-    RaceResponse getRaceById(Integer id);
-
     void predictScheduleUpdate(com.swp.hrtms.hrtmsbe.entity.Race race);
+    RaceResponse lateScratch(Integer raceId, Integer horseId, String reason);
+    RaceResponse startRace(Integer raceId);
 }
+
+
+
+

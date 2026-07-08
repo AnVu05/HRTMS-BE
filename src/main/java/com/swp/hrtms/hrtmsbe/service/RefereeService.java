@@ -9,5 +9,6 @@ import java.util.List;
 
 public interface RefereeService {
     List<RefereeResponse> getReferees(LocalDate date, LocalTime startTime, LocalTime endTime, Integer excludeRaceId);
+
     List<RefereeScheduledRaceResponse> getScheduledRaces(Integer refereeId);
 }

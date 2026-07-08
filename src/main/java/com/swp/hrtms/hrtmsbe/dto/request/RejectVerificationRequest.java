@@ -12,3 +12,4 @@ import lombok.NoArgsConstructor;
 public class RejectVerificationRequest {
     private String reason;
 }
+

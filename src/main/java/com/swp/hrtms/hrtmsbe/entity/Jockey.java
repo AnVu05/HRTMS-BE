@@ -2,11 +2,7 @@ package com.swp.hrtms.hrtmsbe.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
@@ -41,3 +37,6 @@ public class Jockey extends User {
     @EqualsAndHashCode.Exclude
     private List<JockeyCert> jockeyCerts;
 }
+
+
+

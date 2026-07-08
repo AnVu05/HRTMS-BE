@@ -28,3 +28,5 @@ public interface JockeyCertRepository extends JpaRepository<JockeyCert, Integer>
             @Param("certId") Integer certId,
             @Param("jockeyId") Integer jockeyId);
 }
+
+

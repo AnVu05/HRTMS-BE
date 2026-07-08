@@ -24,14 +24,16 @@ public interface RaceRepository extends JpaRepository<Race, Integer> {
                                         @Param("startTime") LocalTime startTime, 
                                         @Param("endTime") LocalTime endTime);
 
-    @Query("SELECT COUNT(r) > 0 FROM Race r WHERE r.tournament.id = :tournamentId AND r.id != :excludeRaceId AND r.date = :date AND r.startTime < :endTime AND r.endTime > :startTime AND r.status != 'CANCELLED'")
+    //khai
+    @Query("SELECT COUNT(r) > 0 FROM Race r WHERE r.tournament.id = :tournamentId AND r.id != :excludeRaceId AND r.date = :date AND r.startTime < :endTime AND r.endTime > :startTime AND r.status != 'CANCEL'")
     boolean existsOverlappingInTournamentExcludingRace(@Param("tournamentId") Integer tournamentId, 
                                                        @Param("excludeRaceId") Integer excludeRaceId,
                                                        @Param("date") LocalDate date, 
                                                        @Param("startTime") LocalTime startTime, 
                                                        @Param("endTime") LocalTime endTime);
 
-    @Query("SELECT COUNT(r) > 0 FROM Race r WHERE r.referee.id = :refereeId AND r.id != :excludeRaceId AND r.date = :date AND r.startTime < :endTime AND r.endTime > :startTime AND r.status != 'CANCELLED'")
+    //khai
+    @Query("SELECT COUNT(r) > 0 FROM Race r WHERE r.referee.id = :refereeId AND r.id != :excludeRaceId AND r.date = :date AND r.startTime < :endTime AND r.endTime > :startTime AND r.status != 'CANCEL'")
     boolean existsOverlappingForRefereeExcludingRace(@Param("refereeId") Integer refereeId, 
                                                      @Param("excludeRaceId") Integer excludeRaceId,
                                                      @Param("date") LocalDate date, 
@@ -40,6 +42,9 @@ public interface RaceRepository extends JpaRepository<Race, Integer> {
 
     java.util.List<Race> findByTournamentId(Integer tournamentId);
 
-    @Query("SELECT r FROM Race r WHERE r.referee.id = :refereeId AND r.status = 'PUBLISHED'")
+    //khai
+    @Query("SELECT r FROM Race r WHERE r.referee.id = :refereeId AND r.status = 'PUBLIC'")
     java.util.List<Race> findScheduledRacesByRefereeId(@Param("refereeId") Integer refereeId);
 }
+
+

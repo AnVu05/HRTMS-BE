@@ -11,7 +11,6 @@ import com.swp.hrtms.hrtmsbe.dto.response.RaceResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.SingleRaceCreateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse;
 import com.swp.hrtms.hrtmsbe.entity.Race;
-import com.swp.hrtms.hrtmsbe.entity.RacePrize;
 import com.swp.hrtms.hrtmsbe.entity.Referee;
 import com.swp.hrtms.hrtmsbe.entity.Tournament;
 import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
@@ -19,11 +18,9 @@ import com.swp.hrtms.hrtmsbe.repository.RefereeRepository;
 import com.swp.hrtms.hrtmsbe.repository.TournamentRepository;
 import com.swp.hrtms.hrtmsbe.entity.Notification;
 import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
-import com.swp.hrtms.hrtmsbe.entity.Prediction;
 import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
 import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
 import com.swp.hrtms.hrtmsbe.entity.User;
-import com.swp.hrtms.hrtmsbe.entity.Wallet;
 import com.swp.hrtms.hrtmsbe.service.RaceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -47,15 +43,17 @@ public class RaceServiceImpl implements RaceService {
 
     private final RaceRepository raceRepository;
     private final TournamentRepository tournamentRepository;
+    private final PredictionRepository predictionRepository;
+    private final WalletRepository walletRepository;
+    private final TransactionRepository transactionRepository;
     private final RefereeRepository refereeRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationRecipientRepository notificationRecipientRepository;
-    private final com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository;
-    private final com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository registrationFormRepository;
-    private final com.swp.hrtms.hrtmsbe.repository.PredictionRepository predictionRepository;
-    private final com.swp.hrtms.hrtmsbe.repository.WalletRepository walletRepository;
-    private final com.swp.hrtms.hrtmsbe.repository.TransactionRepository transactionRepository;
     private final com.swp.hrtms.hrtmsbe.repository.RaceFormatRepository raceFormatRepository;
+    private final com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository;
+
+    // code moi(06/07) tiem them vao de lay user thong bao !
+    private final com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository registrationFormRepository;
 
     @Override
     @Transactional
@@ -233,6 +231,20 @@ public class RaceServiceImpl implements RaceService {
         return mapToRaceResponse(race);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<RaceResponse> getAllRaces() {
+        return raceRepository.findAll().stream().map(this::mapToRaceResponse).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RaceResponse getRaceById(Integer id) {
+        Race race = raceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Race not found with id: " + id));
+        return mapToRaceResponse(race);
+    }
+
     private RaceResponse mapToRaceResponse(Race race) {
         return RaceResponse.builder()
                 .id(race.getId())
@@ -271,6 +283,9 @@ public class RaceServiceImpl implements RaceService {
                     .orElseThrow(
                             () -> new IllegalArgumentException("Referee not found with id: " + request.getRefereeId()));
 
+                    .orElseThrow(
+                            () -> new IllegalArgumentException("Referee not found with id: " + request.getRefereeId()));
+
             race.setReferee(referee);
 
             // khai
@@ -306,7 +321,7 @@ public class RaceServiceImpl implements RaceService {
             race.setDistanceM(request.getDistanceM());
         if (request.getNumHorse() != null)
             race.setNumHorse(request.getNumHorse());
-        if (request.getStatus() != null && !com.swp.hrtms.hrtmsbe.enums.RaceStatus.PENDING_REFEREE
+        if (request.getStatus() != null && !RaceStatus.PENDING_REFEREE
                 .equals(request.getStatus() == null ? "" : request.getStatus().name()))
             race.setStatus(request.getStatus());
         if (request.getReason() != null)
@@ -320,6 +335,37 @@ public class RaceServiceImpl implements RaceService {
             race.setTournament(tournament);
         }
 
+        // Validate updated fields if the race is/was published
+        if (oldStatus == RaceStatus.PUBLISHED
+                || race.getStatus() == RaceStatus.PUBLISHED) {
+            if (race.getStartTime() != null && race.getEndTime() != null
+                    && !race.getStartTime().isBefore(race.getEndTime())) {
+                throw new IllegalArgumentException("Start time must be before end time.");
+            }
+
+            if (race.getDistanceM() != null && race.getDistanceM() <= 0) {
+                throw new IllegalArgumentException("Distance must be greater than 0 meters.");
+            }
+
+            if (race.getTournament() != null && race.getDate() != null && race.getStartTime() != null
+                    && race.getEndTime() != null) {
+                if (raceRepository.existsOverlappingInTournamentExcludingRace(
+                        race.getTournament().getId(), race.getId(), race.getDate(), race.getStartTime(),
+                        race.getEndTime())) {
+                    throw new IllegalArgumentException("Updated race time overlaps with another race in the tournament.");
+                }
+            }
+
+            if (race.getReferee() != null && race.getDate() != null && race.getStartTime() != null
+                    && race.getEndTime() != null) {
+                if (raceRepository.existsOverlappingForRefereeExcludingRace(
+                        race.getReferee().getId(), race.getId(), race.getDate(), race.getStartTime(),
+                        race.getEndTime())) {
+                    throw new IllegalArgumentException("Referee is already assigned to another overlapping race.");
+                }
+            }
+        }
+
         race = raceRepository.save(race);
 
         if (refereeChanged) {
@@ -327,12 +373,12 @@ public class RaceServiceImpl implements RaceService {
         }
 
         // Broadcast NEW_RACE if published
-        if (oldStatus != com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED
-                && race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED) {
-            java.util.List<com.swp.hrtms.hrtmsbe.entity.User> targetUsers = userRepository
+        if (oldStatus != RaceStatus.PUBLISHED
+                && race.getStatus() == RaceStatus.PUBLISHED) {
+            List<User> targetUsers = userRepository
                     .findByRoleIn(java.util.Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
             if (!targetUsers.isEmpty()) {
-                com.swp.hrtms.hrtmsbe.entity.Notification notification = com.swp.hrtms.hrtmsbe.entity.Notification
+                Notification notification = Notification
                         .builder()
                         .sender(null) // System notification
                         .title("New Race: " + race.getName())
@@ -342,9 +388,37 @@ public class RaceServiceImpl implements RaceService {
                         .build();
                 notification = notificationRepository.save(notification);
 
-                java.util.List<com.swp.hrtms.hrtmsbe.entity.NotificationRecipient> recipients = new ArrayList<>();
-                for (com.swp.hrtms.hrtmsbe.entity.User user : targetUsers) {
-                    com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                List<NotificationRecipient> recipients = new ArrayList<>();
+                for (User user : targetUsers) {
+                    NotificationRecipient recipient = NotificationRecipient
+                            .builder()
+                            .notification(notification)
+                            .recipient(user)
+                            .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                            .build();
+                    recipients.add(recipient);
+                }
+                notificationRecipientRepository.saveAll(recipients);
+            }
+        } else if (oldStatus == RaceStatus.PUBLISHED
+                && race.getStatus() == RaceStatus.PUBLISHED) {
+            // Broadcast RACE_UPDATE if already published and updated
+            List<User> targetUsers = userRepository
+                    .findByRoleIn(java.util.Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
+            if (!targetUsers.isEmpty()) {
+                Notification notification = Notification
+                        .builder()
+                        .sender(null) // System notification
+                        .title("Race Updated: " + race.getName())
+                        .content("The race '" + race.getName() + "' has been updated.")
+                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.RACE_UPDATE)
+                        .race(race)
+                        .build();
+                notification = notificationRepository.save(notification);
+
+                List<NotificationRecipient> recipients = new ArrayList<>();
+                for (User user : targetUsers) {
+                    NotificationRecipient recipient = NotificationRecipient
                             .builder()
                             .notification(notification)
                             .recipient(user)
@@ -402,11 +476,19 @@ public class RaceServiceImpl implements RaceService {
             throw new IllegalArgumentException("Race is already cancelled");
         }
 
-        race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.CANCELLED);
+        race.setStatus("CANCELLED");
         race.setReason(request.getReason());
         raceRepository.save(race);
 
         processRefunds(raceId);
+
+        // code moi (06/07)
+        // Gửi thông báo đến những người dùng liên quan
+        sendRaceNotification(
+                race,
+                com.swp.hrtms.hrtmsbe.enums.NotificationType.RACE_CANCELLED,
+                "Race Cancelled: " + race.getName(),
+                "The race '" + race.getName() + "' has been cancelled. Reason: " + request.getReason());
 
         return "Race has been successfully cancelled.";
     }
@@ -508,6 +590,15 @@ public class RaceServiceImpl implements RaceService {
 
         predictScheduleUpdate(race);
 
+        // code moi (06/07)
+        // Gửi thông báo đến những người dùng liên quan
+        sendRaceNotification(
+                race,
+                com.swp.hrtms.hrtmsbe.enums.NotificationType.RACE_UPDATE,
+                "Race Schedule Updated: " + race.getName(),
+                "The schedule for race '" + race.getName() + "' has been updated. New time: " + request.getDate() + " "
+                        + request.getStartTime() + " - " + request.getEndTime());
+
         return "Race time has been successfully updated.";
     }
 
@@ -579,7 +670,8 @@ public class RaceServiceImpl implements RaceService {
      * Gửi thông báo mời trọng tài tham gia điều hành cuộc đua.
      * Người gửi (sender) được thiết lập là Admin liên kết trực tiếp với Tournament
      * của cuộc đua.
-     * Loại thông báo là "REFEREE_INVITATION".
+     * Loại thông báo là
+     * com.swp.hrtms.hrtmsbe.enums.NotificationType.REFEREE_INVITATION.
      *
      * @param race Cuộc đua được phân công trọng tài
      */
@@ -618,13 +710,5 @@ public class RaceServiceImpl implements RaceService {
                 .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
                 .build();
         notificationRecipientRepository.save(recipient);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public RaceResponse getRaceById(Integer id) {
-        Race race = raceRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Race not found with id: " + id));
-        return mapToRaceResponse(race);
     }
 }

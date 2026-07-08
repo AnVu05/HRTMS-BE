@@ -19,3 +19,5 @@ public interface HorseService {
 
     void deleteHorse(Integer id);
 }
+
+

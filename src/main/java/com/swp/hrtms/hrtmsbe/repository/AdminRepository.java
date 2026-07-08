@@ -19,3 +19,5 @@ public interface AdminRepository extends JpaRepository<Admin, Integer> {
             """)
     Page<Admin> findLeastLoadedAdmin(Pageable pageable);
 }
+
+

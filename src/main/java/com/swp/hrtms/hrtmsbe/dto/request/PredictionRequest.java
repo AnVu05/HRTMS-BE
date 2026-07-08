@@ -16,7 +16,7 @@ public class PredictionRequest {
     private Integer raceId;
     private Integer predictedHorseId;
     private Integer pointsInvested;
-    // khai
+    //khai
     private com.swp.hrtms.hrtmsbe.enums.PredictionStatus status;
     private LocalDateTime createdAt;
 }

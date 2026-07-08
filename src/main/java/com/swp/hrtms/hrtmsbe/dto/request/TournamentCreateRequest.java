@@ -31,18 +31,5 @@ public class TournamentCreateRequest {
     @JsonProperty("close_prediction_date")
     private LocalDate closePredictionDate;
 
-    // khai
-    @JsonProperty("allowed_breed")
-    private String allowedBreed;
-
-    @JsonProperty("allowed_horse_age")
-    private Integer allowedHorseAge;
-
-    @JsonProperty("tournament_description")
-    private String description;
-
     private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status;
-
-    @JsonProperty("cancel_reason")
-    private String cancelReason;
 }

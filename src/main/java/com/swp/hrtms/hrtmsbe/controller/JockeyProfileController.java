@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
+import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyProfileUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
@@ -69,3 +70,5 @@ public class JockeyProfileController {
                 "message", "Certificate deleted successfully"));
     }
 }
+
+

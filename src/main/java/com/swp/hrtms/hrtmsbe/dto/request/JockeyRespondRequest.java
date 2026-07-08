@@ -6,3 +6,4 @@ import lombok.Data;
 public class JockeyRespondRequest {
     private String status; // "Accept" or "Reject"
 }
+

@@ -23,3 +23,4 @@ public class RaceUpdateTimeRequest {
     @JsonProperty("end_time")
     private LocalTime endTime;
 }
+

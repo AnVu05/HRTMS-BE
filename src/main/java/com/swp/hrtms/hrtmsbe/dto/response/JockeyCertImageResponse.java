@@ -15,3 +15,4 @@ public class JockeyCertImageResponse {
     @JsonProperty("cert_image_base64")
     private String certImageBase64;
 }
+

@@ -26,7 +26,7 @@ public class RefereeController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime startTime,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime endTime,
             @RequestParam(required = false) Integer excludeRaceId) {
-        
+
         List<RefereeResponse> responses = refereeService.getReferees(date, startTime, endTime, excludeRaceId);
         return ResponseEntity.ok(ApiResponse.success(responses, "Referees fetched successfully"));
     }

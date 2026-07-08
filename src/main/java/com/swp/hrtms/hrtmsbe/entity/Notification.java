@@ -34,7 +34,7 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     @Builder.Default
-    // khai
+    //khai
     private com.swp.hrtms.hrtmsbe.enums.NotificationType type = com.swp.hrtms.hrtmsbe.enums.NotificationType.VERIFI_CERTIFICATE;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -45,3 +45,6 @@ public class Notification {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }
+
+
+

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tournaments")
@@ -27,6 +28,9 @@ public class Tournament {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
     @Column(name = "start_date")
     private LocalDate startDate;
 
@@ -43,19 +47,13 @@ public class Tournament {
     @Column(name = "close_prediction_date")
     private LocalDate closePredictionDate;
 
-    @Column(name = "allowed_breed")
-    private String allowedBreed;
-
-    @Column(name = "allowed_horse_age")
-    private Integer allowedHorseAge;
-
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
-    // khai
+    //khai
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status = com.swp.hrtms.hrtmsbe.enums.TournamentStatus.DRAFT;
+
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
 
     @Column(name = "cancel_reason")
     private String cancelReason;

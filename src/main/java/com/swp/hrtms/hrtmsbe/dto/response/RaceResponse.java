@@ -57,3 +57,4 @@ public class RaceResponse {
     @JsonProperty("canceled_at")
     private java.time.LocalDateTime canceledAt;
 }
+

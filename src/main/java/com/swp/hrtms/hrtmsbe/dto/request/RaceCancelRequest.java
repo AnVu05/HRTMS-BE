@@ -12,3 +12,4 @@ import lombok.NoArgsConstructor;
 public class RaceCancelRequest {
     private String reason;
 }
+

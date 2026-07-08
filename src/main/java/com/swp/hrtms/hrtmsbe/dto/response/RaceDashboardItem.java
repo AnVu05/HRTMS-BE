@@ -22,3 +22,4 @@ public class RaceDashboardItem {
     private Integer refereeId;
     private String refereeName;
 }
+

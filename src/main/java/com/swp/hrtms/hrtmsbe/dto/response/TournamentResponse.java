@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,11 +8,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TournamentResponse {
 
     private Integer id;
@@ -20,6 +23,9 @@ public class TournamentResponse {
     private Integer adminId;
 
     private String name;
+
+    @JsonProperty("created_at")
+    private LocalDateTime createdAt;
 
     @JsonProperty("start_date")
     private LocalDate startDate;
@@ -36,17 +42,11 @@ public class TournamentResponse {
     @JsonProperty("close_prediction_date")
     private LocalDate closePredictionDate;
 
-    @JsonProperty("allowed_breed")
-    private String allowedBreed;
-
-    @JsonProperty("allowed_horse_age")
-    private Integer allowedHorseAge;
-
-    @JsonProperty("tournament_description")
-    private String description;
-
     private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status;
 
-    @JsonProperty("cancel_reason")
-    private String cancelReason;
+    @JsonProperty("canceled_at")
+    private LocalDateTime canceledAt;
+
+    private String reason;
 }
+

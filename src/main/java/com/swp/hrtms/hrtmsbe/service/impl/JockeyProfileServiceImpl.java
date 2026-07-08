@@ -1,7 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-import com.swp.hrtms.hrtmsbe.dto.request.JockeyProfileUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.JockeyProfileUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertificateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyProfileResponse;
 import com.swp.hrtms.hrtmsbe.entity.Jockey;
@@ -22,14 +22,6 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
 
     private final JockeyRepository jockeyRepository;
     private final JockeyCertRepository jockeyCertRepository;
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<JockeyProfileResponse> getAllJockeys() {
-        return jockeyRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -74,8 +66,10 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
         JockeyCert certificate = findCertificateByIdAndJockeyId(certId, jockeyId);
 
         certificate.setCertName(request.getCertName().trim());
-        certificate.setCertImg(request.getCertImageBase64());
-        certificate.setStatus("PENDING");
+        certificate.setCertImageBase64(request.getCertImageBase64());
+        certificate.setIssuedAt(request.getIssuedAt());
+        //khai
+        certificate.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.PENDING);
 
         return toCertificateResponse(jockeyCertRepository.save(certificate));
     }
@@ -84,6 +78,7 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
     @Override
     @Transactional
     public void deleteCertificate(Integer jockeyId, Integer certId) {
+        //khai
         JockeyCert certificate = findCertificateByIdAndJockeyId(certId, jockeyId);
         jockeyCertRepository.delete(certificate);
     }
@@ -181,8 +176,11 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
         return JockeyCertificateResponse.builder()
                 .certId(certificate.getId())
                 .certName(certificate.getCertName())
-                .certImageBase64(certificate.getCertImg())
+                .certImageBase64(certificate.getCertImageBase64())
+                .issuedAt(certificate.getIssuedAt())
                 .status(certificate.getStatus())
                 .build();
     }
 }
+
+

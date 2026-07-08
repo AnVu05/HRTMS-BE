@@ -44,11 +44,11 @@ public class SpectatorProfileServiceImpl implements SpectatorProfileService {
     public SpectatorProfileResponse updateAvatar(Integer spectatorId, SpectatorAvatarUpdateRequest request) {
         Spectator spectator = findSpectatorById(spectatorId);
 
-        if (request.getAvatarBase64() == null || request.getAvatarBase64().isBlank()) {
+        if (request.getAvatar() == null || request.getAvatar().isBlank()) {
             throw new IllegalArgumentException("Avatar image cannot be empty");
         }
 
-        spectator.setAvatarImage(request.getAvatarBase64().trim());
+        spectator.setAvatar(request.getAvatar().trim());
 
         Spectator updatedSpectator = spectatorRepository.save(spectator);
         return toResponse(updatedSpectator);
@@ -63,7 +63,6 @@ public class SpectatorProfileServiceImpl implements SpectatorProfileService {
         if (request.getUsername() != null && !request.getUsername().isBlank()) {
             validateUsernameIsAvailable(request.getUsername(), spectator.getId());
             spectator.setUsername(request.getUsername());
-            spectator.setDisplayName(request.getUsername());
         }
 
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
@@ -73,6 +72,22 @@ public class SpectatorProfileServiceImpl implements SpectatorProfileService {
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             spectator.setPassword(request.getPassword());
+        }
+
+        if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
+            spectator.setDisplayName(request.getDisplayName());
+        }
+
+        if (request.getAvatar() != null && !request.getAvatar().isBlank()) {
+            spectator.setAvatar(request.getAvatar());
+        }
+
+        if (request.getRole() != null && !request.getRole().isBlank()) {
+            spectator.setRole(request.getRole());
+        }
+
+        if (request.getCreatedAt() != null) {
+            spectator.setCreatedAt(request.getCreatedAt());
         }
     }
 
@@ -91,11 +106,14 @@ public class SpectatorProfileServiceImpl implements SpectatorProfileService {
     private SpectatorProfileResponse toResponse(Spectator spectator) {
         return new SpectatorProfileResponse(
                 spectator.getId(),
+                spectator.getDisplayName(),
                 spectator.getUsername(),
-                spectator.getUsername(),
+                spectator.getPassword(),
                 spectator.getEmail(),
                 spectator.getRole(),
                 spectator.getCreatedAt(),
-                spectator.getAvatarImage());
+                spectator.getAvatar());
     }
 }
+
+

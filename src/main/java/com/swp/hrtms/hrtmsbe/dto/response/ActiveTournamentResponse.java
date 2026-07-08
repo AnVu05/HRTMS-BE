@@ -13,3 +13,4 @@ public class ActiveTournamentResponse {
     private Integer id;
     private String name;
 }
+

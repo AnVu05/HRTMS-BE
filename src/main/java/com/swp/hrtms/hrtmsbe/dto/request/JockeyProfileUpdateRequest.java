@@ -21,3 +21,5 @@ public class JockeyProfileUpdateRequest {
     // khai
     private com.swp.hrtms.hrtmsbe.enums.UserStatus status;
 }
+
+

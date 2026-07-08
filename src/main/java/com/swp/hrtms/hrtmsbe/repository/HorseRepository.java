@@ -7,3 +7,5 @@ import java.util.List;
 public interface HorseRepository extends JpaRepository<Horse, Integer> {
     List<Horse> findByOwnerUserId(Integer ownerId);
 }
+
+

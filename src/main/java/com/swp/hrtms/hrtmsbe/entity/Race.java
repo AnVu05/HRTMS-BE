@@ -7,9 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 //Khai
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -92,3 +89,8 @@ public class Race {
     @Column(name = "canceled_at")
     private java.time.LocalDateTime canceledAt;
 }
+
+
+
+
+

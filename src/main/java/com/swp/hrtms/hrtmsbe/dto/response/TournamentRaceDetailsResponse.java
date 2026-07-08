@@ -16,3 +16,4 @@ public class TournamentRaceDetailsResponse {
     private Long totalEntries;
     private List<RaceDashboardItem> races;
 }
+
