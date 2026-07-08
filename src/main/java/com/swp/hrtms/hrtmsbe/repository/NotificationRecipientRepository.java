@@ -111,6 +111,8 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
         java.util.Optional<NotificationRecipient> findByNotification_IdAndRecipient_Id(Integer notificationId, Integer recipientId);
         
         java.util.Optional<NotificationRecipient> findByIdAndRecipient_Id(Integer id, Integer recipientId);
+
+        List<NotificationRecipient> findByRecipient_IdOrderByNotification_CreatedAtDesc(Integer recipientId);
 }
 
 

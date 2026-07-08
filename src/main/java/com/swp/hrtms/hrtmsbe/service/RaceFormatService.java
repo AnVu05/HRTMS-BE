@@ -1,7 +1,5 @@
 package com.swp.hrtms.hrtmsbe.service;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.RaceFormatRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.RaceFormatResponse;
 import java.util.List;

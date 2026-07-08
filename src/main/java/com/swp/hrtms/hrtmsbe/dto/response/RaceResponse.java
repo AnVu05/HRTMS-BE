@@ -1,7 +1,6 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

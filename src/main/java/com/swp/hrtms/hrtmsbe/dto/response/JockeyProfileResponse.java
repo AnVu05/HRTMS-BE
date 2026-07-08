@@ -1,7 +1,6 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +22,6 @@ public class JockeyProfileResponse {
     private Integer experienceYears;
     private Integer age;
     private String professionalBio;
-    //khai
     private com.swp.hrtms.hrtmsbe.enums.UserStatus status;
     private String avatar;
 }

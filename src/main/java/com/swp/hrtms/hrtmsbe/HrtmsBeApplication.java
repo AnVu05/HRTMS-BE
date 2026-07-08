@@ -1,7 +1,5 @@
 package com.swp.hrtms.hrtmsbe;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;

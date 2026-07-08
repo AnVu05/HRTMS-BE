@@ -1,16 +1,15 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ActiveTournamentResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentResponse;
 import com.swp.hrtms.hrtmsbe.service.TournamentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
+
 import java.util.List;
 
 @RestController

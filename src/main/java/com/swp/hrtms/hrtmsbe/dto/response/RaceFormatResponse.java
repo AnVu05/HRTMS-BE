@@ -1,7 +1,5 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import lombok.Data;
 
 @Data

@@ -1,28 +1,13 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertCreateRequest;
-import com.swp.hrtms.hrtmsbe.dto.response.JockeyVerificationRequestResponse;
-import com.swp.hrtms.hrtmsbe.entity.Admin;
-import com.swp.hrtms.hrtmsbe.entity.Jockey;
-import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
-import com.swp.hrtms.hrtmsbe.entity.Notification;
-import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
-import com.swp.hrtms.hrtmsbe.entity.User;
-import com.swp.hrtms.hrtmsbe.entity.UserRole;
-import com.swp.hrtms.hrtmsbe.repository.AdminRepository;
-import com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository;
-import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
-import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
-import com.swp.hrtms.hrtmsbe.repository.UserRepository;
+import com.swp.hrtms.hrtmsbe.entity.*;
+import com.swp.hrtms.hrtmsbe.repository.*;
 import com.swp.hrtms.hrtmsbe.service.VerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.swp.hrtms.hrtmsbe.repository.JockeyRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -120,12 +105,12 @@ public class VerificationServiceImpl implements VerificationService {
         @Transactional
         public List<JockeyCert> acceptJockeyCertificates(Integer jockeyId, Integer adminId) {
                 // 1. Fetch pending certificates and update status
-                List<com.swp.hrtms.hrtmsbe.entity.JockeyCert> certs = jockeyCertRepository
+                List<JockeyCert> certs = jockeyCertRepository
                                 .findPendingCertificatesByJockeyId(jockeyId);
                 if (certs.isEmpty()) {
                         throw new RuntimeException("No pending certificates found for the given jockey.");
                 }
-                for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : certs) {
+                for (JockeyCert cert : certs) {
                         // BR_new_FastTrack (Tiền đề): Cấp trạng thái 'VERIFIED' (đã kiểm duyệt chứng
                         // chỉ)
                         // để nài ngựa đủ điều kiện tham gia luồng "Cập nhật siêu tốc" sau này.
@@ -134,7 +119,7 @@ public class VerificationServiceImpl implements VerificationService {
                         // khai
                         cert.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.VERIFIED);
                 }
-                certs = jockeyCertRepository.saveAll(certs);
+                certs = jockeyCertRepository.saveAll(certs);// luu duoc "Dong Y"
 
                 // 2. Mark original notification as 'Accept'
                 notificationRecipientRepository.markVerificationRequestAsAccepted(adminId, jockeyId);
@@ -146,12 +131,12 @@ public class VerificationServiceImpl implements VerificationService {
                 notificationRepository.updateTypeToDoneVerify(jockeyId);
 
                 // 3. Send acceptance notification to the jockey
-                com.swp.hrtms.hrtmsbe.entity.User admin = userRepository.findById(adminId)
+                User admin = userRepository.findById(adminId)
                                 .orElseThrow(() -> new RuntimeException("Admin not found"));
-                com.swp.hrtms.hrtmsbe.entity.User jockey = userRepository.findById(jockeyId)
+                User jockey = userRepository.findById(jockeyId)
                                 .orElseThrow(() -> new RuntimeException("Jockey not found"));
 
-                com.swp.hrtms.hrtmsbe.entity.Notification notification = com.swp.hrtms.hrtmsbe.entity.Notification
+                Notification notification = Notification
                                 .builder()
                                 .sender(admin)
                                 .title("Certificate Verified")
@@ -161,7 +146,7 @@ public class VerificationServiceImpl implements VerificationService {
                                 .build();
                 notification = notificationRepository.save(notification);
 
-                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                NotificationRecipient recipient = NotificationRecipient
                                 .builder()
                                 .notification(notification)
                                 .recipient(jockey)
@@ -176,16 +161,16 @@ public class VerificationServiceImpl implements VerificationService {
         @Transactional
         public List<JockeyCert> rejectJockeyCertificates(Integer jockeyId, Integer adminId, String reason) {
                 // 1. Fetch pending certificates and update status
-                List<com.swp.hrtms.hrtmsbe.entity.JockeyCert> certs = jockeyCertRepository
+                List<JockeyCert> certs = jockeyCertRepository
                                 .findPendingCertificatesByJockeyId(jockeyId);
                 if (certs.isEmpty()) {
                         throw new RuntimeException("No pending certificates found for the given jockey.");
                 }
-                for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : certs) {
+                for (JockeyCert cert : certs) {
                         // khai
                         cert.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.REJECTED);
                 }
-                certs = jockeyCertRepository.saveAll(certs);
+                certs = jockeyCertRepository.saveAll(certs);//luu bi "Tu Choi"
 
                 // 2. Mark original notification as 'Reject'
                 notificationRecipientRepository.markVerificationRequestAsRejected(adminId, jockeyId);
@@ -197,12 +182,12 @@ public class VerificationServiceImpl implements VerificationService {
                 notificationRepository.updateTypeToDoneVerify(jockeyId);
 
                 // 3. Send rejection notification to the jockey
-                com.swp.hrtms.hrtmsbe.entity.User admin = userRepository.findById(adminId)
+                User admin = userRepository.findById(adminId)
                                 .orElseThrow(() -> new RuntimeException("Admin not found"));
-                com.swp.hrtms.hrtmsbe.entity.User jockey = userRepository.findById(jockeyId)
+                User jockey = userRepository.findById(jockeyId)
                                 .orElseThrow(() -> new RuntimeException("Jockey not found"));
 
-                com.swp.hrtms.hrtmsbe.entity.Notification notification = com.swp.hrtms.hrtmsbe.entity.Notification
+                Notification notification = Notification
                                 .builder()
                                 .sender(admin)
                                 .title("Certificate Verification Rejected")
@@ -212,7 +197,7 @@ public class VerificationServiceImpl implements VerificationService {
                                 .build();
                 notification = notificationRepository.save(notification);
 
-                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                NotificationRecipient recipient = NotificationRecipient
                                 .builder()
                                 .notification(notification)
                                 .recipient(jockey)

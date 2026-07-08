@@ -1,10 +1,8 @@
 package com.swp.hrtms.hrtmsbe.service;
 
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.RaceBatchCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.RaceResponse;
-import com.swp.hrtms.hrtmsbe.dto.response.SingleRaceCreateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse;
 import com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest;
 
@@ -28,6 +26,3 @@ public interface RaceService {
     RaceResponse disqualifyHorse(Integer raceId, Integer horseId, String reason);
     RaceResponse startRace(Integer raceId);
 }
-
-
-

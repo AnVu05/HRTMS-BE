@@ -1,14 +1,12 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-// Khải: DTO trả dữ liệu profile của chủ ngựa cho frontend, không trả password.
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

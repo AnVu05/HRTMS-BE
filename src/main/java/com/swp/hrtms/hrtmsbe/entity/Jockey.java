@@ -1,14 +1,9 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 

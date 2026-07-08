@@ -1,7 +1,6 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -9,11 +8,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-//Khai
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-//Khai: Dedicated response for POST /api/v1/races.
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -1,14 +1,11 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Khai: Response DTO for a jockey to view a certificate and its current verification status.
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

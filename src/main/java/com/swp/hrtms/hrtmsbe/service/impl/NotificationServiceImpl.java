@@ -1,7 +1,5 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.response.NotificationResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.RefereeInvitationResponse;
 import com.swp.hrtms.hrtmsbe.dto.request.RespondInvitationRequest;
@@ -495,5 +493,34 @@ public class NotificationServiceImpl implements NotificationService {
             notificationRecipientRepository.save(nr);
             raceRepository.save(race);
         }
+}   
+
+        @Override
+    @Transactional(readOnly = true)
+    public List<NotificationResponse> getJockeyNotifications(Integer jockeyId) {
+        if (!jockeyRepository.existsById(jockeyId)) {
+            throw new ResourceNotFoundException("Jockey not found with id: " + jockeyId);
+        }
+
+        return notificationRecipientRepository
+                .findByRecipient_IdOrderByNotification_CreatedAtDesc(jockeyId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<NotificationResponse> getRefereeNotifications(Integer refereeId) {
+        if (!refereeRepository.existsById(refereeId)) {
+            throw new ResourceNotFoundException("Referee not found with id: " + refereeId);
+        }
+
+        return notificationRecipientRepository
+                .findByRecipient_IdOrderByNotification_CreatedAtDesc(refereeId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 }
+

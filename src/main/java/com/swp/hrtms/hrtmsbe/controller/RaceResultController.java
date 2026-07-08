@@ -1,7 +1,5 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.RaceResultRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.RaceResultResponse;
 import com.swp.hrtms.hrtmsbe.service.RaceResultService;

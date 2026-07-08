@@ -1,13 +1,12 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertRequest;
+import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertResponse;
 import com.swp.hrtms.hrtmsbe.service.JockeyCertService;
-import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController

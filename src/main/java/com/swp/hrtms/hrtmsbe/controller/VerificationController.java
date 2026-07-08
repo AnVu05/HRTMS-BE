@@ -29,6 +29,7 @@ public class VerificationController {
         return ResponseEntity.ok(ApiResponse.success(responses, "Fetched verification requests successfully"));
     }
 
+    //Lay toan bo cert dang PENDING tuog ung voi jockeyId (Thien)
     @GetMapping("/jockey-certs/{jockeyId}/images")
     public ResponseEntity<ApiResponse<List<JockeyCert>>> getPendingCertImages(
             @PathVariable("jockeyId") Integer jockeyId) {
@@ -68,7 +69,7 @@ public class VerificationController {
     public ResponseEntity<ApiResponse<List<JockeyCert>>> rejectJockeyCertificates(
             @PathVariable("jockeyId") Integer jockeyId,
             @RequestParam("adminId") Integer adminId,
-            @org.springframework.web.bind.annotation.RequestBody com.swp.hrtms.hrtmsbe.dto.request.RejectVerificationRequest request) {
+            @RequestBody com.swp.hrtms.hrtmsbe.dto.request.RejectVerificationRequest request) {
 
         List<JockeyCert> certs = verificationService.rejectJockeyCertificates(jockeyId, adminId, request.getReason());
         return ResponseEntity.ok(ApiResponse.success(certs, "Certificates rejected successfully"));

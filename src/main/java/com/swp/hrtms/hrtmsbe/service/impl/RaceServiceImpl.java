@@ -40,6 +40,9 @@ import java.util.ArrayList;
 
 import java.util.List;
 
+//Khai
+//Khai
+
 @Service
 @RequiredArgsConstructor
 public class RaceServiceImpl implements RaceService {
@@ -336,6 +339,34 @@ public class RaceServiceImpl implements RaceService {
             race.setTournament(tournament);
         }
 
+        if (oldStatus == com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED
+                || race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED) {
+            if (race.getStartTime() != null && race.getEndTime() != null
+                    && !race.getStartTime().isBefore(race.getEndTime())) {
+                throw new IllegalArgumentException("Start time must be before end time.");
+            }
+
+            if (race.getDistanceM() != null && race.getDistanceM() <= 0) {
+                throw new IllegalArgumentException("Distance must be greater than 0 meters.");
+            }
+
+            if (race.getTournament() != null && race.getDate() != null && race.getStartTime() != null
+                    && race.getEndTime() != null
+                    && raceRepository.existsOverlappingInTournamentExcludingRace(
+                            race.getTournament().getId(), race.getId(), race.getDate(), race.getStartTime(),
+                            race.getEndTime())) {
+                throw new IllegalArgumentException("Updated race time overlaps with another race in the tournament.");
+            }
+
+            if (race.getReferee() != null && race.getDate() != null && race.getStartTime() != null
+                    && race.getEndTime() != null
+                    && raceRepository.existsOverlappingForRefereeExcludingRace(
+                            race.getReferee().getId(), race.getId(), race.getDate(), race.getStartTime(),
+                            race.getEndTime())) {
+                throw new IllegalArgumentException("Referee is already assigned to another overlapping race.");
+            }
+        }
+
         race = raceRepository.save(race);
 
         if (refereeChanged) {
@@ -424,6 +455,12 @@ public class RaceServiceImpl implements RaceService {
         raceRepository.save(race);
 
         processRefunds(raceId);
+
+        sendRaceNotification(
+                race,
+                com.swp.hrtms.hrtmsbe.enums.NotificationType.RACE_CANCELLED,
+                "Race Cancelled: " + race.getName(),
+                "The race '" + race.getName() + "' has been cancelled. Reason: " + request.getReason());
 
         return "Race has been successfully cancelled.";
     }
@@ -616,6 +653,15 @@ public class RaceServiceImpl implements RaceService {
 
         raceRepository.save(race);
 
+        // code moi (06/07)
+        // Gửi thông báo đến những người dùng liên quan
+        sendRaceNotification(
+                race,
+                com.swp.hrtms.hrtmsbe.enums.NotificationType.RACE_UPDATE,
+                "Race Schedule Updated: " + race.getName(),
+                "The schedule for race '" + race.getName() + "' has been updated. New time: " + request.getDate() + " "
+                        + request.getStartTime() + " - " + request.getEndTime());
+
         return "Race time has been successfully updated.";
     }
 
@@ -795,6 +841,57 @@ public class RaceServiceImpl implements RaceService {
         }
 
         return mapToRaceResponse(race);
+    }
+
+    private void sendRaceNotification(Race race, com.swp.hrtms.hrtmsbe.enums.NotificationType type, String title,
+            String content) {
+        java.util.Set<User> recipientsSet = new java.util.HashSet<>();
+
+        List<Prediction> predictions = predictionRepository.findByRace_Id(race.getId());
+        for (Prediction prediction : predictions) {
+            if (prediction.getSpectator() != null) {
+                recipientsSet.add(prediction.getSpectator());
+            }
+        }
+
+        List<RegistrationForm> forms = registrationFormRepository.findByRace_Id(race.getId());
+        for (RegistrationForm form : forms) {
+            if (form.getOwner() != null && form.getOwner().getUser() != null) {
+                recipientsSet.add(form.getOwner().getUser());
+            }
+            if (form.getJockey() != null) {
+                recipientsSet.add(form.getJockey());
+            }
+        }
+
+        if (race.getReferee() != null) {
+            recipientsSet.add(race.getReferee());
+        }
+
+        if (recipientsSet.isEmpty()) {
+            return;
+        }
+
+        Notification notification = Notification.builder()
+                .sender(null)
+                .title(title)
+                .content(content)
+                .type(type)
+                .race(race)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notification = notificationRepository.save(notification);
+
+        List<NotificationRecipient> recipients = new ArrayList<>();
+        for (User recipientUser : recipientsSet) {
+            NotificationRecipient recipient = NotificationRecipient.builder()
+                    .notification(notification)
+                    .recipient(recipientUser)
+                    .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                    .build();
+            recipients.add(recipient);
+        }
+        notificationRecipientRepository.saveAll(recipients);
     }
 
 }

@@ -1,6 +1,5 @@
 package com.swp.hrtms.hrtmsbe.mock;
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.entity.Admin;
 import com.swp.hrtms.hrtmsbe.entity.Doctor;
 import com.swp.hrtms.hrtmsbe.entity.HealthCheck;
@@ -41,10 +40,12 @@ import com.swp.hrtms.hrtmsbe.repository.WalletRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Component
@@ -55,6 +56,7 @@ public class MockData {
             AdminRepository adminRepository,
             UserRepository userRepository,
             HorseOwnerRepository horseOwnerRepository,
+            DoctorRepository doctorRepository,
             HorseRepository horseRepository,
             JockeyRepository jockeyRepository,
             RefereeRepository refereeRepository,

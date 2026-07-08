@@ -1,7 +1,5 @@
 package com.swp.hrtms.hrtmsbe.service;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCancelRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ActiveTournamentResponse;
@@ -25,5 +23,3 @@ public interface TournamentService {
 
     void updateTournamentStatuses();
 }
-
-

@@ -1,9 +1,13 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.*;
 import lombok.*;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "raceresults")
@@ -31,6 +35,7 @@ public class RaceResult {
     @Column(name = "photo_finish_image", columnDefinition = "TEXT")
     private String photoFinishImage;
 }
+
 
 
 

@@ -1,7 +1,6 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;

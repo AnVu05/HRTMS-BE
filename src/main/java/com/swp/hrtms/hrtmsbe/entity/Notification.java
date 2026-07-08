@@ -1,7 +1,6 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,7 +35,6 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     @Builder.Default
-    //khai
     private com.swp.hrtms.hrtmsbe.enums.NotificationType type = com.swp.hrtms.hrtmsbe.enums.NotificationType.VERIFI_CERTIFICATE;
 
     @ManyToOne(fetch = FetchType.LAZY)

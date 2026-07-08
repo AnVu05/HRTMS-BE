@@ -3,8 +3,7 @@ package com.swp.hrtms.hrtmsbe.service;
 
 // Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertCreateRequest;
-import com.swp.hrtms.hrtmsbe.dto.response.JockeyVerificationRequestResponse;
-import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse;
+import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 
 import java.util.List;
 

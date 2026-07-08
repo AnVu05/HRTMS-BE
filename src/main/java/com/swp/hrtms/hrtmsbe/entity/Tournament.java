@@ -1,7 +1,6 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,7 +38,6 @@ public class Tournament {
     @Column(name = "end_date")
     private LocalDate endDate;
 
-    // Khai: Dates displayed on the Create New Tournament form.
     @Column(name = "published_date")
     private LocalDate publishedDate;
 
@@ -49,7 +47,6 @@ public class Tournament {
     @Column(name = "close_prediction_date")
     private LocalDate closePredictionDate;
 
-    //khai
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status = com.swp.hrtms.hrtmsbe.enums.TournamentStatus.DRAFT;

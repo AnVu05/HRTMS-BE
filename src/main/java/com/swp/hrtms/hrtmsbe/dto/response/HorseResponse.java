@@ -1,7 +1,6 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.entity.HorseStatus;
 
 import lombok.AllArgsConstructor;
