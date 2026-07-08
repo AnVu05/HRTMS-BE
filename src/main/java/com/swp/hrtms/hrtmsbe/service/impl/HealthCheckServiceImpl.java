@@ -2,9 +2,13 @@ package com.swp.hrtms.hrtmsbe.service.impl;
 
 // Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.entity.HealthCheck;
+import com.swp.hrtms.hrtmsbe.entity.RacePlacement;
+import com.swp.hrtms.hrtmsbe.entity.RaceResult;
 import com.swp.hrtms.hrtmsbe.entity.RegistrationForm;
 import com.swp.hrtms.hrtmsbe.entity.Race;
 import com.swp.hrtms.hrtmsbe.repository.HealthCheckRepository;
+import com.swp.hrtms.hrtmsbe.repository.RacePlacementRepository;
+import com.swp.hrtms.hrtmsbe.repository.RaceResultRepository;
 import com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository;
 import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
 import com.swp.hrtms.hrtmsbe.repository.DoctorRepository;
@@ -16,6 +20,7 @@ import com.swp.hrtms.hrtmsbe.dto.request.HealthCheckCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.HealthCheckResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.health.contributor.Health;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDateTime;
@@ -28,6 +33,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     private final HealthCheckRepository healthCheckRepository;
     private final RegistrationFormRepository registrationFormRepository;
     private final RaceRepository raceRepository;
+    private final RaceResultRepository raceResultRepository;
+    private final RacePlacementRepository racePlacementRepository;
     private final RaceService raceService;
     private final DoctorRepository doctorRepository;
     private final com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository;
@@ -37,6 +44,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     public HealthCheckServiceImpl(HealthCheckRepository healthCheckRepository,
             RegistrationFormRepository registrationFormRepository,
             RaceRepository raceRepository,
+            RaceResultRepository raceResultRepository,
+            RacePlacementRepository racePlacementRepository,
             RaceService raceService,
             DoctorRepository doctorRepository,
             com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository,
@@ -45,6 +54,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         this.healthCheckRepository = healthCheckRepository;
         this.registrationFormRepository = registrationFormRepository;
         this.raceRepository = raceRepository;
+        this.raceResultRepository = raceResultRepository;
+        this.racePlacementRepository = racePlacementRepository;
         this.raceService = raceService;
         this.doctorRepository = doctorRepository;
         this.userRepository = userRepository;
@@ -70,11 +81,11 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         // BR_12: Pre-match medical check-up no later than 24h before
         // Temporarily disabled for Swagger testing with manually entered checkDate.
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
-        if (now.isAfter(raceStartDateTime.minusHours(24))) {
-            throw new IllegalArgumentException(
-                    "Health checks must be updated no later than 24 hours before the race begins.");
-        }
+        // LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
+        // if (now.isAfter(raceStartDateTime.minusHours(24))) {
+        //     throw new IllegalArgumentException(
+        //             "Health checks must be updated no later than 24 hours before the race begins.");
+        // }
 
         HealthCheckStatus status = resolveCreateStatus(request);
 
@@ -101,11 +112,12 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             registrationFormRepository.save(form);
 
             sendHealthCheckFailedToOwner(form, request.getDoctorId());
-            walkOverRaceIfInsufficientRemainingHorses(race);
+            evaluateRaceAfterHealthCheckReject(race);
         } else if (HealthCheckStatus.ACCEPT.equals(status)) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING);
             registrationFormRepository.save(form);
             sendReadyRacingToOwner(form, request.getDoctorId());
+            finalizeWalkOverIfRemainingHorsePassed(race, form);
         } else if (HealthCheckStatus.PENDING_DOCTOR.equals(status)) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.HEALTH_CHECKING);
             registrationFormRepository.save(form);
@@ -161,11 +173,11 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         // BR_12
         // Temporarily disabled for Swagger testing with manually entered checkDate.
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
-        if (now.isAfter(raceStartDateTime.minusHours(24))) {
-            throw new IllegalArgumentException(
-                    "Health checks must be updated no later than 24 hours before the race begins.");
-        }
+        // LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
+        // if (now.isAfter(raceStartDateTime.minusHours(24))) {
+        //     throw new IllegalArgumentException(
+        //             "Health checks must be updated no later than 24 hours before the race begins.");
+        // }
 
         if ("DECLINE_INVITATION".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
             check.setDoctor(null);
@@ -302,7 +314,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             }
 
             if (race != null) {
-                walkOverRaceIfInsufficientRemainingHorses(race);
+                evaluateRaceAfterHealthCheckReject(race);
             }
         } else if ("ACCEPT".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING);
@@ -329,6 +341,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                         .build();
                 notificationRecipientRepository.save(rec);
             }
+            finalizeWalkOverIfRemainingHorsePassed(race, form);
         } else if (HealthCheckStatus.PENDING_DOCTOR.equals(request.getStatus())
                 || HealthCheckStatus.DOCTOR_INVITED.equals(request.getStatus())) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.HEALTH_CHECKING);
@@ -356,6 +369,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
     @Scheduled(fixedRate = 3600000) // run every hour
     @Transactional
+     //Health check quá hạn doctor không phản hồi
     public void rejectExpiredPendingDoctorForms() {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(24);
         List<HealthCheck> expiredChecks = healthCheckRepository.findByStatusAndCheckDateBefore(
@@ -514,23 +528,87 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         notificationRecipientRepository.save(rec);
     }
 
-    private void walkOverRaceIfInsufficientRemainingHorses(Race race) {
+    // Evaluates race eligibility after a health-check reject and marks WALK_OVER or CANCELLED without creating results early.
+    private void evaluateRaceAfterHealthCheckReject(Race race) {
         if (race == null || race.getId() == null) {
             return;
         }
-        if (race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.WALK_OVER
-                || race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.CANCELLED
+        if (race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.CANCELLED
                 || race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.DELETE) {
             return;
         }
 
-        long remainingForms = registrationFormRepository.findByRace_Id(race.getId()).stream()
+        List<RegistrationForm> eligibleForms = getEligibleForms(race);
+        if (eligibleForms.size() == 1) {
+            raceService.walkOverRace(race.getId());
+            finalizeWalkOverIfRemainingHorsePassed(race, eligibleForms.get(0));
+        } else if (eligibleForms.isEmpty()) {
+            race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.CANCELLED);
+            race.setReason("Race cancelled because all horses failed health check.");
+            race.setCanceledAt(LocalDateTime.now());
+            raceRepository.save(race);
+        }
+    }
+
+    // Finalizes a walk-over only after the last eligible horse has passed health check.
+    private void finalizeWalkOverIfRemainingHorsePassed(Race race, RegistrationForm acceptedForm) {
+        if (race == null || race.getId() == null || acceptedForm == null || acceptedForm.getId() == null) {
+            return;
+        }
+        if (race.getStatus() != com.swp.hrtms.hrtmsbe.enums.RaceStatus.WALK_OVER) {
+            return;
+        }
+
+        List<RegistrationForm> eligibleForms = getEligibleForms(race);
+        if (eligibleForms.size() != 1 || !eligibleForms.get(0).getId().equals(acceptedForm.getId())) {
+            return;
+        }
+        if (acceptedForm.getStatus() != com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING) {
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        RaceResult result = raceResultRepository.findByRace_Id(race.getId()).orElse(null);
+        if (result == null) {
+            result = RaceResult.builder()
+                    .race(race)
+                    .referee(race.getReferee())
+                    .status(com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL)
+                    .createdAt(now)
+                    .photoFinishImage("WALK_OVER")
+                    .build();
+        } else {
+            result.setReferee(race.getReferee());
+            result.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL);
+            result.setPhotoFinishImage("WALK_OVER");
+            if (result.getCreatedAt() == null) {
+                result.setCreatedAt(now);
+            }
+        }
+        result = raceResultRepository.save(result);
+
+        boolean placementExists = racePlacementRepository.findByRaceResult_Id(result.getId()).stream()
+                .anyMatch(placement -> placement.getRegistrationForm() != null
+                        && placement.getRegistrationForm().getId().equals(acceptedForm.getId()));
+        if (!placementExists) {
+            racePlacementRepository.save(RacePlacement.builder()
+                    .raceResult(result)
+                    .registrationForm(acceptedForm)
+                    .finishPosition(1)
+                    .finishTime(now)
+                    .build());
+        }
+
+        acceptedForm.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE);
+        registrationFormRepository.save(acceptedForm);
+    }
+
+    // Returns forms that are still eligible to keep a race alive after health checks.
+    private List<RegistrationForm> getEligibleForms(Race race) {
+        return registrationFormRepository.findByRace_Id(race.getId()).stream()
                 .filter(form -> form.getStatus() != com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED)
                 .filter(form -> form.getStatus() != com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE)
-                .count();
-        if (remainingForms == 1) {
-            raceService.walkOverRace(race.getId());
-        }
+                .toList();
     }
 
 }

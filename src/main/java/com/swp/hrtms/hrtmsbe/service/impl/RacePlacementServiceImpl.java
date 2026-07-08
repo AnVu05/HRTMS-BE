@@ -109,7 +109,7 @@ public class RacePlacementServiceImpl implements RacePlacementService {
     public RacePlacementResponse update(Integer id, RacePlacementRequest request) {
         RacePlacement placement = racePlacementRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("RacePlacement not found with id: " + id));
-        // Partial update — chỉ set nếu request không null
+        // Partial update: only set fields that are present in the request.
         if (request.getRaceResultId() != null
                 && (placement.getRaceResult() == null
                         || !request.getRaceResultId().equals(placement.getRaceResult().getId()))) {
@@ -136,7 +136,7 @@ public class RacePlacementServiceImpl implements RacePlacementService {
     @Override
     @Transactional
     public void delete(Integer id) {
-        // RacePlacement không có status field → hard delete
+        // RacePlacement has no status field, so delete is a hard delete.
         if (!racePlacementRepository.existsById(id)) {
             throw new ResourceNotFoundException("RacePlacement not found with id: " + id);
         }
@@ -181,6 +181,7 @@ public class RacePlacementServiceImpl implements RacePlacementService {
         if (race == null) {
             throw new IllegalArgumentException("RaceResult must belong to a race.");
         }
+        validateRaceAcceptsManualPlacement(race);
         if (race.getDate() == null || race.getStartTime() == null) {
             throw new IllegalArgumentException("Race date and start time are required to validate finish time.");
         }
@@ -202,6 +203,17 @@ public class RacePlacementServiceImpl implements RacePlacementService {
             if (placement.getFinishPosition().equals(existing.getFinishPosition())) {
                 continue;
             }
+        }
+    }
+
+    // Blocks manual placement entry for races closed by health-check cancellation or automatic walk-over.
+    private void validateRaceAcceptsManualPlacement(Race race) {
+        if (race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.CANCELLED) {
+            throw new IllegalArgumentException("Race placement cannot be created for a cancelled race.");
+        }
+        if (race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.WALK_OVER) {
+            throw new IllegalArgumentException(
+                    "Race placement cannot be created manually for a walk-over race.");
         }
     }
 

@@ -92,6 +92,7 @@ public class RaceResultServiceImpl implements RaceResultService {
                 .createdAt(request.getCreatedAt() != null ? request.getCreatedAt() : LocalDateTime.now())
                 .photoFinishImage(request.getPhotoFinishImage())
                 .build();
+        validateRaceAcceptsManualResult(result.getRace());
         
         result = raceResultRepository.save(result);
 
@@ -124,6 +125,7 @@ public class RaceResultServiceImpl implements RaceResultService {
         if (request.getRaceId() != null) {
             result.setRace(findRaceOrNull(request.getRaceId()));
         }
+        validateRaceAcceptsManualResult(result.getRace());
         if (request.getRefereeId() != null) {
             result.setReferee(findRefereeOrNull(request.getRefereeId()));
         }
@@ -255,6 +257,20 @@ public class RaceResultServiceImpl implements RaceResultService {
         if (status == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL
                 && (photoFinishImage == null || photoFinishImage.isBlank())) {
             throw new IllegalArgumentException("Photo-finish image is required before marking race result as official.");
+        }
+    }
+
+    // Prevents referee-entered results for races that are closed by health-check walk-over or cancellation.
+    private void validateRaceAcceptsManualResult(Race race) {
+        if (race == null || race.getStatus() == null) {
+            return;
+        }
+        if (race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.CANCELLED) {
+            throw new IllegalArgumentException("Race result cannot be created for a cancelled race.");
+        }
+        if (race.getStatus() == com.swp.hrtms.hrtmsbe.enums.RaceStatus.WALK_OVER) {
+            throw new IllegalArgumentException(
+                    "Race result cannot be entered manually for a walk-over race. It is finalized automatically after the remaining horse passes health check.");
         }
     }
 

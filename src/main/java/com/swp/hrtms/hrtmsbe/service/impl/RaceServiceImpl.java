@@ -1,6 +1,5 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.RaceBatchCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.RaceCreateRequest;
 //Khai
@@ -39,9 +38,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import java.util.List;
-
-//Khai
-//Khai
 
 @Service
 @RequiredArgsConstructor
@@ -489,48 +485,12 @@ public class RaceServiceImpl implements RaceService {
             throw new IllegalArgumentException("Walk over requires exactly one eligible horse.");
         }
 
-        RegistrationForm winnerForm = eligibleForms.get(0);
-        LocalDateTime now = LocalDateTime.now();
-
+        // Marks the race as walk-over while health check waits for the remaining horse's final result.
         race.setStatus(RaceStatus.WALK_OVER);
         race.setReason("There is currently only one horse competing");
         raceRepository.save(race);
 
-        RaceResult result = raceResultRepository.findByRace_Id(raceId).orElse(null);
-        if (result == null) {
-            result = RaceResult.builder()
-                    .race(race)
-                    .referee(race.getReferee())
-                    .status(com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL)
-                    .createdAt(now)
-                    .photoFinishImage("WALK_OVER")
-                    .build();
-        } else {
-            result.setReferee(race.getReferee());
-            result.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL);
-            result.setPhotoFinishImage("WALK_OVER");
-            if (result.getCreatedAt() == null) {
-                result.setCreatedAt(now);
-            }
-        }
-        result = raceResultRepository.save(result);
-
-        boolean winnerPlacementExists = racePlacementRepository.findByRaceResult_Id(result.getId()).stream()
-                .anyMatch(placement -> placement.getRegistrationForm() != null
-                        && placement.getRegistrationForm().getId().equals(winnerForm.getId()));
-        if (!winnerPlacementExists) {
-            racePlacementRepository.save(RacePlacement.builder()
-                    .raceResult(result)
-                    .registrationForm(winnerForm)
-                    .finishPosition(1)
-                    .finishTime(now)
-                    .build());
-        }
-
-        winnerForm.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE);
-        registrationFormRepository.save(winnerForm);
-
-        return "Race has been successfully converted to WALK_OVER.";
+        return "Race has been marked as WALK_OVER and will be finalized after the remaining horse passes health check.";
     }
 
     private void processRefunds(Integer raceId) {
