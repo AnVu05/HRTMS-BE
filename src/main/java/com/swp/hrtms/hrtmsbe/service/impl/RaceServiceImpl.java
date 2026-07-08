@@ -703,6 +703,7 @@ public class RaceServiceImpl implements RaceService {
         notificationRepository.save(notification);
 
         // Khởi tạo thực thể NotificationRecipient để liên kết thông báo với Trọng tài
+        //
         // nhận
         NotificationRecipient recipient = NotificationRecipient.builder()
                 .notification(notification)
