@@ -25,6 +25,15 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<JockeyProfileResponse> getAllJockeys() {
+        return jockeyRepository.findByStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public JockeyProfileResponse getProfile(Integer jockeyId) {
         Jockey jockey = findJockeyById(jockeyId);
         return toResponse(jockey);

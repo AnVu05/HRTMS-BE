@@ -42,8 +42,9 @@ public class NotificationController {
                                 "Fetched doctor invitations successfully"));
         }
 
-        //Lay tat ca cac th.bao (theo nhieu loai) cua Admin (voi ID) - s.dung co che phan PAGE cua Spring
-        //Vi th.bao danh cho ADMIN co k.nang se nhieu nen can phan trang
+        // Lay tat ca cac th.bao (theo nhieu loai) cua Admin (voi ID) - s.dung co che
+        // phan PAGE cua Spring
+        // Vi th.bao danh cho ADMIN co k.nang se nhieu nen can phan trang
         @GetMapping("/admin/{adminId}")
         public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAdminNotifications(
                         @PathVariable Integer adminId,
@@ -126,9 +127,12 @@ public class NotificationController {
 
         // Lay tat ca th.bao cho Jockey voi jockeyId tuong ung
         @GetMapping("/jockeys/{jockeyId}")
-        public ResponseEntity<ApiResponse<List<NotificationResponse>>> getJockeyNotifications(
-                        @PathVariable Integer jockeyId) {
-                List<NotificationResponse> notifications = notificationService.getJockeyNotifications(jockeyId);
+        public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getJockeyNotifications(
+                        @PathVariable Integer jockeyId,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "5") int size) {
+                Page<NotificationResponse> notifications = notificationService.getJockeyNotifications(jockeyId, page,
+                                size);
                 return ResponseEntity.ok(ApiResponse.success(
                                 notifications,
                                 "Fetched jockey notifications successfully"));

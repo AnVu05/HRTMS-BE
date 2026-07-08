@@ -16,7 +16,9 @@ public interface NotificationService {
     List<NotificationResponse> markAllAdminNotificationsAsRead(Integer adminId);
 
     List<NotificationResponse> markNotificationsAsReadByRecipient(Integer recipientId);
+
     List<NotificationResponse> getDoctorInvitations(Integer doctorId);
+
     List<HorseOwnerNotificationResponse> getHorseOwnerNotifications(Integer ownerId);
 
     List<RefereeInvitationResponse> getPendingRefereeInvitations(Integer refereeId);
@@ -29,4 +31,6 @@ public interface NotificationService {
     List<NotificationResponse> getRefereeNotifications(Integer refereeId);
 
     Page<NotificationResponse> getSpectatorNotifications(Integer spectatorId, int page, int size);
+
+    List<NotificationResponse> getJockeyNotifications(Integer jockeyId);
 }

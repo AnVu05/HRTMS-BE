@@ -10,6 +10,8 @@ import java.util.List;
 
 public interface JockeyProfileService {
 
+    List<JockeyProfileResponse> getAllJockeys();
+
     JockeyProfileResponse getProfile(Integer jockeyId);
 
     JockeyProfileResponse updateProfile(Integer jockeyId, JockeyProfileUpdateRequest request);

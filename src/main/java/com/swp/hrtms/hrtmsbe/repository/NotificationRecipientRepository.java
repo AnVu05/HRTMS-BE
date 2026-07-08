@@ -1,6 +1,5 @@
 package com.swp.hrtms.hrtmsbe.repository;
 
-
 // Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
 import com.swp.hrtms.hrtmsbe.enums.NotificationType;
@@ -25,34 +24,13 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
       Integer recipientId,
       Collection<com.swp.hrtms.hrtmsbe.enums.NotificationType> types);
 
-        List<NotificationRecipient> findByRecipient_IdAndNotification_TypeOrderByNotification_CreatedAtDesc(
-                        Integer recipientId,
-                        com.swp.hrtms.hrtmsbe.enums.NotificationType type);
+  List<NotificationRecipient> findByRecipient_IdAndNotification_TypeOrderByNotification_CreatedAtDesc(
+      Integer recipientId,
+      com.swp.hrtms.hrtmsbe.enums.NotificationType type);
 
-        //khai
-        @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :recipientId AND nr.status = 'UNREAD' AND nr.notification.type = 'VERIFI_CERTIFICATE'")
-        List<NotificationRecipient> findPendingVerificationRequests(@Param("recipientId") Integer recipientId);
-
-        @org.springframework.data.jpa.repository.Modifying
-        //khai
-        @Query("UPDATE NotificationRecipient nr SET nr.status = 'READ' WHERE nr.recipient.id = :adminId AND nr.status = 'UNREAD' AND nr.notification.type = 'VERIFI_CERTIFICATE' AND nr.notification.sender.id = :jockeyId")
-        void markVerificationRequestAsAccepted(@Param("adminId") Integer adminId, @Param("jockeyId") Integer jockeyId);
-
-        @org.springframework.data.jpa.repository.Modifying
-        //khai
-        @Query("UPDATE NotificationRecipient nr SET nr.status = 'READ' WHERE nr.recipient.id = :adminId AND nr.status = 'UNREAD' AND nr.notification.type = 'VERIFI_CERTIFICATE' AND nr.notification.sender.id = :jockeyId")
-        void markVerificationRequestAsRejected(@Param("adminId") Integer adminId, @Param("jockeyId") Integer jockeyId);
-
-        @org.springframework.data.jpa.repository.Modifying
-        //khai
-        @Query("UPDATE NotificationRecipient nr SET nr.status = 'READ' WHERE nr.status = 'UNREAD' AND nr.notification.type = 'VERIFI_CERTIFICATE' AND nr.notification.sender.id = :jockeyId")
-        void markAllOtherVerificationRequestsAsDoneVerify(@Param("jockeyId") Integer jockeyId);
-
-        Page<NotificationRecipient> findByRecipient_IdAndNotification_TypeInOrderByNotification_CreatedAtDesc(
-                        Integer recipientId,
-                        Collection<com.swp.hrtms.hrtmsbe.enums.NotificationType> types,
-                        Pageable pageable);
-
+  // khai
+  @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :recipientId AND nr.status = 'UNREAD' AND nr.notification.type = 'VERIFI_CERTIFICATE'")
+  List<NotificationRecipient> findPendingVerificationRequests(@Param("recipientId") Integer recipientId);
 
   @Query("""
       SELECT nr
@@ -104,8 +82,18 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
   Page<NotificationRecipient> findByRecipient_IdAndNotification_TypeInAndStatusAndReadAtIsNullOrderByNotification_CreatedAtDesc(
       Integer recipientId,
       Collection<NotificationType> types,
-      String status,
+      com.swp.hrtms.hrtmsbe.enums.NotificationStatus status,
       Pageable pageable);
+
+  List<NotificationRecipient> findByRecipient_IdAndNotification_TypeInAndStatusAndReadAtIsNullOrderByNotification_CreatedAtDesc(
+      Integer recipientId,
+      Collection<NotificationType> types,
+      com.swp.hrtms.hrtmsbe.enums.NotificationStatus status);
+
+  List<NotificationRecipient> findByRecipient_IdAndNotification_TypeInAndStatusOrderByNotification_CreatedAtDesc(
+      Integer recipientId,
+      Collection<NotificationType> types,
+      com.swp.hrtms.hrtmsbe.enums.NotificationStatus status);
 
   @Query(value = """
       SELECT nr

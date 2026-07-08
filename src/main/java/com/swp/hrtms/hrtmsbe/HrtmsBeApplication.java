@@ -13,6 +13,6 @@ public class HrtmsBeApplication {
 
     public static void main(String[] args) {
         ApplicationContext context = SpringApplication.run(HrtmsBeApplication.class, args);
-        
+        System.out.println("HRTMS Backend started successfully!");
     }
 }

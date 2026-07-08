@@ -4,6 +4,8 @@ package com.swp.hrtms.hrtmsbe.controller;
 // Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertResponse;
 import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 import com.swp.hrtms.hrtmsbe.service.VerificationService;
 import lombok.RequiredArgsConstructor;
@@ -31,10 +33,10 @@ public class VerificationController {
 
     //Lay toan bo cert dang PENDING tuog ung voi jockeyId (Thien)
     @GetMapping("/jockey-certs/{jockeyId}/images")
-    public ResponseEntity<ApiResponse<List<JockeyCert>>> getPendingCertImages(
+    public ResponseEntity<ApiResponse<List<JockeyCertImageResponse>>> getPendingCertImages(
             @PathVariable("jockeyId") Integer jockeyId) {
         
-        List<JockeyCert> responses = verificationService.getPendingCertificateImages(jockeyId);
+        List<JockeyCertImageResponse> responses = verificationService.getPendingCertificateImages(jockeyId);
         return ResponseEntity.ok(ApiResponse.success(responses, "Fetched certificate images successfully"));
     }
 
