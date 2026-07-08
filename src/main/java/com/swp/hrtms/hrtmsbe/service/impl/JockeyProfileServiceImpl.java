@@ -68,7 +68,7 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
         certificate.setCertName(request.getCertName().trim());
         certificate.setCertImageBase64(request.getCertImageBase64());
         certificate.setIssuedAt(request.getIssuedAt());
-        //khai
+        // khai
         certificate.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.PENDING);
 
         return toCertificateResponse(jockeyCertRepository.save(certificate));
@@ -78,7 +78,7 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
     @Override
     @Transactional
     public void deleteCertificate(Integer jockeyId, Integer certId) {
-        //khai
+        // khai
         JockeyCert certificate = findCertificateByIdAndJockeyId(certId, jockeyId);
         jockeyCertRepository.delete(certificate);
     }
@@ -182,5 +182,3 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
                 .build();
     }
 }
-
-

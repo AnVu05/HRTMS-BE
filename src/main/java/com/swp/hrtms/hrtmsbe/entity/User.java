@@ -32,7 +32,7 @@ public class User {
     @Column(nullable = false)
     private String role; // 'ADMIN', 'SPECTATOR', 'HORSE_OWNER', 'JOCKEY', 'DOCTOR', 'REFEREE'
 
-    //khai
+    // khai
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private com.swp.hrtms.hrtmsbe.enums.UserStatus status = com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE;
@@ -40,12 +40,4 @@ public class User {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private com.swp.hrtms.hrtmsbe.enums.UserStatus status = com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE;
 }
-
-
-
-

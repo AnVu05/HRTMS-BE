@@ -52,7 +52,7 @@ public class RefundServiceImpl implements RefundService {
                 if (spectator == null)
                     continue;
 
-                Wallet wallet = walletRepository.findByUserId(spectator.getId()).orElse(null);
+                Wallet wallet = walletRepository.findByUser_Id(spectator.getId()).orElse(null);
                 if (wallet != null) {
                     // Refund points
                     wallet.setBalance(wallet.getBalance() + prediction.getPointsInvested());

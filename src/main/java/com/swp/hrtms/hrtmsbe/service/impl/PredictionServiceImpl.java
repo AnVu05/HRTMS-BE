@@ -77,7 +77,7 @@ public class PredictionServiceImpl implements PredictionService {
                 }
 
                 // BR_16: Deduct points
-                Wallet wallet = walletRepository.findByUserId(request.getSpectatorId())
+                Wallet wallet = walletRepository.findByUser_Id(request.getSpectatorId())
                                 .orElseThrow(() -> new IllegalArgumentException("Wallet not found."));
 
                 if (wallet.getBalance() < request.getPointsInvested()) {

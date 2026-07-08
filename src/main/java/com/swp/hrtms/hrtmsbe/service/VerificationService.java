@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface VerificationService {
     List<JockeyCert> getJockeyVerificationRequests(Integer recipientId);
-    List<JockeyCert> getPendingCertificateImages(Integer jockeyId);
+    List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> getPendingCertificateImages(Integer jockeyId);
 
     // Khai: Jockey certificate submission and verification-request operations.
     JockeyCert createJockeyCertificate(JockeyCertCreateRequest request);

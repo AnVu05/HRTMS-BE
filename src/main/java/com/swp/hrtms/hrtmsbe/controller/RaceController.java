@@ -24,16 +24,11 @@ public class RaceController {
     @PostMapping("/batch")
     public ResponseEntity<ApiResponse<List<RaceResponse>>> createRacesBatch(
             @RequestBody RaceBatchCreateRequest request) {
-    public ResponseEntity<ApiResponse<List<RaceResponse>>> createRacesBatch(
-            @RequestBody RaceBatchCreateRequest request) {
         List<RaceResponse> responses = raceService.createRacesBatch(request);
         return new ResponseEntity<>(ApiResponse.success(responses, "Races created successfully"), HttpStatus.CREATED);
     }
 
     @PostMapping
-    // Khai
-    public ResponseEntity<ApiResponse<RaceResponse>> createSingleRace(
-            @RequestBody com.swp.hrtms.hrtmsbe.dto.request.RaceRequest request) {
     public ResponseEntity<ApiResponse<RaceResponse>> createSingleRace(@RequestBody RaceRequest request) {
         RaceResponse response = raceService.createSingleRace(request);
         return new ResponseEntity<>(ApiResponse.success(response, "Race created successfully"), HttpStatus.CREATED);
@@ -45,17 +40,7 @@ public class RaceController {
         return ResponseEntity.ok(ApiResponse.success(responses, null));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<RaceResponse>> getRaceById(@PathVariable("id") Integer id) {
-        RaceResponse response = raceService.getRaceById(id);
-        return ResponseEntity.ok(ApiResponse.success(response, null));
-    }
-
     @GetMapping("/tournament/{tournamentId}")
-    public ResponseEntity<ApiResponse<com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse>> getRaceDetailsByTournament(
-            @PathVariable Integer tournamentId) {
-        com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse response = raceService
-                .getRaceDetailsByTournament(tournamentId);
     public ResponseEntity<ApiResponse<com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse>> getRaceDetailsByTournament(
             @PathVariable Integer tournamentId) {
         com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse response = raceService
@@ -66,7 +51,6 @@ public class RaceController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<RaceResponse>> updateRace(@PathVariable("id") Integer id,
             @RequestBody com.swp.hrtms.hrtmsbe.dto.request.RaceRequest request) {
-            @RequestBody RaceRequest request) {
         RaceResponse response = raceService.updateRace(id, request);
         return ResponseEntity.ok(ApiResponse.success(response, "Race updated successfully"));
     }
@@ -98,7 +82,6 @@ public class RaceController {
         String response = raceService.cancelRace(id, request);
         return ResponseEntity.ok(ApiResponse.success(null, response));
     }
-
 
     @PutMapping("/{id}/time")
     public ResponseEntity<ApiResponse<String>> updateRaceTime(@PathVariable("id") Integer id,

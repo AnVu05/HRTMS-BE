@@ -22,5 +22,8 @@ public class JockeyCertificateResponse {
     @JsonProperty("cert_image_base64")
     private String certImageBase64;
 
-    private String status;
+    @JsonProperty("issued_at")
+    private java.time.LocalDate issuedAt;
+
+    private com.swp.hrtms.hrtmsbe.enums.CertificateStatus status;
 }

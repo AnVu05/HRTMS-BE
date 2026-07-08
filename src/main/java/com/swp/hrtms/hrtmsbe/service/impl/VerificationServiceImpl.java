@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,27 +30,27 @@ public class VerificationServiceImpl implements VerificationService {
                 return jockeyCertRepository.findAll();
         }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> getPendingCertificateImages(
-            Integer jockeyId) {
-        List<com.swp.hrtms.hrtmsbe.entity.JockeyCert> certs = jockeyCertRepository
-                .findPendingCertificatesByJockeyId(jockeyId);
-        List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> responses = new ArrayList<>();
+        @Override
+        @Transactional(readOnly = true)
+        public List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> getPendingCertificateImages(
+                        Integer jockeyId) {
+                List<com.swp.hrtms.hrtmsbe.entity.JockeyCert> certs = jockeyCertRepository
+                                .findPendingCertificatesByJockeyId(jockeyId);
+                List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> responses = new ArrayList<>();
 
-        for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : certs) {
-            String base64Image = null;
-            if (cert.getCertImg() != null) {
-                base64Image = cert.getCertImg();
-            }
+                for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : certs) {
+                        String base64Image = null;
+                        if (cert.getCertImageBase64() != null) {
+                                base64Image = cert.getCertImageBase64();
+                        }
 
-            responses.add(com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse.builder()
-                    .certImageBase64(base64Image)
-                    .build());
+                        responses.add(com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse.builder()
+                                        .certImageBase64(base64Image)
+                                        .build());
+                }
+
+                return responses;
         }
-
-        return responses;
-    }
 
         @Override
         @Transactional
@@ -74,8 +75,8 @@ public class VerificationServiceImpl implements VerificationService {
                                 .jockey(jockey)
                                 .build();
 
-        return jockeyCertRepository.save(certificate);
-    }
+                return jockeyCertRepository.save(certificate);
+        }
 
         @Override
         @Transactional
@@ -145,11 +146,11 @@ public class VerificationServiceImpl implements VerificationService {
                 // 2.6 Update the type of the original notification
                 notificationRepository.updateTypeToDoneVerify(jockeyId);
 
-        // 3. Send acceptance notification to the jockey
-        com.swp.hrtms.hrtmsbe.entity.User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
-        com.swp.hrtms.hrtmsbe.entity.User jockey = userRepository.findById(jockeyId)
-                .orElseThrow(() -> new RuntimeException("Jockey not found"));
+                // 3. Send acceptance notification to the jockey
+                com.swp.hrtms.hrtmsbe.entity.User admin = userRepository.findById(adminId)
+                                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                com.swp.hrtms.hrtmsbe.entity.User jockey = userRepository.findById(jockeyId)
+                                .orElseThrow(() -> new RuntimeException("Jockey not found"));
 
                 Notification notification = Notification
                                 .builder()
@@ -185,7 +186,7 @@ public class VerificationServiceImpl implements VerificationService {
                         // khai
                         cert.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.REJECTED);
                 }
-                certs = jockeyCertRepository.saveAll(certs);//luu bi "Tu Choi"
+                certs = jockeyCertRepository.saveAll(certs);// luu bi "Tu Choi"
 
                 // 2. Mark original notification as 'Reject'
                 notificationRecipientRepository.markVerificationRequestAsRejected(adminId, jockeyId);

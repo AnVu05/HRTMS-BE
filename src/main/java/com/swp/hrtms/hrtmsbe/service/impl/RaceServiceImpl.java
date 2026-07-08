@@ -18,9 +18,13 @@ import com.swp.hrtms.hrtmsbe.repository.RefereeRepository;
 import com.swp.hrtms.hrtmsbe.repository.TournamentRepository;
 import com.swp.hrtms.hrtmsbe.entity.Notification;
 import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
+import com.swp.hrtms.hrtmsbe.entity.Prediction;
 import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
 import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
 import com.swp.hrtms.hrtmsbe.entity.User;
+import com.swp.hrtms.hrtmsbe.entity.Wallet;
+import com.swp.hrtms.hrtmsbe.enums.RaceStatus;
+import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
 import com.swp.hrtms.hrtmsbe.service.RaceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -51,6 +55,8 @@ public class RaceServiceImpl implements RaceService {
     private final NotificationRecipientRepository notificationRecipientRepository;
     private final com.swp.hrtms.hrtmsbe.repository.RaceFormatRepository raceFormatRepository;
     private final com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository;
+    private final com.swp.hrtms.hrtmsbe.repository.RaceResultRepository raceResultRepository;
+    private final com.swp.hrtms.hrtmsbe.repository.RacePlacementRepository racePlacementRepository;
 
     // code moi(06/07) tiem them vao de lay user thong bao !
     private final com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository registrationFormRepository;
@@ -283,9 +289,6 @@ public class RaceServiceImpl implements RaceService {
                     .orElseThrow(
                             () -> new IllegalArgumentException("Referee not found with id: " + request.getRefereeId()));
 
-                    .orElseThrow(
-                            () -> new IllegalArgumentException("Referee not found with id: " + request.getRefereeId()));
-
             race.setReferee(referee);
 
             // khai
@@ -476,7 +479,7 @@ public class RaceServiceImpl implements RaceService {
             throw new IllegalArgumentException("Race is already cancelled");
         }
 
-        race.setStatus("CANCELLED");
+        race.setStatus(RaceStatus.CANCELLED);
         race.setReason(request.getReason());
         raceRepository.save(race);
 
@@ -503,7 +506,7 @@ public class RaceServiceImpl implements RaceService {
                 p.setStatus(com.swp.hrtms.hrtmsbe.enums.PredictionStatus.CANCELLED);
                 predictionRepository.save(p);
 
-                Wallet wallet = walletRepository.findByUserId(p.getSpectator().getId()).orElse(null);
+                Wallet wallet = walletRepository.findByUser_Id(p.getSpectator().getId()).orElse(null);
                 if (wallet != null) {
                     wallet.setBalance(wallet.getBalance() + p.getPointsInvested());
                     wallet.setUpdatedAt(now);
@@ -711,5 +714,250 @@ public class RaceServiceImpl implements RaceService {
                 .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
                 .build();
         notificationRecipientRepository.save(recipient);
+    }
+
+    private void sendRaceNotification(Race race, com.swp.hrtms.hrtmsbe.enums.NotificationType type, String title,
+            String content) {
+        java.util.Set<User> recipientsSet = new java.util.HashSet<>();
+
+        List<Prediction> predictions = predictionRepository.findByRace_Id(race.getId());
+        for (Prediction prediction : predictions) {
+            if (prediction.getSpectator() != null) {
+                recipientsSet.add(prediction.getSpectator());
+            }
+        }
+
+        List<RegistrationForm> forms = registrationFormRepository.findByRace_Id(race.getId());
+        for (RegistrationForm form : forms) {
+            if (form.getOwner() != null && form.getOwner().getUser() != null) {
+                recipientsSet.add(form.getOwner().getUser());
+            }
+            if (form.getJockey() != null) {
+                recipientsSet.add(form.getJockey());
+            }
+        }
+
+        if (race.getReferee() != null) {
+            recipientsSet.add(race.getReferee());
+        }
+
+        if (recipientsSet.isEmpty()) {
+            return;
+        }
+
+        Notification notification = Notification.builder()
+                .sender(null)
+                .title(title)
+                .content(content)
+                .type(type)
+                .race(race)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notification = notificationRepository.save(notification);
+
+        List<NotificationRecipient> recipients = new ArrayList<>();
+        for (User recipientUser : recipientsSet) {
+            NotificationRecipient recipient = NotificationRecipient.builder()
+                    .notification(notification)
+                    .recipient(recipientUser)
+                    .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                    .build();
+            recipients.add(recipient);
+        }
+        notificationRecipientRepository.saveAll(recipients);
+    }
+
+    @Override
+    public String walkOverRace(Integer raceId) {
+         Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Race not found with id: " + raceId));
+
+        // khai
+        if ("CANCELLED".equals(race.getStatus() == null ? "" : race.getStatus().name())) {
+            throw new IllegalArgumentException("Race is already cancelled");
+        }
+
+        if ("WALK_OVER".equals(race.getStatus() == null ? "" : race.getStatus().name())) {
+            throw new IllegalArgumentException("Race is already WALK_OVER");
+        }
+
+        List<RegistrationForm> eligibleForms = registrationFormRepository.findByRace_Id(raceId).stream()
+                .filter(form -> form.getStatus() != com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED)
+                .filter(form -> form.getStatus() != com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE)
+                .toList();
+
+        if (eligibleForms.size() != 1) {
+            throw new IllegalArgumentException("Walk over requires exactly one eligible horse.");
+        }
+
+        // Marks the race as walk-over while health check waits for the remaining horse's final result.
+        race.setStatus(RaceStatus.WALK_OVER);
+        race.setReason("There is currently only one horse competing");
+        raceRepository.save(race);
+
+        return "Race has been marked as WALK_OVER and will be finalized after the remaining horse passes health check.";
+    }
+
+    @Override
+    public RaceResponse lateScratch(Integer raceId, Integer horseId, String reason) {
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Race not found with id: " + raceId));
+
+        if (race.getStatus() != com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED
+                && race.getStatus() != com.swp.hrtms.hrtmsbe.enums.RaceStatus.PREPARE) {
+            throw new IllegalArgumentException("Can only late scratch a horse before the race starts.");
+        }
+
+        com.swp.hrtms.hrtmsbe.entity.RegistrationForm form = disqualifyRegistrationForm(raceId, horseId);
+        removePlacementAndShiftRanks(raceId, form.getId());
+
+        // 2. Cancel and Refund all predictions for this horse
+        List<Prediction> predictions = predictionRepository.findByRace_Id(raceId);
+        for (Prediction p : predictions) {
+            if (p.getPredictedHorse() != null && p.getPredictedHorse().getId().equals(horseId)
+                    && isRefundablePrediction(p)) {
+                refundPrediction(p);
+            }
+        }
+
+        return mapToRaceResponse(race);
+    }
+    
+   private void refundPrediction(Prediction prediction) {
+        if (prediction == null || prediction.getStatus() == com.swp.hrtms.hrtmsbe.enums.PredictionStatus.CANCELLED) {
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        prediction.setStatus(com.swp.hrtms.hrtmsbe.enums.PredictionStatus.CANCELLED);
+        predictionRepository.save(prediction);
+
+        if (prediction.getSpectator() == null || prediction.getPointsInvested() == null) {
+            return;
+        }
+
+        Wallet wallet = walletRepository.findByUser_Id(prediction.getSpectator().getId()).orElse(null);
+        if (wallet == null) {
+            return;
+        }
+
+        wallet.setBalance(wallet.getBalance() + prediction.getPointsInvested());
+        wallet.setUpdatedAt(now);
+        walletRepository.save(wallet);
+
+        Transaction tx = Transaction.builder()
+                .wallet(wallet)
+                .race(prediction.getRace())
+                .horse(prediction.getPredictedHorse())
+                .amount(prediction.getPointsInvested())
+                .type("PREDICTION_REFUND")
+                .createdAt(now)
+                .build();
+        transactionRepository.save(tx);
+
+        // create noti refund prediction for spectator
+        User sender = prediction.getRace() != null
+                && prediction.getRace().getTournament() != null
+                        ? prediction.getRace().getTournament().getAdmin()
+                        : null;
+        String raceName = prediction.getRace() != null ? prediction.getRace().getName() : "the race";
+        String horseName = prediction.getPredictedHorse() != null ? prediction.getPredictedHorse().getName()
+                : "your selected horse";
+        Notification notification = Notification.builder()
+                .sender(sender)
+                .race(prediction.getRace())
+                .title("Prediction refund")
+                .content("Your prediction for " + horseName + " in " + raceName + " has been refunded.")
+                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.SYSTEM)
+                .createdAt(now)
+                .build();
+        notification = notificationRepository.save(notification);
+
+        NotificationRecipient recipient = NotificationRecipient.builder()
+                .notification(notification)
+                .recipient(prediction.getSpectator())
+                .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                .build();
+        notificationRecipientRepository.save(recipient);
+    }
+
+
+    private boolean isRefundablePrediction(Prediction prediction) {
+        if (prediction == null || prediction.getStatus() == null) {
+            return false;
+        }
+        return prediction.getStatus() == com.swp.hrtms.hrtmsbe.enums.PredictionStatus.PENDING
+                || prediction.getStatus() == com.swp.hrtms.hrtmsbe.enums.PredictionStatus.LOCKED;
+    }
+
+    private com.swp.hrtms.hrtmsbe.entity.RegistrationForm disqualifyRegistrationForm(Integer raceId, Integer horseId) {
+        com.swp.hrtms.hrtmsbe.entity.RegistrationForm form = registrationFormRepository.findByRace_Id(raceId).stream()
+                .filter(f -> f.getHorse() != null && f.getHorse().getId().equals(horseId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Horse is not registered in this race."));
+
+        form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED);
+        return registrationFormRepository.save(form);
+    }
+
+    private void removePlacementAndShiftRanks(Integer raceId, Integer registrationFormId) {
+        com.swp.hrtms.hrtmsbe.entity.RaceResult raceResult = raceResultRepository.findByRace_Id(raceId).orElse(null);
+        if (raceResult == null) {
+            return;
+        }
+
+        List<com.swp.hrtms.hrtmsbe.entity.RacePlacement> placements =
+                racePlacementRepository.findByRaceResult_Id(raceResult.getId());
+        com.swp.hrtms.hrtmsbe.entity.RacePlacement disqualifiedPlacement = placements.stream()
+                .filter(p -> p.getRegistrationForm() != null
+                        && p.getRegistrationForm().getId().equals(registrationFormId))
+                .findFirst()
+                .orElse(null);
+
+        if (disqualifiedPlacement == null) {
+            return;
+        }
+
+        Integer removedPosition = disqualifiedPlacement.getFinishPosition();
+        racePlacementRepository.delete(disqualifiedPlacement);
+
+        if (removedPosition == null) {
+            return;
+        }
+
+        for (com.swp.hrtms.hrtmsbe.entity.RacePlacement placement : placements) {
+            if (placement.getId().equals(disqualifiedPlacement.getId())
+                    || placement.getFinishPosition() == null
+                    || placement.getFinishPosition() <= removedPosition) {
+                continue;
+            }
+            placement.setFinishPosition(placement.getFinishPosition() - 1);
+            racePlacementRepository.save(placement);
+        }
+    }
+
+    @Override
+    public RaceResponse startRace(Integer raceId) {
+        Race race = raceRepository.findById(raceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Race not found with id: " + raceId));
+
+        if (race.getStatus() != com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED
+                && race.getStatus() != com.swp.hrtms.hrtmsbe.enums.RaceStatus.PREPARE) {
+            throw new IllegalArgumentException("Race must be PUBLISHED or PREPARE to start.");
+        }
+
+        race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.ONGOING);
+        raceRepository.save(race);
+
+        // Lock all predictions for this race
+        List<Prediction> predictions = predictionRepository.findByRace_Id(raceId);
+        for (Prediction p : predictions) {
+            if (p.getStatus() == com.swp.hrtms.hrtmsbe.enums.PredictionStatus.PENDING) {
+                p.setStatus(com.swp.hrtms.hrtmsbe.enums.PredictionStatus.LOCKED);
+                predictionRepository.save(p);
+            }
+        }
+
+        return mapToRaceResponse(race);
     }
 }
