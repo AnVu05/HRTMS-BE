@@ -41,6 +41,15 @@ public class HorseServiceImpl implements HorseService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<HorseResponse> getHorsesByOwner(Integer ownerId) {
+        return horseRepository.findByOwnerUserId(ownerId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public HorseResponse getHorseById(Integer id) {
         Horse horse = findActiveHorseById(id);
         return toResponse(horse);

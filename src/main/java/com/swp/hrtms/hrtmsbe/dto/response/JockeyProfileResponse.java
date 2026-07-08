@@ -22,7 +22,7 @@ public class JockeyProfileResponse {
     private Integer experienceYears;
     private Integer age;
     private String professionalBio;
+    // khai
     private com.swp.hrtms.hrtmsbe.enums.UserStatus status;
     private String avatar;
 }
-

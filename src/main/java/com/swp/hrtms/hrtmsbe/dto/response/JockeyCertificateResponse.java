@@ -26,4 +26,3 @@ public class JockeyCertificateResponse {
 
     private com.swp.hrtms.hrtmsbe.enums.CertificateStatus status;
 }
-

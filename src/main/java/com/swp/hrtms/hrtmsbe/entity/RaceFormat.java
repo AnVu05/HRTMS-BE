@@ -36,8 +36,3 @@ public class RaceFormat {
     @Builder.Default
     private com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus status = com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus.ACTIVE;
 }
-
-
-
-
-

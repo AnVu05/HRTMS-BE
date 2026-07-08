@@ -6,7 +6,8 @@ import java.util.List;
 
 public interface PredictionRepository extends JpaRepository<Prediction, Integer> {
     boolean existsBySpectator_IdAndRace_Id(Integer spectatorId, Integer raceId);
+
     List<Prediction> findByRace_Id(Integer raceId);
+
+    List<Prediction> findByRace_Tournament_Id(Integer tournamentId);
 }
-
-

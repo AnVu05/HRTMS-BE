@@ -26,11 +26,12 @@ public class TournamentServiceImpl implements TournamentService {
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationRecipientRepository notificationRecipientRepository;
+    private final com.swp.hrtms.hrtmsbe.service.RefundService refundService;
 
     @Override
     @Transactional
     public TournamentResponse createTournament(Integer adminId, TournamentCreateRequest request) {
-        
+        // Khai
         if (request.getName() == null || request.getName().isBlank()) {
             throw new IllegalArgumentException("Tournament name is required");
         }
@@ -131,7 +132,7 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     @Transactional(readOnly = true)
     public List<ActiveTournamentResponse> getActiveTournaments() {
-       
+        // khai
         return tournamentRepository.findByStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED).stream()
                 .map(t -> ActiveTournamentResponse.builder()
                         .id(t.getId())
@@ -180,6 +181,16 @@ public class TournamentServiceImpl implements TournamentService {
             tournament.setClosePredictionDate(request.getClosePredictionDate());
             isScheduleUpdated = true;
         }
+        // khai
+        if (request.getPublishedDate() != null) {
+            tournament.setPublishedDate(request.getPublishedDate());
+        }
+        if (request.getOpenPredictionDate() != null) {
+            tournament.setOpenPredictionDate(request.getOpenPredictionDate());
+        }
+        if (request.getClosePredictionDate() != null) {
+            tournament.setClosePredictionDate(request.getClosePredictionDate());
+        }
 
         if (tournament.getStartDate() != null && tournament.getEndDate() != null
                 && tournament.getStartDate().isAfter(tournament.getEndDate())) {
@@ -193,6 +204,7 @@ public class TournamentServiceImpl implements TournamentService {
         if (request.getStatus() != null) {
             tournament.setStatus(request.getStatus());
         }
+        
 
         tournament = tournamentRepository.save(tournament);
 
@@ -309,7 +321,7 @@ public class TournamentServiceImpl implements TournamentService {
                 .createdAt(tournament.getCreatedAt())
                 .startDate(tournament.getStartDate())
                 .endDate(tournament.getEndDate())
-                
+                // Khai
                 .publishedDate(tournament.getPublishedDate())
                 .openPredictionDate(tournament.getOpenPredictionDate())
                 .closePredictionDate(tournament.getClosePredictionDate())

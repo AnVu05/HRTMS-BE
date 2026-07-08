@@ -20,7 +20,8 @@ public class JockeyProfileUpdateRequest {
     private String email;
     private String role;
     private java.time.LocalDateTime createdAt;
-    //khai
+    // khai
     private com.swp.hrtms.hrtmsbe.enums.UserStatus status;
 }
+
 

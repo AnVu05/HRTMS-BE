@@ -1,7 +1,5 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.entity.RegistrationForm;
 import com.swp.hrtms.hrtmsbe.entity.Horse;
 import com.swp.hrtms.hrtmsbe.entity.Race;
@@ -93,10 +91,114 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
             if (rules.getAllowedHorseAge() != null && horse.getAge() > rules.getAllowedHorseAge()) {
                 throw new IllegalArgumentException("Horse age exceeds allowed age for this race.");
             }
-            if (rules.getMaxWeight() != null && horse.getWeightKg().doubleValue() > rules.getMaxWeight()) {
-                throw new IllegalArgumentException("Horse weight exceeds allowed max weight for this race.");
+
+            // New logic: 1. allowedBreed
+            if (rules.getAllowedBreed() != null && !rules.getAllowedBreed().isBlank()) {
+                if (horse.getBreed() == null
+                        || !horse.getBreed().trim().equalsIgnoreCase(rules.getAllowedBreed().trim())) {
+                    throw new IllegalArgumentException("Horse breed does not match the allowed breed for this race.");
+                }
+            }
+
+            // New logic: 3. minJockeyExperience
+            if (rules.getMinJockeyExperience() != null) {
+                com.swp.hrtms.hrtmsbe.entity.Jockey jockey = jockeyRepository.findById(request.getJockeyId())
+                        .orElseThrow(() -> new IllegalArgumentException("Jockey not found."));
+                if (jockey.getExperienceYears() == null
+                        || jockey.getExperienceYears() < rules.getMinJockeyExperience()) {
+                    throw new IllegalArgumentException(
+                            "Jockey does not meet the minimum experience requirement for this race.");
+                }
+            }
+
+            if (horse.getAge() == null || horse.getBreed() == null || horse.getBreed().isBlank()) {
+                throw new IllegalArgumentException("Horse age and breed must be fully updated before registering.");
+            }
+
+            // New logic: 4. Check Jockey Certificate matching Horse Breed
+            com.swp.hrtms.hrtmsbe.entity.Jockey jockey = jockeyRepository.findById(request.getJockeyId())
+                    .orElseThrow(() -> new IllegalArgumentException("Jockey not found."));
+
+            boolean hasValidCert = false;
+            if (jockey.getJockeyCerts() != null) {
+                for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : jockey.getJockeyCerts()) {
+                    if (com.swp.hrtms.hrtmsbe.enums.CertificateStatus.VERIFIED.name().equals(cert.getStatus())
+                            && cert.getCertName() != null
+                            && cert.getCertName().trim().equalsIgnoreCase(horse.getBreed().trim())) {
+                        hasValidCert = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hasValidCert) {
+                throw new IllegalArgumentException("Jockey does not have a verified certificate for this horse breed.");
             }
         }
+        // check slot register
+        if (race != null) {
+            // New logic: 5. Check duplicate Jockey in the same race
+            if (request.getJockeyId() != null) {
+                java.util.List<com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus> jockeyExcludedStatuses = java.util.Arrays
+                        .asList(
+                                com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED,
+                                com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE);
+                
+                boolean jockeyAlreadyRegistered = repository.existsByJockey_IdAndRace_IdAndStatusNotIn(request.getJockeyId(), race.getId(), jockeyExcludedStatuses);
+                if (jockeyAlreadyRegistered) {
+                    throw new IllegalArgumentException("This jockey is already registered to ride another horse in this race.");
+                }
+            }
+
+            java.util.List<com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus> excludedStatuses = java.util.Arrays
+                    .asList(
+                            com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED,
+                            com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE,
+                            com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.UPDATE);
+
+            boolean alreadyRegistered = repository.existsByHorse_IdAndRace_IdAndStatusNotIn(horse.getId(), race.getId(), excludedStatuses);
+            if (alreadyRegistered) {
+                throw new IllegalArgumentException("This horse is already registered for this race.");
+            }
+
+            long currentCount = repository.countByRace_IdAndStatusNotIn(race.getId(), excludedStatuses);
+
+            if (race.getNumHorse() != null && currentCount >= race.getNumHorse()) {
+                if (request.getOwnerId() != null) {
+                    com.swp.hrtms.hrtmsbe.entity.User owner = userRepository.findById(request.getOwnerId())
+                            .orElse(null);
+                    if (owner != null) {
+                        com.swp.hrtms.hrtmsbe.entity.Notification notification = com.swp.hrtms.hrtmsbe.entity.Notification
+                                .builder()
+                                .sender(null) // SYSTEM
+                                .title("Race Registration Failed")
+                                .content("There are no more slots left in this race.")
+                                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.SYSTEM)
+                                .race(race)
+                                .createdAt(LocalDateTime.now())
+                                .build();
+                        notification = notificationRepository.save(notification);
+
+                        com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                                .builder()
+                                .notification(notification)
+                                .recipient(owner)
+                                .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                                .build();
+                        notificationRecipientRepository.save(recipient);
+                    }
+                }
+                throw new IllegalArgumentException("Race is full. No available slots left.");
+            }
+        }
+
+        // Find least loaded admin
+        com.swp.hrtms.hrtmsbe.entity.Admin leastLoadedAdmin = adminRepository
+                .findLeastLoadedAdmin(org.springframework.data.domain.PageRequest.of(0, 1))
+                .getContent()
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No admins available in the system."));
 
         // BR_03: Starts as PENDING_JOCKEY
         RegistrationForm form = RegistrationForm.builder()
@@ -109,7 +211,7 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
                         : null)
                 .race(race)
                 // khai
-                .admin(request.getAdminId() != null ? adminRepository.getReferenceById(request.getAdminId()) : null)
+                .admin(leastLoadedAdmin)
                 .status(request.getStatus() != null ? request.getStatus()
                         : com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_JOCKEY)
                 .createdAt(request.getCreatedAt() != null ? request.getCreatedAt() : LocalDateTime.now())
@@ -157,9 +259,12 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
             // BR_03: Move to PENDING_ADMIN when accepted
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_ADMIN);
 
-            // Mark JOCKEY_INVITATION as DONE
+            // Mark JOCKEY_INVITATION as READ then DONE
             Integer ownerId = form.getOwner() != null ? form.getOwner().getUserId() : null;
             Integer jockeyId = form.getJockey() != null ? form.getJockey().getId() : null;
+            if (ownerId != null && jockeyId != null) {
+                notificationRecipientRepository.markJockeyInvitationAsRead(ownerId, jockeyId);
+            }
             notificationRepository.updateJockeyInvitationToDone(ownerId, jockeyId);
 
             // Send JOCKEY_ACCEPTED to owner
@@ -208,9 +313,12 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
         } else if ("Reject".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus())) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_JOCKEY);
 
-            // Mark JOCKEY_INVITATION as DONE
+            // Mark JOCKEY_INVITATION as READ then DONE
             Integer ownerId = form.getOwner() != null ? form.getOwner().getUserId() : null;
             Integer jockeyId = form.getJockey() != null ? form.getJockey().getId() : null;
+            if (ownerId != null && jockeyId != null) {
+                notificationRecipientRepository.markJockeyInvitationAsRead(ownerId, jockeyId);
+            }
             notificationRepository.updateJockeyInvitationToDone(ownerId, jockeyId);
 
             // Send JOCKEY_REJECTED to owner
@@ -260,9 +368,12 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
             // Admin accepted the form info.
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PREPARE);
 
-            // Mark REGISTRATION_VERIFY as DONE
+            // Mark REGISTRATION_VERIFY as READ then DONE
             Integer ownerId = form.getOwner() != null ? form.getOwner().getUserId() : null;
             Integer adminId = form.getAdmin() != null ? form.getAdmin().getId() : null;
+            if (ownerId != null && adminId != null) {
+                notificationRecipientRepository.markRegistrationVerifyAsRead(ownerId, adminId);
+            }
             notificationRepository.updateRegistrationVerifyToDone(ownerId, adminId);
 
             // Send REGISTRATION_APPROVED
@@ -289,9 +400,12 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
         } else if ("Reject".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus())) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.UPDATE);
 
-            // Mark REGISTRATION_VERIFY as DONE
+            // Mark REGISTRATION_VERIFY as READ then DONE
             Integer ownerId = form.getOwner() != null ? form.getOwner().getUserId() : null;
             Integer adminId = form.getAdmin() != null ? form.getAdmin().getId() : null;
+            if (ownerId != null && adminId != null) {
+                notificationRecipientRepository.markRegistrationVerifyAsRead(ownerId, adminId);
+            }
             notificationRepository.updateRegistrationVerifyToDone(ownerId, adminId);
 
             // Send REGISTRATION_REJECTED
@@ -373,6 +487,12 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
     }
 
     @Override
+    public List<RegistrationFormResponse> getPendingAdminForms(Integer adminId) {
+        return repository.findByAdmin_IdAndStatus(adminId, com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_ADMIN)
+                .stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
     public RegistrationFormResponse getById(Integer id) {
         RegistrationForm form = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Form not found."));
@@ -384,10 +504,6 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
     public RegistrationFormResponse update(Integer id, RegistrationFormRequest request) {
         RegistrationForm form = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Form not found."));
-
-        if (isLockedAfterHealthCheck(form)) {
-            throw new IllegalArgumentException("Registration form cannot be updated after health check.");
-        }
 
         Integer oldJockeyId = form.getJockey() != null ? form.getJockey().getId() : null;
         Integer newJockeyId = request.getJockeyId();
@@ -438,12 +554,6 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
         }
 
         return toResponse(form);
-    }
-
-    private boolean isLockedAfterHealthCheck(RegistrationForm form) {
-        return form.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING
-                || form.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED
-                || form.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE;
     }
 
     @Override

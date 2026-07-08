@@ -23,4 +23,3 @@ public class RegistrationFormResponse {
     private com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus status;
     private LocalDateTime createdAt;
 }
-

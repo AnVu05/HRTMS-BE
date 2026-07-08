@@ -36,8 +36,3 @@ public class Prediction {
     private com.swp.hrtms.hrtmsbe.enums.PredictionStatus status = com.swp.hrtms.hrtmsbe.enums.PredictionStatus.PENDING;
     private java.time.LocalDateTime createdAt;
 }
-
-
-
-
-

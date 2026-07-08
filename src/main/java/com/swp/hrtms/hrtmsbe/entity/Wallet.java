@@ -25,6 +25,3 @@ public class Wallet {
     private Integer balance;
     private java.time.LocalDateTime updatedAt;
 }
-
-
-

@@ -4,10 +4,7 @@ package com.swp.hrtms.hrtmsbe.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "transactions")
@@ -38,6 +35,3 @@ public class Transaction {
     private String type;
     private java.time.LocalDateTime createdAt;
 }
-
-
-

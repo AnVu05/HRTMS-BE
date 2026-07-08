@@ -38,6 +38,7 @@ public class Tournament {
     @Column(name = "end_date")
     private LocalDate endDate;
 
+    // Khai: Dates displayed on the Create New Tournament form.
     @Column(name = "published_date")
     private LocalDate publishedDate;
 

@@ -47,5 +47,3 @@ public class PredictionController {
         return ResponseEntity.noContent().build();
     }
 }
-
-

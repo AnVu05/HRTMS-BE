@@ -17,9 +17,7 @@ public class RegistrationFormRequest {
     private Integer jockeyId;
     private Integer tournamentId;
     private Integer raceId;
-    //khai
-    private Integer adminId;
+    // khai
     private com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus status;
     private LocalDateTime createdAt;
 }
-

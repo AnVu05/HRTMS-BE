@@ -25,6 +25,15 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<JockeyProfileResponse> getAllJockeys() {
+        return jockeyRepository.findByStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public JockeyProfileResponse getProfile(Integer jockeyId) {
         Jockey jockey = findJockeyById(jockeyId);
         return toResponse(jockey);
@@ -68,7 +77,7 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
         certificate.setCertName(request.getCertName().trim());
         certificate.setCertImageBase64(request.getCertImageBase64());
         certificate.setIssuedAt(request.getIssuedAt());
-        //khai
+        // khai
         certificate.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.PENDING);
 
         return toCertificateResponse(jockeyCertRepository.save(certificate));
@@ -78,7 +87,7 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
     @Override
     @Transactional
     public void deleteCertificate(Integer jockeyId, Integer certId) {
-        //khai
+        // khai
         JockeyCert certificate = findCertificateByIdAndJockeyId(certId, jockeyId);
         jockeyCertRepository.delete(certificate);
     }
@@ -182,5 +191,3 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
                 .build();
     }
 }
-
-

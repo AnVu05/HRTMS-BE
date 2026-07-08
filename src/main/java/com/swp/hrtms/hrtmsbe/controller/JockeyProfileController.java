@@ -20,6 +20,11 @@ public class JockeyProfileController {
 
     private final JockeyProfileService jockeyProfileService;
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<JockeyProfileResponse>>> getAllJockeys() {
+        return ResponseEntity.ok(ApiResponse.success(jockeyProfileService.getAllJockeys(), "Fetched all jockeys successfully"));
+    }
+
     @GetMapping("/{jockeyId}/profile")
     public ResponseEntity<ApiResponse<JockeyProfileResponse>> getProfile(@PathVariable Integer jockeyId) {
         JockeyProfileResponse response = jockeyProfileService.getProfile(jockeyId);

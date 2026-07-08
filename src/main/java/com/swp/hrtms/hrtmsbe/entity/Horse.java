@@ -48,7 +48,7 @@ public class Horse {
     private java.math.BigDecimal weightKg;
 
     @Enumerated(EnumType.STRING)
-    private HorseStatus status; //thêm class HorseStatus để ko bao giờ gõ sai status của ngựa
+    private HorseStatus status; // thêm class HorseStatus để ko bao giờ gõ sai status của ngựa
 }
 
 

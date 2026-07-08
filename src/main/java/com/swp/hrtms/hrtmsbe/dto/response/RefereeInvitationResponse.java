@@ -22,7 +22,7 @@ public class RefereeInvitationResponse {
     private String title;
     private String content;
     private com.swp.hrtms.hrtmsbe.enums.NotificationType type;
-    
+
     @com.fasterxml.jackson.annotation.JsonProperty("created_at")
     private java.time.LocalDateTime createdAt;
 
@@ -31,9 +31,9 @@ public class RefereeInvitationResponse {
 
     @com.fasterxml.jackson.annotation.JsonProperty("recipient_id")
     private Integer recipientId;
-    
+
     private com.swp.hrtms.hrtmsbe.enums.NotificationStatus status;
-    
+
     @com.fasterxml.jackson.annotation.JsonProperty("read_at")
     private java.time.LocalDateTime readAt;
 

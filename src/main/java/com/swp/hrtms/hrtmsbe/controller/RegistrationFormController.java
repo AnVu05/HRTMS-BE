@@ -1,7 +1,5 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.RegistrationFormRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.RegistrationFormResponse;
 import com.swp.hrtms.hrtmsbe.service.RegistrationFormService;
@@ -15,7 +13,9 @@ import java.util.List;
 public class RegistrationFormController {
     private final RegistrationFormService service;
 
-    public RegistrationFormController(RegistrationFormService service) { this.service = service; }
+    public RegistrationFormController(RegistrationFormService service) {
+        this.service = service;
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<RegistrationFormResponse>> create(@RequestBody RegistrationFormRequest request) {
@@ -27,15 +27,24 @@ public class RegistrationFormController {
         return ResponseEntity.ok(ApiResponse.success(service.getAll(), null));
     }
 
+    @GetMapping("/pending-admin/{adminId}")
+    public ResponseEntity<ApiResponse<List<RegistrationFormResponse>>> getPendingAdminForms(
+            @PathVariable Integer adminId) {
+        return ResponseEntity.ok(ApiResponse.success(service.getPendingAdminForms(adminId),
+                "Fetched pending admin registration forms successfully"));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<RegistrationFormResponse>> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(ApiResponse.success(service.getById(id), null));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<RegistrationFormResponse>> update(@PathVariable Integer id, @RequestBody RegistrationFormRequest request) {
+    public ResponseEntity<ApiResponse<RegistrationFormResponse>> update(@PathVariable Integer id,
+            @RequestBody RegistrationFormRequest request) {
         return ResponseEntity.ok(ApiResponse.success(service.update(id, request), "Updated successfully"));
     }
+
     @PutMapping("/{id}/admin-respond")
     public ResponseEntity<ApiResponse<RegistrationFormResponse>> adminRespond(
             @PathVariable Integer id,
@@ -48,21 +57,17 @@ public class RegistrationFormController {
                 .build());
     }
 
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        //khai
+        // khai
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/jockey-respond")
     public ResponseEntity<ApiResponse<RegistrationFormResponse>> jockeyRespond(
-            @PathVariable Integer id, 
+            @PathVariable Integer id,
             @RequestBody com.swp.hrtms.hrtmsbe.dto.request.JockeyRespondRequest request) {
         return ResponseEntity.ok(ApiResponse.success(service.jockeyRespond(id, request), "Responded successfully"));
     }
 }
-
-
-

@@ -15,6 +15,7 @@ public interface TournamentService {
 
     TournamentResponse getTournamentById(Integer id);
 
+
     TournamentResponse updateTournament(Integer id, com.swp.hrtms.hrtmsbe.dto.request.TournamentUpdateRequest request);
 
     List<ActiveTournamentResponse> getActiveTournaments();
