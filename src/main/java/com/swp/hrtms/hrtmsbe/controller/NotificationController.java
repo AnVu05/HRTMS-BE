@@ -84,17 +84,7 @@ public class NotificationController {
                                 "Fetched horse owner notifications successfully"));
         }
 
-        @GetMapping("/horse-owners/{ownerId}")
-        public ResponseEntity<ApiResponse<List<HorseOwnerNotificationResponse>>> getHorseOwnerNotifications(
-                        @PathVariable Integer ownerId,
-                        @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "10") int size) {
-                List<HorseOwnerNotificationResponse> notifications = notificationService
-                                .getHorseOwnerNotifications(ownerId);
-                return ResponseEntity.ok(ApiResponse.success(
-                                notifications,
-                                "Fetched horse owner notifications successfully"));
-        }
+
 
         // Lay tat ca loi moi dang cho xu li voi refereeId tuong ung (Thien)
         @GetMapping("/referees/{refereeId}/invitations")

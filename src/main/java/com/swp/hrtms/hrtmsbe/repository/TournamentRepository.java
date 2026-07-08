@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 @Repository
 public interface TournamentRepository extends JpaRepository<Tournament, Integer> {
 
-    @Query("SELECT new com.swp.hrtms.hrtmsbe.dto.response.TournamentDashboardResponse(t.id, t.name, t.startDate, t.endDate, (SELECT COUNT(r.id) FROM Race r WHERE r.tournament.id = t.id), t.status, t.allowedBreed, t.allowedHorseAge, t.description) "
+    @Query("SELECT new com.swp.hrtms.hrtmsbe.dto.response.TournamentDashboardResponse(t.id, t.name, t.startDate, t.endDate, (SELECT COUNT(r.id) FROM Race r WHERE r.tournament.id = t.id), t.status) "
             +
             "FROM Tournament t " +
             "ORDER BY t.startDate DESC")
