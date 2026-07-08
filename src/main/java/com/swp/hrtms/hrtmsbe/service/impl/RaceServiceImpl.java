@@ -9,7 +9,10 @@ import com.swp.hrtms.hrtmsbe.dto.response.RaceResponse;
 //Khai
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse;
 import com.swp.hrtms.hrtmsbe.entity.Race;
+import com.swp.hrtms.hrtmsbe.entity.RacePlacement;
+import com.swp.hrtms.hrtmsbe.entity.RaceResult;
 import com.swp.hrtms.hrtmsbe.entity.Referee;
+import com.swp.hrtms.hrtmsbe.entity.RegistrationForm;
 import com.swp.hrtms.hrtmsbe.entity.Tournament;
 import com.swp.hrtms.hrtmsbe.enums.RaceStatus;
 import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
@@ -440,9 +443,55 @@ public class RaceServiceImpl implements RaceService {
             throw new IllegalArgumentException("Race is already WALK_OVER");
         }
 
+        List<RegistrationForm> eligibleForms = registrationFormRepository.findByRace_Id(raceId).stream()
+                .filter(form -> form.getStatus() != com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED)
+                .filter(form -> form.getStatus() != com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE)
+                .toList();
+
+        if (eligibleForms.size() != 1) {
+            throw new IllegalArgumentException("Walk over requires exactly one eligible horse.");
+        }
+
+        RegistrationForm winnerForm = eligibleForms.get(0);
+        LocalDateTime now = LocalDateTime.now();
+
         race.setStatus(RaceStatus.WALK_OVER);
         race.setReason("There is currently only one horse competing");
         raceRepository.save(race);
+
+        RaceResult result = raceResultRepository.findByRace_Id(raceId).orElse(null);
+        if (result == null) {
+            result = RaceResult.builder()
+                    .race(race)
+                    .referee(race.getReferee())
+                    .status(com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL)
+                    .createdAt(now)
+                    .photoFinishImage("WALK_OVER")
+                    .build();
+        } else {
+            result.setReferee(race.getReferee());
+            result.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL);
+            result.setPhotoFinishImage("WALK_OVER");
+            if (result.getCreatedAt() == null) {
+                result.setCreatedAt(now);
+            }
+        }
+        result = raceResultRepository.save(result);
+
+        boolean winnerPlacementExists = racePlacementRepository.findByRaceResult_Id(result.getId()).stream()
+                .anyMatch(placement -> placement.getRegistrationForm() != null
+                        && placement.getRegistrationForm().getId().equals(winnerForm.getId()));
+        if (!winnerPlacementExists) {
+            racePlacementRepository.save(RacePlacement.builder()
+                    .raceResult(result)
+                    .registrationForm(winnerForm)
+                    .finishPosition(1)
+                    .finishTime(now)
+                    .build());
+        }
+
+        winnerForm.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE);
+        registrationFormRepository.save(winnerForm);
 
         return "Race has been successfully converted to WALK_OVER.";
     }

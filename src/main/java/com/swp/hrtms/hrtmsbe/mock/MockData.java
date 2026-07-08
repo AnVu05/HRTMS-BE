@@ -453,7 +453,7 @@ public class MockData {
             HealthCheck acceptHealthCheck = healthCheckRepository.save(HealthCheck.builder()
                     .registrationForm(acceptTargetForm)
                     .doctor(doctor)
-                    .status(HealthCheckStatus.CHECKING)
+                    .status(HealthCheckStatus.PENDING_DOCTOR)
                     .medicalNotes("Demo data: update this health check to ACCEPT.")
                     .checkDate(now.minusHours(1))
                     .build());
@@ -539,7 +539,7 @@ public class MockData {
             System.out.println("Call: PUT /api/healthchecks/" + rejectHealthCheck.getId()
                     + " {\"doctorId\":" + doctor.getUserId()
                     + ",\"status\":\"REJECT\",\"medicalNotes\":\"Failed health check\"}");
-            System.out.println("Expected: healthCheck=REJECT, registrationForm=DISQUALIFIED, race=WALK_OVER, prediction is blocked.");
+            System.out.println("Expected: healthCheck=REJECT, registrationForm=DISQUALIFIED, race=WALK_OVER, survivor wins with OFFICIAL result and placement=1, prediction is blocked.");
             System.out.println("================================================");
         };
     }

@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 
 public interface NotificationService {
     List<NotificationResponse> getRecentCertificateNotifications(Integer jockeyId);
+    List<NotificationResponse> getDoctorInvitations(Integer doctorId);
     Page<NotificationResponse> getAdminNotifications(Integer adminId, int page, int size, Boolean unreadOnly);
     List<NotificationResponse> markAllAdminNotificationsAsRead(Integer adminId);
     List<NotificationResponse> markNotificationsAsReadByRecipient(Integer recipientId);
@@ -20,5 +21,4 @@ public interface NotificationService {
     List<RefereeInvitationResponse> getPendingRefereeInvitations(Integer refereeId);
     RefereeInvitationResponse respondToRefereeInvitation(Integer refereeId, Integer notificationId, RespondInvitationRequest request);
 }
-
 

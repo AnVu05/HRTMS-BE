@@ -3,6 +3,7 @@ package com.swp.hrtms.hrtmsbe.controller;
 
 // Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.HealthCheckRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.HealthCheckCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.HealthCheckResponse;
 import com.swp.hrtms.hrtmsbe.service.HealthCheckService;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
@@ -20,7 +21,7 @@ public class HealthCheckController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<HealthCheckResponse>> create(@RequestBody HealthCheckRequest request) {
+    public ResponseEntity<ApiResponse<HealthCheckResponse>> create(@RequestBody HealthCheckCreateRequest request) {
         return ResponseEntity.ok(ApiResponse.success(service.create(request), "Created successfully"));
     }
 
@@ -46,5 +47,4 @@ public class HealthCheckController {
         return ResponseEntity.ok(ApiResponse.success(null, "Deleted successfully"));
     }
 }
-
 

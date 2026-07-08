@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import com.swp.hrtms.hrtmsbe.repository.AdminRepository;
+import com.swp.hrtms.hrtmsbe.repository.DoctorRepository;
 
 import java.util.List;
 
@@ -49,6 +50,7 @@ public class NotificationServiceImpl implements NotificationService {
         private final NotificationRecipientRepository notificationRecipientRepository;
         private final JockeyRepository jockeyRepository;
         private final AdminRepository adminRepository;
+        private final DoctorRepository doctorRepository;
         private static final List<com.swp.hrtms.hrtmsbe.enums.NotificationType> HORSE_OWNER_ADMIN_NOTIFICATION_TYPES = List.of(
                         com.swp.hrtms.hrtmsbe.enums.NotificationType.NEW_TOURNAMENT,
                         com.swp.hrtms.hrtmsbe.enums.NotificationType.TOURNAMENT_UPDATE,
@@ -83,6 +85,30 @@ public class NotificationServiceImpl implements NotificationService {
                                 .stream()
                                 .map(this::toResponse)
                                 .toList();
+        }
+
+        @Override
+        @Transactional
+        public List<NotificationResponse> getDoctorInvitations(Integer doctorId) {
+                if (!doctorRepository.existsById(doctorId)) {
+                        throw new ResourceNotFoundException("Doctor not found with id: " + doctorId);
+                }
+
+                List<NotificationRecipient> invitations = notificationRecipientRepository
+                                .findByRecipient_IdAndNotification_TypeOrderByNotification_CreatedAtDesc(
+                                                doctorId,
+                                                com.swp.hrtms.hrtmsbe.enums.NotificationType.DOCTOR_INVITATION);
+
+                java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                invitations.stream()
+                                .filter(nr -> nr.getStatus() == com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                                .forEach(nr -> {
+                                        nr.setStatus(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.READ);
+                                        nr.setReadAt(now);
+                                });
+                notificationRecipientRepository.saveAll(invitations);
+
+                return invitations.stream().map(this::toResponse).toList();
         }
 
         @Override

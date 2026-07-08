@@ -39,6 +39,15 @@ public class NotificationController {
                                 "Fetched recent certificate notifications successfully"));
         }
 
+        @GetMapping("/doctors/{doctorId}/invitations")
+        public ResponseEntity<ApiResponse<List<NotificationResponse>>> getDoctorInvitations(
+                        @PathVariable Integer doctorId) {
+                List<NotificationResponse> invitations = notificationService.getDoctorInvitations(doctorId);
+                return ResponseEntity.ok(ApiResponse.success(
+                                invitations,
+                                "Fetched doctor invitations successfully"));
+        }
+
         @GetMapping("/admin/{adminId}")
         public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAdminNotifications(
                         @PathVariable Integer adminId,
@@ -103,5 +112,4 @@ public class NotificationController {
                                 "Responded to referee invitation successfully"));
         }
 }
-
 

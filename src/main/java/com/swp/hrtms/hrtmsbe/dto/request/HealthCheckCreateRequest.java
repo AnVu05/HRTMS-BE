@@ -1,21 +1,21 @@
 package com.swp.hrtms.hrtmsbe.dto.request;
 
-
-// Copied by Kháº£i from HRTMS_BE_on_time-main
+import com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HealthCheckRequest {
+public class HealthCheckCreateRequest {
     private Integer registrationFormId;
     private Integer doctorId;
-    //khai
-    private com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus status;
+    private HealthCheckStatus status;
     private String medicalNotes;
-    private java.time.LocalDateTime checkDate;
+    private LocalDateTime checkDate;
 }

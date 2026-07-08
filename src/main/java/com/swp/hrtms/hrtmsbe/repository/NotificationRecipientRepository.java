@@ -21,6 +21,10 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
                         Integer recipientId,
                         Collection<com.swp.hrtms.hrtmsbe.enums.NotificationType> types);
 
+        List<NotificationRecipient> findByRecipient_IdAndNotification_TypeOrderByNotification_CreatedAtDesc(
+                        Integer recipientId,
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType type);
+
         //khai
         @Query("SELECT nr FROM NotificationRecipient nr WHERE nr.recipient.id = :recipientId AND nr.status = 'UNREAD' AND nr.notification.type = 'VERIFI_CERTIFICATE'")
         List<NotificationRecipient> findPendingVerificationRequests(@Param("recipientId") Integer recipientId);
@@ -108,6 +112,5 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
         
         java.util.Optional<NotificationRecipient> findByIdAndRecipient_Id(Integer id, Integer recipientId);
 }
-
 
 

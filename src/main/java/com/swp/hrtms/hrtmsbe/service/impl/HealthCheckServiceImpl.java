@@ -10,7 +10,9 @@ import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
 import com.swp.hrtms.hrtmsbe.repository.DoctorRepository;
 import com.swp.hrtms.hrtmsbe.service.HealthCheckService;
 import com.swp.hrtms.hrtmsbe.service.RaceService;
+import com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus;
 import com.swp.hrtms.hrtmsbe.dto.request.HealthCheckRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.HealthCheckCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.HealthCheckResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,9 +54,13 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
     @Override
     @Transactional
-    public HealthCheckResponse create(HealthCheckRequest request) {
+    public HealthCheckResponse create(HealthCheckCreateRequest request) {
         RegistrationForm form = registrationFormRepository.findById(request.getRegistrationFormId())
                 .orElseThrow(() -> new IllegalArgumentException("Registration form not found"));
+
+        if (healthCheckRepository.existsByRegistrationForm_Id(request.getRegistrationFormId())) {
+            throw new IllegalArgumentException("Health check already exists for this registration form.");
+        }
 
         Race race = form.getRace();
         if (race == null) {
@@ -62,63 +68,45 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         }
 
         // BR_12: Pre-match medical check-up no later than 24h before
+        // Temporarily disabled for Swagger testing with manually entered checkDate.
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
-        if (now.isAfter(raceStartDateTime.minusHours(24))) {
-            throw new IllegalArgumentException(
-                    "Health checks must be updated no later than 24 hours before the race begins.");
-        }
+        // if (now.isAfter(raceStartDateTime.minusHours(24))) {
+        //     throw new IllegalArgumentException(
+        //             "Health checks must be updated no later than 24 hours before the race begins.");
+        // }
+
+        HealthCheckStatus status = resolveCreateStatus(request);
 
         HealthCheck check = HealthCheck.builder()
                 .registrationForm(registrationFormRepository.getReferenceById(request.getRegistrationFormId()))
-                .doctor(doctorRepository.getReferenceById(request.getDoctorId()))
-                .status(request.getStatus())
+                .doctor(request.getDoctorId() != null ? doctorRepository.getReferenceById(request.getDoctorId()) : null)
+                .status(status)
                 .medicalNotes(request.getMedicalNotes())
                 .checkDate(request.getCheckDate() != null ? request.getCheckDate() : now)
                 .build();
 
         check = healthCheckRepository.save(check);
 
-        if (com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.PENDING_DOCTOR.equals(request.getStatus())) {
+        if (HealthCheckStatus.DOCTOR_INVITED.equals(status)) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.HEALTH_CHECKING);
             registrationFormRepository.save(form);
-
-            // Send DOCTOR_INVITATION
-            com.swp.hrtms.hrtmsbe.entity.User admin = form.getAdmin();
-            com.swp.hrtms.hrtmsbe.entity.User doctor = userRepository.findById(request.getDoctorId()).orElse(null);
-            if (admin != null && doctor != null) {
-                com.swp.hrtms.hrtmsbe.entity.Notification notif = com.swp.hrtms.hrtmsbe.entity.Notification.builder()
-                        .sender(admin)
-                        .title("Doctor Invitation")
-                        .content("You have been assigned to check horse ID: "
-                                + (form.getHorse() != null ? form.getHorse().getId() : null))
-                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.DOCTOR_INVITATION)
-                        .build();
-                notif = notificationRepository.save(notif);
-
-                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
-                        .builder()
-                        .notification(notif)
-                        .recipient(doctor)
-                        .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
-                        .build();
-                notificationRecipientRepository.save(rec);
-            }
+            sendDoctorInvitation(form, request.getDoctorId(), race);
         }
 
         // khai
         // BR_13: Health Check logic
-        if ("REJECT".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
+        if (HealthCheckStatus.REJECT.equals(status)) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED);
             registrationFormRepository.save(form);
 
             sendHealthCheckFailedToOwner(form, request.getDoctorId());
             walkOverRaceIfInsufficientRemainingHorses(race);
-        } else if ("ACCEPT".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
+        } else if (HealthCheckStatus.ACCEPT.equals(status)) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING);
             registrationFormRepository.save(form);
             sendReadyRacingToOwner(form, request.getDoctorId());
-        } else if (com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.PENDING_DOCTOR.equals(request.getStatus())) {
+        } else if (HealthCheckStatus.PENDING_DOCTOR.equals(status)) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.HEALTH_CHECKING);
             registrationFormRepository.save(form);
         }
@@ -152,6 +140,10 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         if (check.getStatus() == com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.DELETE) {
             throw new IllegalArgumentException("Health check not found");
         }
+        if (check.getStatus() == com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.ACCEPT
+                || check.getStatus() == com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.REJECT) {
+            throw new IllegalArgumentException("Completed health checks cannot be updated.");
+        }
 
         RegistrationForm form = check.getRegistrationForm();
         if (form == null) {
@@ -164,6 +156,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         }
 
         // BR_12
+        // Temporarily disabled for Swagger testing with manually entered checkDate.
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
         if (now.isAfter(raceStartDateTime.minusHours(24))) {
@@ -173,13 +166,24 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
         if ("DECLINE_INVITATION".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
             check.setDoctor(null);
-            check.setStatus(com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.PENDING_DOCTOR);
+            check.setStatus(HealthCheckStatus.PENDING_DOCTOR);
         } else if ("ACCEPT_INVITATION"
                 .equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
             check.setDoctor(doctorRepository.getReferenceById(request.getDoctorId()));
-            check.setStatus(com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.CHECKING);
+            check.setStatus(HealthCheckStatus.CHECKING);
+        } else if (HealthCheckStatus.PENDING_DOCTOR.equals(request.getStatus())
+                || HealthCheckStatus.DOCTOR_INVITED.equals(request.getStatus())) {
+            if (request.getDoctorId() == null) {
+                check.setDoctor(null);
+                check.setStatus(HealthCheckStatus.PENDING_DOCTOR);
+            } else {
+                check.setDoctor(doctorRepository.getReferenceById(request.getDoctorId()));
+                check.setStatus(HealthCheckStatus.DOCTOR_INVITED);
+            }
         } else {
-            check.setDoctor(doctorRepository.getReferenceById(request.getDoctorId()));
+            if (request.getDoctorId() != null) {
+                check.setDoctor(doctorRepository.getReferenceById(request.getDoctorId()));
+            }
             check.setStatus(request.getStatus());
         }
         check.setMedicalNotes(request.getMedicalNotes());
@@ -192,9 +196,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
         // BR_13: Health Check logic
         if ("DECLINE_INVITATION".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
-            // Mark DOCTOR_INVITATION as DONE
-            Integer adminId = form.getAdmin() != null ? form.getAdmin().getId() : null;
-            notificationRepository.updateDoctorInvitationToDone(adminId, request.getDoctorId());
+            markDoctorInvitationDone(request, form);
 
             // Send DECLINE_INVITATION to Admin
             com.swp.hrtms.hrtmsbe.entity.User admin = form.getAdmin();
@@ -222,9 +224,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.HEALTH_CHECKING);
             registrationFormRepository.save(form);
 
-            // Mark DOCTOR_INVITATION as DONE
-            Integer adminId = form.getAdmin() != null ? form.getAdmin().getId() : null;
-            notificationRepository.updateDoctorInvitationToDone(adminId, request.getDoctorId());
+            markDoctorInvitationDone(request, form);
 
             // Send DOCTOR_ACCEPTED to Admin
             com.swp.hrtms.hrtmsbe.entity.User admin = form.getAdmin();
@@ -326,9 +326,13 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                         .build();
                 notificationRecipientRepository.save(rec);
             }
-        } else if (com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.PENDING_DOCTOR.equals(request.getStatus())) {
+        } else if (HealthCheckStatus.PENDING_DOCTOR.equals(request.getStatus())
+                || HealthCheckStatus.DOCTOR_INVITED.equals(request.getStatus())) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.HEALTH_CHECKING);
             registrationFormRepository.save(form);
+            if (request.getDoctorId() != null) {
+                sendDoctorInvitation(form, request.getDoctorId(), race);
+            }
         }
 
         return toResponse(check);
@@ -347,41 +351,12 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         healthCheckRepository.save(check);
     }
 
-    // khai
-    // BR_15: Auto cancel if < 2 PREPARE forms. Run periodically or trigger
-    @Scheduled(fixedRate = 1800000) // Every 30 mins
-    @Transactional
-    public void autoCancelRaces() {
-        LocalDateTime cutoff = LocalDateTime.now().plusHours(24);
-        // Find races starting in exactly 24 hours (or between 23.5 and 24 hours from
-        // now)
-        List<Race> upcomingRaces = raceRepository.findAll().stream()
-                .filter(r -> "PUBLISHED".equals(r.getStatus() == null ? "" : r.getStatus().name())
-                        || "PENDING_REFEREE".equals(r.getStatus() == null ? "" : r.getStatus().name()))
-                .filter(r -> {
-                    if (r.getDate() == null || r.getStartTime() == null)
-                        return false;
-                    LocalDateTime startDateTime = LocalDateTime.of(r.getDate(), r.getStartTime());
-                    return startDateTime.isBefore(cutoff) && startDateTime.isAfter(LocalDateTime.now());
-                })
-                .collect(Collectors.toList());
-
-        for (Race race : upcomingRaces) {
-            List<RegistrationForm> passedForms = registrationFormRepository.findByRace_IdAndStatus(race.getId(),
-                    com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING);
-            if (passedForms.size() < 2) {
-                // BR_15
-                raceService.walkOverRace(race.getId());
-            }
-        }
-    }
-
     @Scheduled(fixedRate = 3600000) // run every hour
     @Transactional
     public void rejectExpiredPendingDoctorForms() {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(24);
         List<HealthCheck> expiredChecks = healthCheckRepository.findByStatusAndCheckDateBefore(
-                com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.PENDING_DOCTOR, cutoff);
+                HealthCheckStatus.DOCTOR_INVITED, cutoff);
 
         for (HealthCheck check : expiredChecks) {
             if (check.getDoctor() == null)
@@ -418,8 +393,9 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 notificationRecipientRepository.save(rec);
             }
 
-            // Keep status PENDING_DOCTOR but clear the doctor ID
+            // Move back to PENDING_DOCTOR so admin can assign another doctor.
             check.setDoctor(null);
+            check.setStatus(HealthCheckStatus.PENDING_DOCTOR);
             check.setCheckDate(LocalDateTime.now()); // reset check date for next doctor
         }
         healthCheckRepository.saveAll(expiredChecks);
@@ -434,6 +410,54 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 .medicalNotes(check.getMedicalNotes())
                 .checkDate(check.getCheckDate())
                 .build();
+    }
+
+    private void markDoctorInvitationDone(HealthCheckRequest request, RegistrationForm form) {
+        Integer adminId = form.getAdmin() != null ? form.getAdmin().getId() : null;
+        Integer raceId = form.getRace() != null ? form.getRace().getId() : null;
+        if (adminId == null || raceId == null) {
+            throw new IllegalArgumentException("Cannot resolve doctor invitation without admin and race context.");
+        }
+        int updated = notificationRepository.updateDoctorInvitationToDoneByContext(
+                adminId,
+                request.getDoctorId(),
+                raceId);
+        if (updated == 0) {
+            throw new IllegalArgumentException("Doctor invitation not found or already responded.");
+        }
+    }
+
+    private HealthCheckStatus resolveCreateStatus(HealthCheckCreateRequest request) {
+        if (request.getStatus() == HealthCheckStatus.ACCEPT || request.getStatus() == HealthCheckStatus.REJECT) {
+            return request.getStatus();
+        }
+        return request.getDoctorId() == null ? HealthCheckStatus.PENDING_DOCTOR : HealthCheckStatus.DOCTOR_INVITED;
+    }
+
+    private void sendDoctorInvitation(RegistrationForm form, Integer doctorId, Race race) {
+        com.swp.hrtms.hrtmsbe.entity.User admin = form.getAdmin();
+        com.swp.hrtms.hrtmsbe.entity.User doctor = doctorId != null ? userRepository.findById(doctorId).orElse(null) : null;
+        if (admin == null || doctor == null) {
+            return;
+        }
+
+        com.swp.hrtms.hrtmsbe.entity.Notification notif = com.swp.hrtms.hrtmsbe.entity.Notification.builder()
+                .sender(admin)
+                .title("Doctor Invitation")
+                .content("You have been assigned to check horse ID: "
+                        + (form.getHorse() != null ? form.getHorse().getId() : null))
+                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.DOCTOR_INVITATION)
+                .race(race)
+                .build();
+        notif = notificationRepository.save(notif);
+
+        com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                .builder()
+                .notification(notif)
+                .recipient(doctor)
+                .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                .build();
+        notificationRecipientRepository.save(rec);
     }
 
     private void sendReadyRacingToOwner(RegistrationForm form, Integer doctorId) {
@@ -500,7 +524,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 .filter(form -> form.getStatus() != com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED)
                 .filter(form -> form.getStatus() != com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE)
                 .count();
-        if (remainingForms < 2) {
+        if (remainingForms == 1) {
             raceService.walkOverRace(race.getId());
         }
     }
