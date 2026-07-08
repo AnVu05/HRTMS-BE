@@ -230,17 +230,17 @@ public class RaceResultServiceImpl implements RaceResultService {
         Race race = prediction.getRace();
         String raceName = race != null ? race.getName() : "the race";
         String horseName = prediction.getPredictedHorse() != null ? prediction.getPredictedHorse().getName() : "your selected horse";
-        String title = winner ? "Prediction reward" : "Prediction result";
+        String title = winner ? "Prediction won" : "Prediction lost";
         String content = winner
-                ? "Your prediction for " + horseName + " in " + raceName + " won. " + reward + " points have been added to your wallet."
-                : "Your prediction for " + horseName + " in " + raceName + " did not win.";
+                ? "Nice pick! " + horseName + " won in " + raceName + ". +" + reward + " points."
+                : "Your pick did not win in " + raceName + ".";
 
         Notification notification = Notification.builder()
                 .sender(race != null && race.getTournament() != null ? race.getTournament().getAdmin() : null)
                 .race(race)
                 .title(title)
                 .content(content)
-                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.SYSTEM)
+                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.PREDICTED)
                 .createdAt(LocalDateTime.now())
                 .build();
         notification = notificationRepository.save(notification);
