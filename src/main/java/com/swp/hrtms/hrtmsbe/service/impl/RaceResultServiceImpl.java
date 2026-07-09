@@ -197,6 +197,10 @@ public class RaceResultServiceImpl implements RaceResultService {
         // Cập nhật trạng thái các đội đua (RegistrationForm) thành COMPLETE
         List<RegistrationForm> forms = registrationFormRepository.findByRace_Id(raceId);
         for (RegistrationForm form : forms) {
+            if (form.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED
+                    || form.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE) {
+                continue;
+            }
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE);
         }
         registrationFormRepository.saveAll(forms);

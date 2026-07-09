@@ -39,6 +39,18 @@ public class JockeyProfileController {
         return ResponseEntity.ok(ApiResponse.success(response, "Updated jockey profile successfully"));
     }
 
+    @GetMapping("/{jockeyId}/completed-races/count")
+    public ResponseEntity<ApiResponse<Long>> getCompletedRaceCount(@PathVariable Integer jockeyId) {
+        long response = jockeyProfileService.getCompletedRaceCount(jockeyId);
+        return ResponseEntity.ok(ApiResponse.success(response, "Fetched completed race count successfully"));
+    }
+
+    @GetMapping("/{jockeyId}/completed-races/average-rank")
+    public ResponseEntity<ApiResponse<Double>> getAverageRankForCompletedRaces(@PathVariable Integer jockeyId) {
+        Double response = jockeyProfileService.getAverageRankForCompletedRaces(jockeyId);
+        return ResponseEntity.ok(ApiResponse.success(response, "Fetched average rank successfully"));
+    }
+
     // Khai: API for a jockey to view all certificates and their current admin-updated statuses.
     @GetMapping("/{jockeyId}/certificates")
     public ResponseEntity<ApiResponse<List<JockeyCertificateResponse>>> getCertificates(
