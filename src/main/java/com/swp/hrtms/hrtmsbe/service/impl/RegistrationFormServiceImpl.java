@@ -575,6 +575,11 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
                 .tournamentId(form.getTournament() != null ? form.getTournament().getId() : null)
                 .raceId(form.getRace() != null ? form.getRace().getId() : null)
                 .adminId(form.getAdmin() != null ? form.getAdmin().getId() : null)
+                .ownerName(form.getOwner() != null ? form.getOwner().getOwnerName() : null)
+                .horseName(form.getHorse() != null ? form.getHorse().getName() : null)
+                .jockeyName(form.getJockey() != null ? form.getJockey().getJockeyName() : null)
+                .tournamentName(form.getTournament() != null ? form.getTournament().getName() : null)
+                .raceName(form.getRace() != null ? form.getRace().getName() : null)
                 .status(form.getStatus())
                 .createdAt(form.getCreatedAt())
                 .build();

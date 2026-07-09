@@ -28,4 +28,5 @@ public interface RaceService {
     RaceResponse lateScratch(Integer raceId, Integer horseId, String reason);
     RaceResponse disqualifyHorse(Integer raceId, Integer horseId, String reason);
     RaceResponse startRace(Integer raceId);
+    List<com.swp.hrtms.hrtmsbe.dto.response.OfficialResultResponse> getOfficialResults(Integer raceId);
 }

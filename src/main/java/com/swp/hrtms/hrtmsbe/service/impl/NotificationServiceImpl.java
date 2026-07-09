@@ -429,9 +429,9 @@ public class NotificationServiceImpl implements NotificationService {
                 String title = isAccepted ? "Referee Invitation Accepted" : "Referee Invitation Rejected";
                 String content = isAccepted
                                 ? String.format("%s has accepted the invitation to referee the race '%s' in tournament '%s'.",
-                                                referee.getName(), race.getName(), race.getTournament().getName())
+                                                referee.getUsername(), race.getName(), race.getTournament().getName())
                                 : String.format("%s has rejected the invitation to referee the race '%s' in tournament '%s'.",
-                                                referee.getName(), race.getName(), race.getTournament().getName());
+                                                referee.getUsername(), race.getName(), race.getTournament().getName());
 
                 // Lưu thông báo mới (referee là người gửi)
                 Notification notification = Notification.builder()

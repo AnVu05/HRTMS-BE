@@ -115,7 +115,6 @@ public class UserServiceImpl implements UserService {
             referee.setRole("REFEREE");
             // Referee có trường name, nhưng RegisterRequest không có, ta tạm để null hoặc
             // username
-            referee.setName(request.getUsername());
             savedUser = userRepository.save(referee);
         } else { // DOCTOR
             User user = new User();
