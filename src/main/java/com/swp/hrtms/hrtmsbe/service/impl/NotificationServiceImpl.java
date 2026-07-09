@@ -9,6 +9,7 @@ import com.swp.hrtms.hrtmsbe.entity.Notification;
 import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
 import com.swp.hrtms.hrtmsbe.entity.Race;
 import com.swp.hrtms.hrtmsbe.entity.Referee;
+import com.swp.hrtms.hrtmsbe.entity.Transaction;
 import com.swp.hrtms.hrtmsbe.entity.User;
 import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
 import com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository;
@@ -17,6 +18,7 @@ import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
 import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
 import com.swp.hrtms.hrtmsbe.repository.RefereeRepository;
 import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
+import com.swp.hrtms.hrtmsbe.repository.TransactionRepository;
 import com.swp.hrtms.hrtmsbe.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -98,6 +100,7 @@ public class NotificationServiceImpl implements NotificationService {
         private final RaceRepository raceRepository;
         private final NotificationRepository notificationRepository;
         private final SpectatorRepository spectatorRepository;
+        private final TransactionRepository transactionRepository;
 
         @Override
         @Transactional(readOnly = true)
@@ -230,13 +233,69 @@ public class NotificationServiceImpl implements NotificationService {
         private NotificationResponse toResponse(Notification notification, NotificationRecipient recipient) {
                 return NotificationResponse.builder()
                                 .id(notification.getId())
+                                .senderId(notification.getSender() != null ? notification.getSender().getId() : null)
                                 .title(notification.getTitle())
                                 .content(notification.getContent())
                                 .createdAt(notification.getCreatedAt())
                                 .type(notification.getType())
+                                .raceId(notification.getRace() != null ? notification.getRace().getId() : null)
+                                .recipientRecordId(recipient.getId())
+                                .recipientId(recipient.getRecipient() != null ? recipient.getRecipient().getId() : null)
                                 .status(recipient.getStatus())
                                 .readAt(recipient.getReadAt())
                                 .build();
+        }
+
+        private NotificationResponse toSpectatorResponse(NotificationRecipient recipient) {
+                NotificationResponse response = toResponse(recipient);
+                Notification notification = recipient.getNotification();
+
+                if (notification.getType() != NotificationType.PREDICTED
+                                || notification.getRace() == null
+                                || recipient.getRecipient() == null) {
+                        return response;
+                }
+
+                Integer spectatorId = recipient.getRecipient().getId();
+                Integer raceId = notification.getRace().getId();
+
+                transactionRepository
+                                .findFirstByWallet_User_IdAndRace_IdAndTypeOrderByCreatedAtDesc(
+                                                spectatorId,
+                                                raceId,
+                                                "PREDICTION_REWARD")
+                                .filter(tx -> tx.getAmount() != null && tx.getAmount() > 0)
+                                .ifPresentOrElse(
+                                                tx -> applyPredictionTransactionMessage(response, tx, true),
+                                                () -> transactionRepository
+                                                                .findFirstByWallet_User_IdAndRace_IdAndTypeOrderByCreatedAtDesc(
+                                                                                spectatorId,
+                                                                                raceId,
+                                                                                "PREDICTION_DEDUCT")
+                                                                .filter(tx -> tx.getAmount() != null
+                                                                                && tx.getAmount() < 0)
+                                                                .ifPresent(tx -> applyPredictionTransactionMessage(
+                                                                                response,
+                                                                                tx,
+                                                                                false)));
+
+                return response;
+        }
+
+        private void applyPredictionTransactionMessage(NotificationResponse response, Transaction transaction,
+                        boolean won) {
+                Integer amount = transaction.getAmount();
+                String horseName = transaction.getHorse() != null ? transaction.getHorse().getName() : "your pick";
+                String raceName = transaction.getRace() != null ? transaction.getRace().getName() : "the race";
+
+                if (won) {
+                        response.setTitle("Prediction won");
+                        response.setContent("Nice pick! " + horseName + " won in " + raceName + ". +" + amount
+                                        + " points.");
+                } else {
+                        response.setTitle("Prediction lost");
+                        response.setContent("Your pick lost in " + raceName + ". -" + Math.abs(amount) + " points.");
+                }
         }
 
         private HorseOwnerNotificationResponse toHorseOwnerResponse(NotificationRecipient recipient) {
@@ -592,6 +651,6 @@ public class NotificationServiceImpl implements NotificationService {
                                                 spectatorId,
                                                 SPECTATOR_NOTIFICATION_TYPES,
                                                 pageable)
-                                .map(this::toResponse);
+                                .map(this::toSpectatorResponse);
         }
 }
