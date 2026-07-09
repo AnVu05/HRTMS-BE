@@ -82,16 +82,20 @@ public class NotificationServiceImpl implements NotificationService {
                         NotificationType.DONE,
                         NotificationType.SYSTEM);
 
-        private static final List<NotificationType> SPECTATOR_NOTIFICATION_TYPES = List.of(
-                        NotificationType.NEW_TOURNAMENT,
-                        NotificationType.TOURNAMENT_UPDATE,
-                        NotificationType.TOURNAMENT_CANCELLED,
-                        NotificationType.NEW_RACE,
-                        NotificationType.RACE_UPDATE,
-                        NotificationType.RACE_CANCELLED,
-                        NotificationType.PREDICTED,
-                        NotificationType.REFUND,
-                        NotificationType.SYSTEM);
+        private static final List<com.swp.hrtms.hrtmsbe.enums.NotificationType> SPECTATOR_NOTIFICATION_TYPES = List.of(
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType.NEW_TOURNAMENT,
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType.TOURNAMENT_UPDATE,
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType.TOURNAMENT_CANCELLED,
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType.NEW_RACE,
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType.RACE_UPDATE,
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType.RACE_CANCELLED,
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType.PREDICTED,
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType.SYSTEM,
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType.REFUND);
+
+        private static final List<com.swp.hrtms.hrtmsbe.enums.NotificationType> DOCTOR_NOTIFICATION_TYPES = List.of(
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType.DOCTOR_INVITATION,
+                        com.swp.hrtms.hrtmsbe.enums.NotificationType.SYSTEM);
 
         private final HorseOwnerRepository horseOwnerRepository;
         private final RefereeRepository refereeRepository;
@@ -593,5 +597,30 @@ public class NotificationServiceImpl implements NotificationService {
                                                 SPECTATOR_NOTIFICATION_TYPES,
                                                 pageable)
                                 .map(this::toResponse);
+        }
+
+        @Override
+        public Page<NotificationResponse> getDoctorNotifications(Integer doctorId, int page, int size) {
+                if (!doctorRepository.existsById(doctorId)) {
+                        throw new ResourceNotFoundException("Doctor not found with id: " + doctorId);
+                }
+
+                Pageable pageable = PageRequest.of(page, size);
+
+                return notificationRecipientRepository
+                                .findByRecipient_IdAndNotification_TypeInOrderByNotification_CreatedAtDesc(
+                                                doctorId,
+                                                DOCTOR_NOTIFICATION_TYPES,
+                                                pageable)
+                                .map(this::toResponse);
+        }
+
+        @Override
+        @Transactional
+        public void markAllDoctorNotificationsAsRead(Integer doctorId) {
+                if (!doctorRepository.existsById(doctorId)) {
+                        throw new ResourceNotFoundException("Doctor not found with id: " + doctorId);
+                }
+                notificationRecipientRepository.markAllAsReadByRecipientId(doctorId);
         }
 }

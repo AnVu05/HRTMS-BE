@@ -150,4 +150,26 @@ public class NotificationController {
                                 notifications,
                                 "Fetched spectator notifications successfully"));
         }
+
+        @GetMapping("/doctor/{doctorId}")
+        public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getDoctorNotifications(
+                        @PathVariable Integer doctorId,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size) {
+                Page<NotificationResponse> notifications = notificationService.getDoctorNotifications(doctorId,
+                                page,
+                                size);
+                return ResponseEntity.ok(ApiResponse.success(
+                                notifications,
+                                "Fetched doctor notifications successfully"));
+        }
+
+        @PutMapping("/doctor/{doctorId}/read")
+        public ResponseEntity<ApiResponse<Void>> markAllDoctorNotificationsAsRead(
+                        @PathVariable Integer doctorId) {
+                notificationService.markAllDoctorNotificationsAsRead(doctorId);
+                return ResponseEntity.ok(ApiResponse.success(
+                                null,
+                                "Marked all doctor notifications as read successfully"));
+        }
 }

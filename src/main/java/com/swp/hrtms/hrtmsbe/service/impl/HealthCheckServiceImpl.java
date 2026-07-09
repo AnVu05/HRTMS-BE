@@ -611,4 +611,131 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 .toList();
     }
 
+    @Override
+    public List<HealthCheckResponse> getAssignedHealthChecks(Integer doctorId) {
+        return healthCheckRepository.findByDoctor_UserId(doctorId).stream()
+                .filter(c -> c.getStatus() != com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.DELETE)
+                .map(check -> {
+                    HealthCheckResponse response = toResponse(check);
+                    if (check.getRegistrationForm() != null) {
+                        RegistrationForm form = check.getRegistrationForm();
+                        response.setHorseName(form.getHorse() != null ? form.getHorse().getName() : null);
+                        response.setOwnerName(form.getOwner() != null && form.getOwner().getUser() != null ? form.getOwner().getUser().getUsername() : null);
+                    }
+                    return response;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public HealthCheckResponse processHealthCheck(Integer id, com.swp.hrtms.hrtmsbe.dto.request.HealthCheckProcessRequest request) {
+        HealthCheck check = healthCheckRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Health check not found"));
+        if (check.getStatus() == com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.DELETE) {
+            throw new IllegalArgumentException("Health check not found");
+        }
+        if (check.getStatus() == com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.ACCEPT
+                || check.getStatus() == com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus.REJECT) {
+            throw new IllegalArgumentException("Completed health checks cannot be updated.");
+        }
+
+        RegistrationForm form = check.getRegistrationForm();
+        if (form == null) {
+            throw new IllegalArgumentException("Registration form not found");
+        }
+        Race race = form.getRace();
+        
+        check.setMedicalNotes(request.getNotes());
+        
+        if ("accept".equalsIgnoreCase(request.getAction())) {
+            check.setStatus(HealthCheckStatus.ACCEPT);
+            form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING);
+            registrationFormRepository.save(form);
+            
+            // Send READY_RACING to owner.
+            com.swp.hrtms.hrtmsbe.entity.User doctor = check.getDoctor() != null ? check.getDoctor().getUser() : null;
+            com.swp.hrtms.hrtmsbe.entity.User owner = form.getOwner() != null ? form.getOwner().getUser() : null;
+            if (owner != null && doctor != null) {
+                com.swp.hrtms.hrtmsbe.entity.Notification notif = com.swp.hrtms.hrtmsbe.entity.Notification.builder()
+                        .sender(doctor)
+                        .title("Ready Racing")
+                        .content("Your horse ID: " + (form.getHorse() != null ? form.getHorse().getId() : null)
+                                + " passed the health check and is ready for the race.")
+                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.READY_RACING)
+                        .build();
+                notif = notificationRepository.save(notif);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                        .builder()
+                        .notification(notif)
+                        .recipient(owner)
+                        .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                        .build();
+                notificationRecipientRepository.save(rec);
+            }
+            if (race != null) {
+                finalizeWalkOverIfRemainingHorsePassed(race, form);
+            }
+        } else if ("reject".equalsIgnoreCase(request.getAction())) {
+            check.setStatus(HealthCheckStatus.REJECT);
+            form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED);
+            registrationFormRepository.save(form);
+            
+            // Send DOCTOR_REJECTED to Admin (Health Check Failed)
+            com.swp.hrtms.hrtmsbe.entity.User admin = form.getAdmin();
+            com.swp.hrtms.hrtmsbe.entity.User doctor = check.getDoctor() != null ? check.getDoctor().getUser() : null;
+            if (admin != null && doctor != null) {
+                com.swp.hrtms.hrtmsbe.entity.Notification notif = com.swp.hrtms.hrtmsbe.entity.Notification.builder()
+                        .sender(doctor)
+                        .title("Health Check Failed")
+                        .content("Horse ID: " + (form.getHorse() != null ? form.getHorse().getId() : null)
+                                + " failed the health check and has been disqualified.")
+                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.DOCTOR_REJECTED)
+                        .build();
+                notif = notificationRepository.save(notif);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient rec = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                        .builder()
+                        .notification(notif)
+                        .recipient(admin)
+                        .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                        .build();
+                notificationRecipientRepository.save(rec);
+            }
+
+            // Send Notification to Owner
+            com.swp.hrtms.hrtmsbe.entity.User owner = form.getOwner() != null ? form.getOwner().getUser() : null;
+            if (doctor != null && owner != null) {
+                com.swp.hrtms.hrtmsbe.entity.Notification notifOwner = com.swp.hrtms.hrtmsbe.entity.Notification
+                        .builder()
+                        .sender(doctor)
+                        .title("Health Check Failed")
+                        .content("Your horse ID: " + (form.getHorse() != null ? form.getHorse().getId() : null)
+                                + " failed the health check and has been disqualified.")
+                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.REGISTRATION_REJECTED)
+                        .build();
+                notifOwner = notificationRepository.save(notifOwner);
+
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recOwner = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                        .builder()
+                        .notification(notifOwner)
+                        .recipient(owner)
+                        .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                        .build();
+                notificationRecipientRepository.save(recOwner);
+            }
+
+            if (race != null) {
+                evaluateRaceAfterHealthCheckReject(race);
+            }
+        }
+        
+        check = healthCheckRepository.save(check);
+        HealthCheckResponse response = toResponse(check);
+        response.setHorseName(form.getHorse() != null ? form.getHorse().getName() : null);
+        response.setOwnerName(form.getOwner() != null && form.getOwner().getUser() != null ? form.getOwner().getUser().getUsername() : null);
+        return response;
+    }
+
 }
