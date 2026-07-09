@@ -42,8 +42,9 @@ public class AdminServiceImpl implements AdminService {
         admin.setRole(request.getRole() != null ? request.getRole() : "ADMIN");
         admin.setCreatedAt(request.getCreatedAt() != null ? request.getCreatedAt() : LocalDateTime.now());
         admin.setAvatar(request.getAvatar());
-        //khai
-        admin.setStatus(request.getStatus() != null ? request.getStatus() : com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+        // khai
+        admin.setStatus(
+                request.getStatus() != null ? request.getStatus() : com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
 
         Admin savedAdmin = adminRepository.save(admin);
         return toResponse(savedAdmin);
@@ -53,7 +54,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional(readOnly = true)
     public List<AdminResponse> getAll() {
         return adminRepository.findAll().stream()
-                //khai
+                // khai
                 .filter(admin -> admin.getStatus() != com.swp.hrtms.hrtmsbe.enums.UserStatus.DELETE)
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -63,7 +64,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional(readOnly = true)
     public AdminResponse getById(Integer id) {
         Admin admin = adminRepository.findById(id)
-                //khai
+                // khai
                 .filter(a -> a.getStatus() != com.swp.hrtms.hrtmsbe.enums.UserStatus.DELETE)
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
         return toResponse(admin);
@@ -73,7 +74,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public AdminResponse update(Integer id, AdminRequest request) {
         Admin admin = adminRepository.findById(id)
-                //khai
+                // khai
                 .filter(a -> a.getStatus() != com.swp.hrtms.hrtmsbe.enums.UserStatus.DELETE)
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
 
@@ -106,7 +107,7 @@ public class AdminServiceImpl implements AdminService {
         if (request.getAvatar() != null && !request.getAvatar().isBlank()) {
             admin.setAvatar(request.getAvatar());
         }
-        
+
         if (request.getStatus() != null) {
             admin.setStatus(request.getStatus());
         }
@@ -119,7 +120,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void delete(Integer id) {
         Admin admin = adminRepository.findById(id)
-                //khai
+                // khai
                 .filter(a -> a.getStatus() != com.swp.hrtms.hrtmsbe.enums.UserStatus.DELETE)
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
         admin.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.DELETE);
@@ -139,8 +140,3 @@ public class AdminServiceImpl implements AdminService {
         return response;
     }
 }
-
-
-
-
-

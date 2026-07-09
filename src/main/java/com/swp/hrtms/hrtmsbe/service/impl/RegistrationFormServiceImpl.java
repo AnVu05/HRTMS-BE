@@ -143,10 +143,12 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
                         .asList(
                                 com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED,
                                 com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE);
-                
-                boolean jockeyAlreadyRegistered = repository.existsByJockey_IdAndRace_IdAndStatusNotIn(request.getJockeyId(), race.getId(), jockeyExcludedStatuses);
+
+                boolean jockeyAlreadyRegistered = repository.existsByJockey_IdAndRace_IdAndStatusNotIn(
+                        request.getJockeyId(), race.getId(), jockeyExcludedStatuses);
                 if (jockeyAlreadyRegistered) {
-                    throw new IllegalArgumentException("This jockey is already registered to ride another horse in this race.");
+                    throw new IllegalArgumentException(
+                            "This jockey is already registered to ride another horse in this race.");
                 }
             }
 
@@ -156,7 +158,8 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
                             com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE,
                             com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.UPDATE);
 
-            boolean alreadyRegistered = repository.existsByHorse_IdAndRace_IdAndStatusNotIn(horse.getId(), race.getId(), excludedStatuses);
+            boolean alreadyRegistered = repository.existsByHorse_IdAndRace_IdAndStatusNotIn(horse.getId(), race.getId(),
+                    excludedStatuses);
             if (alreadyRegistered) {
                 throw new IllegalArgumentException("This horse is already registered for this race.");
             }
@@ -488,7 +491,8 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
 
     @Override
     public List<RegistrationFormResponse> getPendingAdminForms(Integer adminId) {
-        return repository.findByAdmin_IdAndStatus(adminId, com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_ADMIN)
+        return repository
+                .findByAdmin_IdAndStatus(adminId, com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_ADMIN)
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 

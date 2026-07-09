@@ -27,7 +27,7 @@ public class VerificationServiceImpl implements VerificationService {
         @Override
         @Transactional(readOnly = true)
         public List<JockeyCert> getJockeyVerificationRequests(Integer recipientId) {
-                return jockeyCertRepository.findAll();
+                return jockeyCertRepository.findAllPendingCertificates();
         }
 
         @Override

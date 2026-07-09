@@ -13,6 +13,10 @@ public interface UserService {
     UserResponse register(RegisterRequest request);
     LoginResponse login(LoginRequest request);
     VerifyOtpResponse verifyOtp(VerifyOtpRequest request);
+    java.util.List<UserResponse> getAllUsers();
+    java.util.List<UserResponse> getAllUsersExcludeCurrent(Integer currentUserId);
+    UserResponse getUserById(Integer id);
+    UserResponse updateUser(Integer id, com.swp.hrtms.hrtmsbe.dto.request.UserUpdateRequest request);
 }
 
 

@@ -1,6 +1,5 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +19,7 @@ public class RegistrationFormResponse {
     private Integer tournamentId;
     private Integer raceId;
     private Integer adminId;
-    
+
     @com.fasterxml.jackson.annotation.JsonProperty("owner_name")
     private String ownerName;
 

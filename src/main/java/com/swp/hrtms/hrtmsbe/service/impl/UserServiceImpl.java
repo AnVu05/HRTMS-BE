@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.swp.hrtms.hrtmsbe.repository.DoctorRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Random;
 
 @Service
@@ -57,10 +58,6 @@ public class UserServiceImpl implements UserService {
         }
 
         String role = request.getRole().trim().toUpperCase();
-        if (!role.equals("SPECTATOR") && !role.equals("HORSE_OWNER") && !role.equals("JOCKEY")
-                && !role.equals("DOCTOR") && !role.equals("REFEREE")) {
-            throw new IllegalArgumentException("Registration is not allowed for role: " + role);
-        }
 
         // 2. Kiểm tra trùng lặp tài khoản
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -116,7 +113,14 @@ public class UserServiceImpl implements UserService {
             // Referee có trường name, nhưng RegisterRequest không có, ta tạm để null hoặc
             // username
             savedUser = userRepository.save(referee);
-        } else { // DOCTOR
+        } else if (role.equals("ADMIN")) {
+            com.swp.hrtms.hrtmsbe.entity.Admin admin = new com.swp.hrtms.hrtmsbe.entity.Admin();
+            admin.setUsername(request.getUsername());
+            admin.setEmail(request.getEmail());
+            admin.setPassword(request.getPassword());
+            admin.setRole("ADMIN");
+            savedUser = userRepository.save(admin);
+        } else if (role.equals("DOCTOR")) {
             User user = new User();
             user.setUsername(request.getUsername());
             user.setEmail(request.getEmail());
@@ -128,6 +132,8 @@ public class UserServiceImpl implements UserService {
                     .user(savedUser)
                     .build();
             doctorRepository.save(doctor);
+        } else {
+            throw new IllegalArgumentException("Invalid role: " + role);
         }
 
         // 4. Trả về kết quả sau khi đăng ký thành công
@@ -136,6 +142,7 @@ public class UserServiceImpl implements UserService {
                 .username(savedUser.getUsername())
                 .email(savedUser.getEmail())
                 .role(savedUser.getRole())
+                .status(savedUser.getStatus().name())
                 .createdAt(savedUser.getCreatedAt())
                 .build();
     }
@@ -211,12 +218,108 @@ public class UserServiceImpl implements UserService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .status(user.getStatus().name())
                 .createdAt(user.getCreatedAt())
                 .build();
 
         return VerifyOtpResponse.builder()
                 .token(token)
                 .user(userResponse)
+                .build();
+    }
+
+    @Override
+    public List<UserResponse> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> UserResponse.builder()
+                        .id(user.getId())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .password(user.getPassword())
+                        .role(user.getRole())
+                        .status(user.getStatus().name())
+                        .createdAt(user.getCreatedAt())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public List<UserResponse> getAllUsersExcludeCurrent(Integer currentUserId) {
+        return userRepository.findAll().stream()
+                .filter(user -> !user.getId().equals(currentUserId))
+                .map(user -> UserResponse.builder()
+                        .id(user.getId())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .password(user.getPassword())
+                        .role(user.getRole())
+                        .status(user.getStatus().name())
+                        .createdAt(user.getCreatedAt())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public UserResponse getUserById(Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+        return UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .role(user.getRole())
+                .status(user.getStatus().name())
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateUser(Integer id, com.swp.hrtms.hrtmsbe.dto.request.UserUpdateRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+
+        if (request.getUsername() != null && !request.getUsername().isBlank()) {
+            if (!user.getUsername().equals(request.getUsername())
+                    && userRepository.existsByUsername(request.getUsername())) {
+                throw new IllegalArgumentException("Username already exists");
+            }
+            user.setUsername(request.getUsername());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            // Need a method existsByEmailAndIdNot in userRepository if checking other
+            // users' emails,
+            // but for simplicity, we check existsByEmail if email changes.
+            if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
+                throw new IllegalArgumentException("Email already exists");
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPassword(request.getPassword());
+        }
+
+        if (request.getRole() != null && !request.getRole().isBlank()) {
+            user.setRole(request.getRole());
+        }
+
+        if (request.getStatus() != null) {
+            user.setStatus(request.getStatus());
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        return UserResponse.builder()
+                .id(updatedUser.getId())
+                .username(updatedUser.getUsername())
+                .email(updatedUser.getEmail())
+                .password(updatedUser.getPassword())
+                .role(updatedUser.getRole())
+                .status(updatedUser.getStatus().name())
+                .createdAt(updatedUser.getCreatedAt())
                 .build();
     }
 }

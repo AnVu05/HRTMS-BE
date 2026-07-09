@@ -36,6 +36,7 @@ public class Jockey extends User {
     @OneToMany(mappedBy = "jockey", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<JockeyCert> jockeyCerts;
 }
 
