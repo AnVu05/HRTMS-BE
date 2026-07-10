@@ -5,12 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+//Rewrite for authentication & authorization: login returns JWT token and user info directly
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponse {
-    private boolean otpRequired;
-    private String email;
+    private String token;
+    private UserResponse user;
 }
 

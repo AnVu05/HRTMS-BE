@@ -122,6 +122,17 @@ public class UserServiceImpl implements UserService {
             doctorRepository.save(doctor);
         }
 
+        // Rewrite for authentication & authorization: Generate and send OTP immediately upon registration
+        String otp = String.format("%06d", new Random().nextInt(1000000));
+        otpCodeRepository.deleteByEmail(savedUser.getEmail());
+        OtpCode otpCode = OtpCode.builder()
+                .email(savedUser.getEmail())
+                .code(otp)
+                .expiryTime(LocalDateTime.now().plusMinutes(5))
+                .build();
+        otpCodeRepository.save(otpCode);
+        emailService.sendOtp(savedUser.getEmail(), otp);
+
         // 4. Trả về kết quả sau khi đăng ký thành công
         return UserResponse.builder()
                 .id(savedUser.getId())
@@ -135,6 +146,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public LoginResponse login(LoginRequest request) {
+        // Rewrite for authentication & authorization: Login directly issues JWT token for ACTIVE users
         if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
             throw new IllegalArgumentException("Email cannot be empty");
         }
@@ -149,31 +161,31 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        // Tạo mã OTP ngẫu nhiên gồm 6 chữ số
-        String otp = String.format("%06d", new Random().nextInt(1000000));
+        if (user.getStatus() != com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE) {
+            throw new IllegalArgumentException("Account is not activated. Please verify your email first.");
+        }
 
-        // Xóa các OTP cũ của user này trước khi lưu mới
-        otpCodeRepository.deleteByEmail(user.getEmail());
+        // Generate JWT Token immediately on login
+        String token = jwtUtil.generateToken(user.getUsername(), user.getEmail(), user.getRole(), user.getId());
 
-        OtpCode otpCode = OtpCode.builder()
+        UserResponse userResponse = UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
                 .email(user.getEmail())
-                .code(otp)
-                .expiryTime(LocalDateTime.now().plusMinutes(5))
+                .role(user.getRole())
+                .createdAt(user.getCreatedAt())
                 .build();
-        otpCodeRepository.save(otpCode);
-
-        // Gửi OTP qua mail
-        emailService.sendOtp(user.getEmail(), otp);
 
         return LoginResponse.builder()
-                .otpRequired(true)
-                .email(user.getEmail())
+                .token(token)
+                .user(userResponse)
                 .build();
     }
 
     @Override
     @Transactional
     public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
+        // Rewrite for authentication & authorization: verifyOtp activates account, does not issue token
         if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
             throw new IllegalArgumentException("Email cannot be empty");
         }
@@ -195,8 +207,9 @@ public class UserServiceImpl implements UserService {
         // Xóa mã OTP sau khi xác thực thành công để không tái sử dụng
         otpCodeRepository.delete(otpCode);
 
-        // Tạo JWT Token
-        String token = jwtUtil.generateToken(user.getUsername(), user.getEmail(), user.getRole(), user.getId());
+        // Kích hoạt tài khoản
+        user.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+        userRepository.save(user);
 
         UserResponse userResponse = UserResponse.builder()
                 .id(user.getId())
@@ -207,7 +220,7 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         return VerifyOtpResponse.builder()
-                .token(token)
+                .message("Account verified and activated successfully.")
                 .user(userResponse)
                 .build();
     }

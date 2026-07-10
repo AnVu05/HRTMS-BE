@@ -21,9 +21,21 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.SQLServerDialect
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: Cybermiquang@gmail.com
+    password: gbqglmmmexhwlcuc
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 app:
   jwt:
     secret: "YourSuperSecretKeyForJWTGenerationHRTMSProject2026"
     expiration: 86400000 # 1 day in milliseconds
   otp:
-    mock: true # set to false to send real emails
+    mock: false # set to false to send real emails (test thu mail that)

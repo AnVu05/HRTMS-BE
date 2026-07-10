@@ -24,23 +24,24 @@ public class AuthController {
 
     private final UserService userService;
 
+    //Rewrite for authentication & authorization: Update success messages for the corrected flow
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(@RequestBody RegisterRequest request) {
         UserResponse userResponse = userService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(userResponse, "User registered successfully"));
+                .body(ApiResponse.success(userResponse, "User registered successfully. Please check your email for the verification code."));
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
         LoginResponse loginResponse = userService.login(request);
-        return ResponseEntity.ok(ApiResponse.success(loginResponse, "Verification code sent to your email"));
+        return ResponseEntity.ok(ApiResponse.success(loginResponse, "Login successful."));
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<ApiResponse<VerifyOtpResponse>> verifyOtp(@RequestBody VerifyOtpRequest request) {
         VerifyOtpResponse verifyOtpResponse = userService.verifyOtp(request);
-        return ResponseEntity.ok(ApiResponse.success(verifyOtpResponse, "Login successful"));
+        return ResponseEntity.ok(ApiResponse.success(verifyOtpResponse, "Account verified and activated successfully."));
     }
 
     @PostMapping("/logout")

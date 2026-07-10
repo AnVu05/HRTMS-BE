@@ -32,10 +32,10 @@ public class User {
     @Column(nullable = false)
     private String role; // 'ADMIN', 'SPECTATOR', 'HORSE_OWNER', 'JOCKEY', 'DOCTOR', 'REFEREE'
 
-    //khai
+    //Rewrite for authentication & authorization: Default status to INACTIVE for registration verification.
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private com.swp.hrtms.hrtmsbe.enums.UserStatus status = com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE;
+    private com.swp.hrtms.hrtmsbe.enums.UserStatus status = com.swp.hrtms.hrtmsbe.enums.UserStatus.INACTIVE;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
