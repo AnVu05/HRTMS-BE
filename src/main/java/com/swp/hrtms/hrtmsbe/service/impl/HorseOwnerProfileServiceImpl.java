@@ -55,6 +55,26 @@ public class HorseOwnerProfileServiceImpl implements HorseOwnerProfileService {
         return toResponse(updatedOwner);
     }
 
+    @Override
+    @Transactional
+    public HorseOwnerProfileResponse updateAvatar(Integer ownerId, String avatarBase64) {
+        HorseOwner horseOwner = findHorseOwnerById(ownerId);
+        if (avatarBase64 != null) {
+            horseOwner.setAvatar(avatarBase64);
+        }
+        HorseOwner updatedOwner = horseOwnerRepository.save(horseOwner);
+        return toResponse(updatedOwner);
+    }
+
+    @Override
+    @Transactional
+    public void deactivateAccount(Integer ownerId) {
+        HorseOwner horseOwner = findHorseOwnerById(ownerId);
+        User user = horseOwner.getUser();
+        user.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.INACTIVE);
+        userRepository.save(user);
+    }
+
     // Khải: Tìm đúng chủ ngựa theo user_id, nếu không có thì trả lỗi 404.
     private HorseOwner findHorseOwnerById(Integer ownerId) {
         return horseOwnerRepository.findById(ownerId)

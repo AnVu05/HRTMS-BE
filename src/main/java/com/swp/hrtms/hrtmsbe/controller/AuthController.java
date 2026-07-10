@@ -5,6 +5,8 @@ package com.swp.hrtms.hrtmsbe.controller;
 import com.swp.hrtms.hrtmsbe.dto.request.LoginRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.RegisterRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.VerifyOtpRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.ForgotPasswordRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.ResetPasswordRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.LoginResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.UserResponse;
@@ -49,6 +51,18 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> logout() {
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok(ApiResponse.success(null, "Logout successful"));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        userService.forgotPassword(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Verification code sent to your email"));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Password reset successful"));
     }
 }
 

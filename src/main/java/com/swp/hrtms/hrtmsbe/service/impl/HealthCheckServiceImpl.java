@@ -69,10 +69,6 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         RegistrationForm form = registrationFormRepository.findById(request.getRegistrationFormId())
                 .orElseThrow(() -> new IllegalArgumentException("Registration form not found"));
 
-        if (healthCheckRepository.existsByRegistrationForm_Id(request.getRegistrationFormId())) {
-            throw new IllegalArgumentException("Health check already exists for this registration form.");
-        }
-
         Race race = form.getRace();
         if (race == null) {
             throw new IllegalArgumentException("Race not found");
@@ -88,16 +84,29 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         }
 
         HealthCheckStatus status = resolveCreateStatus(request);
-
-        HealthCheck check = HealthCheck.builder()
-                .registrationForm(registrationFormRepository.getReferenceById(request.getRegistrationFormId()))
-                .doctor(request.getDoctorId() != null ? doctorRepository.getReferenceById(request.getDoctorId()) : null)
-                .status(status)
-                .medicalNotes(request.getMedicalNotes())
-                .checkDate(request.getCheckDate() != null ? request.getCheckDate() : now)
-                .build();
-
-        check = healthCheckRepository.save(check);
+        HealthCheck check;
+        
+        java.util.Optional<HealthCheck> existingCheckOpt = healthCheckRepository.findByRegistrationForm_Id(request.getRegistrationFormId());
+        if (existingCheckOpt.isPresent()) {
+            HealthCheck existing = existingCheckOpt.get();
+            if (existing.getStatus() != HealthCheckStatus.PENDING_DOCTOR) {
+                throw new IllegalArgumentException("Health check already exists for this registration form.");
+            }
+            existing.setDoctor(request.getDoctorId() != null ? doctorRepository.getReferenceById(request.getDoctorId()) : null);
+            existing.setStatus(status);
+            existing.setMedicalNotes(request.getMedicalNotes());
+            existing.setCheckDate(request.getCheckDate() != null ? request.getCheckDate() : now);
+            check = healthCheckRepository.save(existing);
+        } else {
+            check = HealthCheck.builder()
+                    .registrationForm(registrationFormRepository.getReferenceById(request.getRegistrationFormId()))
+                    .doctor(request.getDoctorId() != null ? doctorRepository.getReferenceById(request.getDoctorId()) : null)
+                    .status(status)
+                    .medicalNotes(request.getMedicalNotes())
+                    .checkDate(request.getCheckDate() != null ? request.getCheckDate() : now)
+                    .build();
+            check = healthCheckRepository.save(check);
+        }
 
         if (HealthCheckStatus.DOCTOR_INVITED.equals(status)) {
             form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.HEALTH_CHECKING);
@@ -212,6 +221,9 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         // BR_13: Health Check logic
         if ("DECLINE_INVITATION".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
             markDoctorInvitationDone(request, form);
+            
+            form.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PREPARE);
+            registrationFormRepository.save(form);
 
             // Send DECLINE_INVITATION to Admin
             com.swp.hrtms.hrtmsbe.entity.User admin = form.getAdmin();

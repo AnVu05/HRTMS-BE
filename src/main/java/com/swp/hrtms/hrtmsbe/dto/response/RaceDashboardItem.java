@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalTime;
 
 @Data
@@ -14,6 +16,8 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class RaceDashboardItem {
     private Integer id;
+    @JsonProperty("tournament_id")
+    private Integer tournamentId;
     private String name;
     private java.time.LocalDate date;
     private LocalTime startTime;

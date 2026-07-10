@@ -3,6 +3,8 @@ package com.swp.hrtms.hrtmsbe.service.impl;
 import com.swp.hrtms.hrtmsbe.dto.request.LoginRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.RegisterRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.VerifyOtpRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.ForgotPasswordRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.ResetPasswordRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.LoginResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.UserResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.VerifyOtpResponse;
@@ -164,6 +166,10 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
+        if (user.getStatus() != com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE) {
+            throw new IllegalArgumentException("Account is locked or inactive");
+        }
+
         // Tạo mã OTP ngẫu nhiên gồm 6 chữ số
         String otp = String.format("%06d", new Random().nextInt(1000000));
 
@@ -207,6 +213,10 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("OTP code has expired");
         }
 
+        if (user.getStatus() != com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE) {
+            throw new IllegalArgumentException("Account is locked or inactive");
+        }
+
         // Xóa mã OTP sau khi xác thực thành công để không tái sử dụng
         otpCodeRepository.delete(otpCode);
 
@@ -226,6 +236,68 @@ public class UserServiceImpl implements UserService {
                 .token(token)
                 .user(userResponse)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email cannot be empty");
+        }
+
+        User user = userRepository.findByEmail(request.getEmail().trim())
+                .orElseThrow(() -> new IllegalArgumentException("User not found with this email"));
+
+        if (user.getStatus() != com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE) {
+            throw new IllegalArgumentException("Account is locked or inactive");
+        }
+
+        // Tạo mã OTP ngẫu nhiên gồm 6 chữ số
+        String otp = String.format("%06d", new Random().nextInt(1000000));
+
+        // Xóa các OTP cũ của user này trước khi lưu mới
+        otpCodeRepository.deleteByEmail(user.getEmail());
+
+        OtpCode otpCode = OtpCode.builder()
+                .email(user.getEmail())
+                .code(otp)
+                .expiryTime(LocalDateTime.now().plusMinutes(5))
+                .build();
+        otpCodeRepository.save(otpCode);
+
+        // Gửi OTP qua mail
+        emailService.sendOtp(user.getEmail(), otp);
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email cannot be empty");
+        }
+        if (request.getOtpCode() == null || request.getOtpCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("OTP code cannot be empty");
+        }
+        if (request.getNewPassword() == null || request.getNewPassword().trim().isEmpty()) {
+            throw new IllegalArgumentException("New password cannot be empty");
+        }
+
+        User user = userRepository.findByEmail(request.getEmail().trim())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        OtpCode otpCode = otpCodeRepository.findTopByEmailAndCodeOrderByExpiryTimeDesc(
+                request.getEmail().trim(), request.getOtpCode().trim())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid OTP code"));
+
+        if (otpCode.getExpiryTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("OTP code has expired");
+        }
+
+        user.setPassword(request.getNewPassword());
+        userRepository.save(user);
+
+        // Xóa mã OTP sau khi đổi mật khẩu thành công để không tái sử dụng
+        otpCodeRepository.delete(otpCode);
     }
 
     @Override

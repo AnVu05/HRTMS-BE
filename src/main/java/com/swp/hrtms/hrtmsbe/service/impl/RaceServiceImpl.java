@@ -428,6 +428,7 @@ public class RaceServiceImpl implements RaceService {
         for (Race race : races) {
             RaceDashboardItem item = RaceDashboardItem.builder()
                     .id(race.getId())
+                    .tournamentId(tournamentId)
                     .name(race.getName())
                     .date(race.getDate())
                     .startTime(race.getStartTime())

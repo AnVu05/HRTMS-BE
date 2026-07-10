@@ -497,6 +497,18 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
     }
 
     @Override
+    public List<RegistrationFormResponse> getByOwnerId(Integer ownerId) {
+        return repository.findByOwner_UserId(ownerId)
+                .stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RegistrationFormResponse> getRacingFormsByRaceId(Integer raceId) {
+        return repository.findByRace_IdAndStatus(raceId, com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING)
+                .stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
     public RegistrationFormResponse getById(Integer id) {
         RegistrationForm form = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Form not found."));
