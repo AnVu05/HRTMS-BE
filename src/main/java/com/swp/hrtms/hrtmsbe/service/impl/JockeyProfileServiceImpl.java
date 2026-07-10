@@ -1,7 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyProfileUpdateRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertificateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyProfileResponse;
 import com.swp.hrtms.hrtmsbe.entity.Jockey;
@@ -9,6 +9,8 @@ import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
 import com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository;
 import com.swp.hrtms.hrtmsbe.repository.JockeyRepository;
+import com.swp.hrtms.hrtmsbe.repository.RacePlacementRepository;
+import com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository;
 import com.swp.hrtms.hrtmsbe.service.JockeyProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,17 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
 
     private final JockeyRepository jockeyRepository;
     private final JockeyCertRepository jockeyCertRepository;
+    private final RegistrationFormRepository registrationFormRepository;
+    private final RacePlacementRepository racePlacementRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<JockeyProfileResponse> getAllJockeys() {
+        return jockeyRepository.findByStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -39,6 +52,24 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
 
         Jockey updatedJockey = jockeyRepository.save(jockey);
         return toResponse(updatedJockey);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long getCompletedRaceCount(Integer jockeyId) {
+        findJockeyById(jockeyId);
+        return registrationFormRepository.countDistinctRacesByJockeyIdAndStatus(
+                jockeyId,
+                com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Double getAverageRankForCompletedRaces(Integer jockeyId) {
+        findJockeyById(jockeyId);
+        return racePlacementRepository.findAverageFinishPositionByJockeyIdAndRegistrationStatus(
+                jockeyId,
+                com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE);
     }
 
     // Khai: Read all certificates without filtering out statuses updated by an
@@ -68,7 +99,7 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
         certificate.setCertName(request.getCertName().trim());
         certificate.setCertImageBase64(request.getCertImageBase64());
         certificate.setIssuedAt(request.getIssuedAt());
-        //khai
+        // khai
         certificate.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.PENDING);
 
         return toCertificateResponse(jockeyCertRepository.save(certificate));
@@ -78,7 +109,7 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
     @Override
     @Transactional
     public void deleteCertificate(Integer jockeyId, Integer certId) {
-        //khai
+        // khai
         JockeyCert certificate = findCertificateByIdAndJockeyId(certId, jockeyId);
         jockeyCertRepository.delete(certificate);
     }
@@ -182,5 +213,3 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
                 .build();
     }
 }
-
-

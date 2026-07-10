@@ -26,6 +26,7 @@ public class TournamentServiceImpl implements TournamentService {
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationRecipientRepository notificationRecipientRepository;
+    private final com.swp.hrtms.hrtmsbe.service.RefundService refundService;
 
     @Override
     @Transactional
@@ -123,7 +124,6 @@ public class TournamentServiceImpl implements TournamentService {
     @Override
     @Transactional(readOnly = true)
     public List<TournamentResponse> getTournamentsForDashboard() {
-        // khai
         return tournamentRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -181,6 +181,16 @@ public class TournamentServiceImpl implements TournamentService {
             tournament.setClosePredictionDate(request.getClosePredictionDate());
             isScheduleUpdated = true;
         }
+        // khai
+        if (request.getPublishedDate() != null) {
+            tournament.setPublishedDate(request.getPublishedDate());
+        }
+        if (request.getOpenPredictionDate() != null) {
+            tournament.setOpenPredictionDate(request.getOpenPredictionDate());
+        }
+        if (request.getClosePredictionDate() != null) {
+            tournament.setClosePredictionDate(request.getClosePredictionDate());
+        }
 
         if (tournament.getStartDate() != null && tournament.getEndDate() != null
                 && tournament.getStartDate().isAfter(tournament.getEndDate())) {
@@ -194,11 +204,11 @@ public class TournamentServiceImpl implements TournamentService {
         if (request.getStatus() != null) {
             tournament.setStatus(request.getStatus());
         }
+        
 
         tournament = tournamentRepository.save(tournament);
 
-        // khai
-        // khai
+        
         if (oldStatus != com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED
                 && tournament.getStatus() == com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED) {
             List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR","REFEREE"));
@@ -260,7 +270,7 @@ public class TournamentServiceImpl implements TournamentService {
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
 
-        // khai
+       
         // BR_17 (Tiền đề): Cập nhật trạng thái CANCELLED, chờ logic hoàn tiền (refund)
         // 100% Points/Vouchers.
         tournament.setStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.CANCELLED);

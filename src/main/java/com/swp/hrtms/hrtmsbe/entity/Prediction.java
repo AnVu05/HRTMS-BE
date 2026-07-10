@@ -1,5 +1,8 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
+import jakarta.persistence.*;
+import lombok.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,8 +36,3 @@ public class Prediction {
     private com.swp.hrtms.hrtmsbe.enums.PredictionStatus status = com.swp.hrtms.hrtmsbe.enums.PredictionStatus.PENDING;
     private java.time.LocalDateTime createdAt;
 }
-
-
-
-
-

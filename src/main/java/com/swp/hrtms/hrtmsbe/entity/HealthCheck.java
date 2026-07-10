@@ -1,5 +1,8 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
+import jakarta.persistence.*;
+import lombok.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

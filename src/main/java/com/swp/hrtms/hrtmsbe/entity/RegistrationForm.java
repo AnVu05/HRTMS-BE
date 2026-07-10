@@ -1,10 +1,10 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "registrationforms")
@@ -44,8 +44,3 @@ public class RegistrationForm {
     private com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus status = com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_JOCKEY;
     private java.time.LocalDateTime createdAt;
 }
-
-
-
-
-

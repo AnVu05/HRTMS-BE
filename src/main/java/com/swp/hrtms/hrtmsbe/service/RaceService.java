@@ -1,15 +1,18 @@
 package com.swp.hrtms.hrtmsbe.service;
 
+
 import com.swp.hrtms.hrtmsbe.dto.request.RaceBatchCreateRequest;
-import com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.RaceResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentRaceDetailsResponse;
+import com.swp.hrtms.hrtmsbe.dto.request.RaceCancelRequest;
 
 import java.util.List;
 
 public interface RaceService {
     List<RaceResponse> createRacesBatch(RaceBatchCreateRequest request);
+
     TournamentRaceDetailsResponse getRaceDetailsByTournament(Integer tournamentId);
+
     String cancelRace(Integer raceId, RaceCancelRequest request);
     
     //Khai
@@ -20,11 +23,9 @@ public interface RaceService {
     
     String walkOverRace(Integer raceId);
     String updateRaceTime(Integer raceId, com.swp.hrtms.hrtmsbe.dto.request.RaceUpdateTimeRequest request);
-    void predictScheduleUpdate();
+
+    void predictScheduleUpdate(com.swp.hrtms.hrtmsbe.entity.Race race);
     RaceResponse lateScratch(Integer raceId, Integer horseId, String reason);
+    RaceResponse disqualifyHorse(Integer raceId, Integer horseId, String reason);
     RaceResponse startRace(Integer raceId);
 }
-
-
-
-

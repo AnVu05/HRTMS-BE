@@ -1,12 +1,11 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
 import com.swp.hrtms.hrtmsbe.dto.request.RaceResultRequest;
-import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.RaceResultResponse;
 import com.swp.hrtms.hrtmsbe.service.RaceResultService;
+import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController

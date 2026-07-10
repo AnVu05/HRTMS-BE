@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.security;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.config;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

@@ -1,15 +1,24 @@
 package com.swp.hrtms.hrtmsbe.service;
 
-import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
+
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyProfileUpdateRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertificateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyProfileResponse;
 
 import java.util.List;
 
 public interface JockeyProfileService {
+
+    List<JockeyProfileResponse> getAllJockeys();
+
     JockeyProfileResponse getProfile(Integer jockeyId);
+
     JockeyProfileResponse updateProfile(Integer jockeyId, JockeyProfileUpdateRequest request);
+
+    long getCompletedRaceCount(Integer jockeyId);
+
+    Double getAverageRankForCompletedRaces(Integer jockeyId);
 
     // Khai: Get every certificate belonging to a jockey with its current status.
     List<JockeyCertificateResponse> getCertificates(Integer jockeyId);
@@ -23,5 +32,3 @@ public interface JockeyProfileService {
     // Khai: Permanently delete a certificate belonging to a jockey.
     void deleteCertificate(Integer jockeyId, Integer certId);
 }
-
-

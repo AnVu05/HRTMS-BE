@@ -19,4 +19,3 @@ public class PredictionResponse {
     private com.swp.hrtms.hrtmsbe.enums.PredictionStatus status;
     private LocalDateTime createdAt;
 }
-

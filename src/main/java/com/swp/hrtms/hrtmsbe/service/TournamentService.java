@@ -1,7 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service;
 
-import com.swp.hrtms.hrtmsbe.dto.request.TournamentCancelRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.TournamentCreateRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.TournamentCancelRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ActiveTournamentResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.TournamentResponse;
 
@@ -15,6 +15,7 @@ public interface TournamentService {
 
     TournamentResponse getTournamentById(Integer id);
 
+
     TournamentResponse updateTournament(Integer id, com.swp.hrtms.hrtmsbe.dto.request.TournamentUpdateRequest request);
 
     List<ActiveTournamentResponse> getActiveTournaments();
@@ -23,5 +24,3 @@ public interface TournamentService {
 
     void updateTournamentStatuses();
 }
-
-

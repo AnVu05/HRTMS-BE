@@ -1,7 +1,7 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
-import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyProfileUpdateRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertificateResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.JockeyProfileResponse;
@@ -20,6 +20,11 @@ public class JockeyProfileController {
 
     private final JockeyProfileService jockeyProfileService;
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<JockeyProfileResponse>>> getAllJockeys() {
+        return ResponseEntity.ok(ApiResponse.success(jockeyProfileService.getAllJockeys(), "Fetched all jockeys successfully"));
+    }
+
     @GetMapping("/{jockeyId}/profile")
     public ResponseEntity<ApiResponse<JockeyProfileResponse>> getProfile(@PathVariable Integer jockeyId) {
         JockeyProfileResponse response = jockeyProfileService.getProfile(jockeyId);
@@ -32,6 +37,18 @@ public class JockeyProfileController {
             @RequestBody JockeyProfileUpdateRequest request) {
         JockeyProfileResponse response = jockeyProfileService.updateProfile(jockeyId, request);
         return ResponseEntity.ok(ApiResponse.success(response, "Updated jockey profile successfully"));
+    }
+
+    @GetMapping("/{jockeyId}/completed-races/count")
+    public ResponseEntity<ApiResponse<Long>> getCompletedRaceCount(@PathVariable Integer jockeyId) {
+        long response = jockeyProfileService.getCompletedRaceCount(jockeyId);
+        return ResponseEntity.ok(ApiResponse.success(response, "Fetched completed race count successfully"));
+    }
+
+    @GetMapping("/{jockeyId}/completed-races/average-rank")
+    public ResponseEntity<ApiResponse<Double>> getAverageRankForCompletedRaces(@PathVariable Integer jockeyId) {
+        Double response = jockeyProfileService.getAverageRankForCompletedRaces(jockeyId);
+        return ResponseEntity.ok(ApiResponse.success(response, "Fetched average rank successfully"));
     }
 
     // Khai: API for a jockey to view all certificates and their current admin-updated statuses.

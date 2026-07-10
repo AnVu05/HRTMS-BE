@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Khai: Response DTO for a jockey to view a certificate and its current verification status.
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,4 +26,3 @@ public class JockeyCertificateResponse {
 
     private com.swp.hrtms.hrtmsbe.enums.CertificateStatus status;
 }
-
