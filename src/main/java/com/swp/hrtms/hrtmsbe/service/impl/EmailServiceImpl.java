@@ -21,12 +21,6 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.otp.mock:true}")
     private boolean otpMock;
 
-    private final JavaMailSender mailSender;
-
-    public EmailServiceImpl(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
-
     @Override
     public void sendOtp(String to, String otp) {
         String subject = "HRTMS Secure Access Code (OTP)";
