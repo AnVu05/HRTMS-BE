@@ -15,6 +15,8 @@ public interface HorseService {
 
     List<HorseResponse> getHorsesByOwner(Integer ownerId);
 
+    List<HorseResponse> getWorkingHorsesByOwner(Integer ownerId);
+
     HorseResponse getHorseById(Integer id);
 
     HorseResponse updateHorse(Integer id, HorseRequest request);
