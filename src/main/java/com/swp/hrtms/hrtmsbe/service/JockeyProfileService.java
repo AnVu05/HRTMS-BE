@@ -16,6 +16,10 @@ public interface JockeyProfileService {
 
     JockeyProfileResponse updateProfile(Integer jockeyId, JockeyProfileUpdateRequest request);
 
+    long getCompletedRaceCount(Integer jockeyId);
+
+    Double getAverageRankForCompletedRaces(Integer jockeyId);
+
     // Khai: Get every certificate belonging to a jockey with its current status.
     List<JockeyCertificateResponse> getCertificates(Integer jockeyId);
 

@@ -9,6 +9,8 @@ import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
 import com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository;
 import com.swp.hrtms.hrtmsbe.repository.JockeyRepository;
+import com.swp.hrtms.hrtmsbe.repository.RacePlacementRepository;
+import com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository;
 import com.swp.hrtms.hrtmsbe.service.JockeyProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
 
     private final JockeyRepository jockeyRepository;
     private final JockeyCertRepository jockeyCertRepository;
+    private final RegistrationFormRepository registrationFormRepository;
+    private final RacePlacementRepository racePlacementRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -48,6 +52,24 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
 
         Jockey updatedJockey = jockeyRepository.save(jockey);
         return toResponse(updatedJockey);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long getCompletedRaceCount(Integer jockeyId) {
+        findJockeyById(jockeyId);
+        return registrationFormRepository.countDistinctRacesByJockeyIdAndStatus(
+                jockeyId,
+                com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Double getAverageRankForCompletedRaces(Integer jockeyId) {
+        findJockeyById(jockeyId);
+        return racePlacementRepository.findAverageFinishPositionByJockeyIdAndRegistrationStatus(
+                jockeyId,
+                com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE);
     }
 
     // Khai: Read all certificates without filtering out statuses updated by an

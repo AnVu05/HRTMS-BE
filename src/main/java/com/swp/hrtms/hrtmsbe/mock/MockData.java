@@ -1,6 +1,11 @@
 package com.swp.hrtms.hrtmsbe.mock;
 
 import com.swp.hrtms.hrtmsbe.entity.*;
+import com.swp.hrtms.hrtmsbe.enums.NotificationStatus;
+import com.swp.hrtms.hrtmsbe.enums.NotificationType;
+import com.swp.hrtms.hrtmsbe.enums.RaceStatus;
+import com.swp.hrtms.hrtmsbe.enums.TournamentStatus;
+import com.swp.hrtms.hrtmsbe.enums.UserStatus;
 import com.swp.hrtms.hrtmsbe.repository.*;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.LocalTime;
 
 @Component
