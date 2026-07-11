@@ -1,6 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
 import com.swp.hrtms.hrtmsbe.enums.NotificationType;
+import com.swp.hrtms.hrtmsbe.enums.RaceStatus;
 import com.swp.hrtms.hrtmsbe.dto.response.NotificationResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.RefereeInvitationResponse;
 import com.swp.hrtms.hrtmsbe.dto.request.RespondInvitationRequest;
@@ -407,7 +408,7 @@ public class NotificationServiceImpl implements NotificationService {
                 // Kiểm tra xem lời mời đã được xử lý hay chưa để tránh cập nhật lặp
                 // Lời mời chỉ hợp lệ khi cuộc đua vẫn đang chờ trọng tài (PENDING_REFEREE) và
                 // trọng tài được gán trùng khớp với refereeId
-                if (!"PENDING_REFEREE".equals(race.getStatus()) || race.getReferee() == null
+                if (race.getStatus() != RaceStatus.PENDING_REFEREE || race.getReferee() == null
                                 || !race.getReferee().getId().equals(refereeId)) {
                         throw new IllegalArgumentException(
                                         "This invitation is no longer valid or has already been responded to.");
