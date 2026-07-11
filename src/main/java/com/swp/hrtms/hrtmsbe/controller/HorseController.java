@@ -38,6 +38,11 @@ public class HorseController {
         return ResponseEntity.ok(ApiResponse.success(horseService.getHorsesByOwner(ownerId), null));
     }
 
+    @GetMapping("/owner/{ownerId}/working")
+    public ResponseEntity<ApiResponse<List<HorseResponse>>> getWorkingHorsesByOwner(@PathVariable Integer ownerId) {
+        return ResponseEntity.ok(ApiResponse.success(horseService.getWorkingHorsesByOwner(ownerId), null));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<HorseResponse>> getHorseById(@PathVariable Integer id) {
         return ResponseEntity.ok(ApiResponse.success(horseService.getHorseById(id), null));
