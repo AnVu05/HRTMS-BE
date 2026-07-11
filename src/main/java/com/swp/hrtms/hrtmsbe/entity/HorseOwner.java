@@ -1,6 +1,5 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -35,7 +34,7 @@ public class HorseOwner {
     private String ownerName;
 
     @jakarta.persistence.Lob
-    @Column(columnDefinition = "TEXT", nullable = true)
+    @Column(columnDefinition = "VARCHAR(MAX)", nullable = true)
     private String avatar;
 
     // private String phone;

@@ -34,6 +34,18 @@ public class RegistrationFormController {
                 "Fetched pending admin registration forms successfully"));
     }
 
+    @GetMapping("/owner/{ownerId}")
+    public ResponseEntity<ApiResponse<List<RegistrationFormResponse>>> getByOwnerId(@PathVariable Integer ownerId) {
+        return ResponseEntity.ok(ApiResponse.success(service.getByOwnerId(ownerId),
+                "Fetched owner registration forms successfully"));
+    }
+
+    @GetMapping("/race/{raceId}/racing")
+    public ResponseEntity<ApiResponse<List<RegistrationFormResponse>>> getRacingFormsByRaceId(@PathVariable Integer raceId) {
+        return ResponseEntity.ok(ApiResponse.success(service.getRacingFormsByRaceId(raceId),
+                "Fetched racing forms for race successfully"));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<RegistrationFormResponse>> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(ApiResponse.success(service.getById(id), null));

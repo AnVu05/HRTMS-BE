@@ -143,10 +143,12 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
                         .asList(
                                 com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DISQUALIFIED,
                                 com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE);
-                
-                boolean jockeyAlreadyRegistered = repository.existsByJockey_IdAndRace_IdAndStatusNotIn(request.getJockeyId(), race.getId(), jockeyExcludedStatuses);
+
+                boolean jockeyAlreadyRegistered = repository.existsByJockey_IdAndRace_IdAndStatusNotIn(
+                        request.getJockeyId(), race.getId(), jockeyExcludedStatuses);
                 if (jockeyAlreadyRegistered) {
-                    throw new IllegalArgumentException("This jockey is already registered to ride another horse in this race.");
+                    throw new IllegalArgumentException(
+                            "This jockey is already registered to ride another horse in this race.");
                 }
             }
 
@@ -156,7 +158,8 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
                             com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.DELETE,
                             com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.UPDATE);
 
-            boolean alreadyRegistered = repository.existsByHorse_IdAndRace_IdAndStatusNotIn(horse.getId(), race.getId(), excludedStatuses);
+            boolean alreadyRegistered = repository.existsByHorse_IdAndRace_IdAndStatusNotIn(horse.getId(), race.getId(),
+                    excludedStatuses);
             if (alreadyRegistered) {
                 throw new IllegalArgumentException("This horse is already registered for this race.");
             }
@@ -488,7 +491,20 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
 
     @Override
     public List<RegistrationFormResponse> getPendingAdminForms(Integer adminId) {
-        return repository.findByAdmin_IdAndStatus(adminId, com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_ADMIN)
+        return repository
+                .findByAdmin_IdAndStatus(adminId, com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_ADMIN)
+                .stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RegistrationFormResponse> getByOwnerId(Integer ownerId) {
+        return repository.findByOwner_UserId(ownerId)
+                .stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RegistrationFormResponse> getRacingFormsByRaceId(Integer raceId) {
+        return repository.findByRace_IdAndStatus(raceId, com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING)
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
@@ -575,6 +591,11 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
                 .tournamentId(form.getTournament() != null ? form.getTournament().getId() : null)
                 .raceId(form.getRace() != null ? form.getRace().getId() : null)
                 .adminId(form.getAdmin() != null ? form.getAdmin().getId() : null)
+                .ownerName(form.getOwner() != null ? form.getOwner().getOwnerName() : null)
+                .horseName(form.getHorse() != null ? form.getHorse().getName() : null)
+                .jockeyName(form.getJockey() != null ? form.getJockey().getJockeyName() : null)
+                .tournamentName(form.getTournament() != null ? form.getTournament().getName() : null)
+                .raceName(form.getRace() != null ? form.getRace().getName() : null)
                 .status(form.getStatus())
                 .createdAt(form.getCreatedAt())
                 .build();

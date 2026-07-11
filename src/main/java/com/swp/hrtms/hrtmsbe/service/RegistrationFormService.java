@@ -11,6 +11,10 @@ public interface RegistrationFormService {
 
     List<RegistrationFormResponse> getPendingAdminForms(Integer adminId);
 
+    List<RegistrationFormResponse> getByOwnerId(Integer ownerId);
+
+    List<RegistrationFormResponse> getRacingFormsByRaceId(Integer raceId);
+
     RegistrationFormResponse getById(Integer id);
 
     RegistrationFormResponse update(Integer id, RegistrationFormRequest request);

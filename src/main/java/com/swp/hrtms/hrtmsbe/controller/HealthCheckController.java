@@ -46,5 +46,17 @@ public class HealthCheckController {
         service.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Deleted successfully"));
     }
+
+    @GetMapping("/doctor/{doctorId}")
+    public ResponseEntity<ApiResponse<List<HealthCheckResponse>>> getAssignedHealthChecks(@PathVariable Integer doctorId) {
+        return ResponseEntity.ok(ApiResponse.success(service.getAssignedHealthChecks(doctorId), "Fetched successfully"));
+    }
+
+    @PutMapping("/{id}/process")
+    public ResponseEntity<ApiResponse<HealthCheckResponse>> processHealthCheck(
+            @PathVariable Integer id,
+            @RequestBody com.swp.hrtms.hrtmsbe.dto.request.HealthCheckProcessRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(service.processHealthCheck(id, request), "Processed successfully"));
+    }
 }
 

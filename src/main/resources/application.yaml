@@ -24,8 +24,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: Cybermiquang@gmail.com
-    password: gbqglmmmexhwlcuc
+    username: vudinhan2k5@gmail.com
+    password: crtd ivqg eedy xdjl
     properties:
       mail:
         smtp:
@@ -38,4 +38,4 @@ app:
     secret: "YourSuperSecretKeyForJWTGenerationHRTMSProject2026"
     expiration: 86400000 # 1 day in milliseconds
   otp:
-    mock: false # set to false to send real emails (test thu mail that)
+    mock: false # set to false to send real emails

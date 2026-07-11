@@ -35,6 +35,23 @@ public class HorseOwnerProfileController {
         HorseOwnerProfileResponse response = horseOwnerProfileService.updateProfile(ownerId, request);
         return ResponseEntity.ok(ApiResponse.success(response, "Horse owner profile updated successfully"));
     }
+
+    // Khải: API update avatar của chủ ngựa.
+    @PutMapping("/{ownerId}/avatar")
+    public ResponseEntity<ApiResponse<HorseOwnerProfileResponse>> updateAvatar(
+            @PathVariable Integer ownerId,
+            @RequestBody java.util.Map<String, String> request) {
+        String avatarBase64 = request.get("avatar");
+        HorseOwnerProfileResponse response = horseOwnerProfileService.updateAvatar(ownerId, avatarBase64);
+        return ResponseEntity.ok(ApiResponse.success(response, "Avatar updated successfully"));
+    }
+
+    // Khải: API vô hiệu hóa tài khoản chủ ngựa.
+    @DeleteMapping("/{ownerId}")
+    public ResponseEntity<ApiResponse<Void>> deactivateAccount(@PathVariable Integer ownerId) {
+        horseOwnerProfileService.deactivateAccount(ownerId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Account deactivated successfully"));
+    }
 }
 
 

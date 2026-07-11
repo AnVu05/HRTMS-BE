@@ -67,6 +67,7 @@ public class RaceServiceImpl implements RaceService {
 
     // code moi(06/07) tiem them vao de lay user thong bao !
     private final com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository registrationFormRepository;
+
     @Override
     @Transactional
     public List<RaceResponse> createRacesBatch(RaceBatchCreateRequest request) {
@@ -427,13 +428,14 @@ public class RaceServiceImpl implements RaceService {
         for (Race race : races) {
             RaceDashboardItem item = RaceDashboardItem.builder()
                     .id(race.getId())
+                    .tournamentId(tournamentId)
                     .name(race.getName())
                     .date(race.getDate())
                     .startTime(race.getStartTime())
                     .endTime(race.getEndTime())
                     .status(race.getStatus())
                     .refereeId(race.getReferee() != null ? race.getReferee().getId() : null)
-                    .refereeName(race.getReferee() != null ? race.getReferee().getName() : null)
+                    .refereeName(race.getReferee() != null ? race.getReferee().getUsername() : null)
                     .distanceM(race.getDistanceM())
                     .build();
             raceItems.add(item);
@@ -531,7 +533,6 @@ public class RaceServiceImpl implements RaceService {
         }
         notificationRecipientRepository.saveAll(recipients);
     }
-
 
     @Override
     @Transactional
@@ -702,7 +703,6 @@ public class RaceServiceImpl implements RaceService {
         notificationRecipientRepository.save(recipient);
     }
 
-
     @Override
     @Transactional
     public RaceResponse disqualifyHorse(Integer raceId, Integer horseId, String reason) {
@@ -729,10 +729,9 @@ public class RaceServiceImpl implements RaceService {
         return mapToRaceResponse(race);
     }
 
-
     @Override
     public String walkOverRace(Integer raceId) {
-         Race race = raceRepository.findById(raceId)
+        Race race = raceRepository.findById(raceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Race not found with id: " + raceId));
 
         // khai
@@ -753,7 +752,8 @@ public class RaceServiceImpl implements RaceService {
             throw new IllegalArgumentException("Walk over requires exactly one eligible horse.");
         }
 
-        // Marks the race as walk-over while health check waits for the remaining horse's final result.
+        // Marks the race as walk-over while health check waits for the remaining
+        // horse's final result.
         race.setStatus(RaceStatus.WALK_OVER);
         race.setReason("There is currently only one horse competing");
         raceRepository.save(race);
@@ -785,8 +785,8 @@ public class RaceServiceImpl implements RaceService {
 
         return mapToRaceResponse(race);
     }
-    
-   private void refundPrediction(Prediction prediction) {
+
+    private void refundPrediction(Prediction prediction) {
         if (prediction == null || prediction.getStatus() == com.swp.hrtms.hrtmsbe.enums.PredictionStatus.CANCELLED) {
             return;
         }
@@ -844,7 +844,6 @@ public class RaceServiceImpl implements RaceService {
         notificationRecipientRepository.save(recipient);
     }
 
-
     private boolean isRefundablePrediction(Prediction prediction) {
         if (prediction == null || prediction.getStatus() == null) {
             return false;
@@ -869,8 +868,8 @@ public class RaceServiceImpl implements RaceService {
             return;
         }
 
-        List<com.swp.hrtms.hrtmsbe.entity.RacePlacement> placements =
-                racePlacementRepository.findByRaceResult_Id(raceResult.getId());
+        List<com.swp.hrtms.hrtmsbe.entity.RacePlacement> placements = racePlacementRepository
+                .findByRaceResult_Id(raceResult.getId());
         com.swp.hrtms.hrtmsbe.entity.RacePlacement disqualifiedPlacement = placements.stream()
                 .filter(p -> p.getRegistrationForm() != null
                         && p.getRegistrationForm().getId().equals(registrationFormId))
@@ -922,5 +921,50 @@ public class RaceServiceImpl implements RaceService {
         }
 
         return mapToRaceResponse(race);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.swp.hrtms.hrtmsbe.dto.response.OfficialResultResponse> getOfficialResults(Integer raceId) {
+        List<com.swp.hrtms.hrtmsbe.dto.response.OfficialResultResponse> resultList = new ArrayList<>();
+        com.swp.hrtms.hrtmsbe.entity.RaceResult raceResult = raceResultRepository.findByRace_Id(raceId).orElse(null);
+        if (raceResult == null) {
+            return resultList;
+        }
+
+        List<com.swp.hrtms.hrtmsbe.entity.RacePlacement> placements = racePlacementRepository
+                .findByRaceResult_Id(raceResult.getId());
+
+        // Sort by finishPosition
+        placements.sort((p1, p2) -> {
+            if (p1.getFinishPosition() == null)
+                return 1;
+            if (p2.getFinishPosition() == null)
+                return -1;
+            return p1.getFinishPosition().compareTo(p2.getFinishPosition());
+        });
+
+        for (com.swp.hrtms.hrtmsbe.entity.RacePlacement p : placements) {
+            String jockeyName = "Unknown";
+            String horseName = "Unknown";
+
+            if (p.getRegistrationForm() != null) {
+                if (p.getRegistrationForm().getJockey() != null) {
+                    jockeyName = p.getRegistrationForm().getJockey().getJockeyName();
+                }
+                if (p.getRegistrationForm().getHorse() != null) {
+                    horseName = p.getRegistrationForm().getHorse().getName();
+                }
+            }
+
+            resultList.add(com.swp.hrtms.hrtmsbe.dto.response.OfficialResultResponse.builder()
+                    .pos(p.getFinishPosition())
+                    .jockey(jockeyName)
+                    .horse(horseName)
+                    .finishTime(p.getFinishTime() != null ? p.getFinishTime().toLocalTime().toString() : "--:--:--")
+                    .build());
+        }
+
+        return resultList;
     }
 }

@@ -104,4 +104,9 @@ public class RaceController {
         RaceResponse response = raceService.getRaceById(id);
         return ResponseEntity.ok(ApiResponse.success(response, null));
     }
+
+    @GetMapping("/{id}/results")
+    public ResponseEntity<ApiResponse<List<com.swp.hrtms.hrtmsbe.dto.response.OfficialResultResponse>>> getOfficialResults(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(ApiResponse.success(raceService.getOfficialResults(id), "Fetched official results successfully"));
+    }
 }

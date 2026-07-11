@@ -11,6 +11,10 @@ public interface HorseOwnerProfileService {
     HorseOwnerProfileResponse getProfile(Integer ownerId);
 
     HorseOwnerProfileResponse updateProfile(Integer ownerId, HorseOwnerProfileUpdateRequest request);
+
+    HorseOwnerProfileResponse updateAvatar(Integer ownerId, String avatarBase64);
+
+    void deactivateAccount(Integer ownerId);
 }
 
 

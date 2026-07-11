@@ -1,5 +1,4 @@
-package com.swp.hrtms.hrtmsbe.dto.response;
-
+package com.swp.hrtms.hrtmsbe.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,9 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RefereeResponse {
-    private Integer id;
-    private String name;
-    private String username;
+public class ResetPasswordRequest {
+    private String email;
+    private String otpCode;
+    private String newPassword;
 }
-

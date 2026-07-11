@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class VerifyOtpResponse {
     private String message;
+    private String token;
     private UserResponse user;
 }
 

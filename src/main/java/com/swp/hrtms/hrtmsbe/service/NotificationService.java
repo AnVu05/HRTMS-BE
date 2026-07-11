@@ -31,6 +31,10 @@ public interface NotificationService {
     List<NotificationResponse> getRefereeNotifications(Integer refereeId);
 
     Page<NotificationResponse> getSpectatorNotifications(Integer spectatorId, int page, int size);
+    
+    Page<NotificationResponse> getDoctorNotifications(Integer doctorId, int page, int size);
+    
+    void markAllDoctorNotificationsAsRead(Integer doctorId);
 
     List<NotificationResponse> getJockeyNotifications(Integer jockeyId);
 }

@@ -1,6 +1,5 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-
 // Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.response.RefereeResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.RefereeScheduledRaceResponse;
@@ -45,7 +44,7 @@ public class RefereeServiceImpl implements RefereeService {
         return referees.stream()
                 .map(r -> RefereeResponse.builder()
                         .id(r.getId())
-                        .name(r.getName())
+                        .username(r.getUsername())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -73,7 +72,7 @@ public class RefereeServiceImpl implements RefereeService {
         return races.stream().map(race -> {
             String tournamentName = (race.getTournament() != null) ? race.getTournament().getName() : null;
             Integer refId = (race.getReferee() != null) ? race.getReferee().getId() : null;
-            String refName = (race.getReferee() != null) ? race.getReferee().getName() : null;
+            String refName = (race.getReferee() != null) ? race.getReferee().getUsername() : null;
             Integer rulesId = (race.getRaceRules() != null) ? race.getRaceRules().getId() : null;
             String rulesName = (race.getRaceRules() != null) ? race.getRaceRules().getName() : null;
 

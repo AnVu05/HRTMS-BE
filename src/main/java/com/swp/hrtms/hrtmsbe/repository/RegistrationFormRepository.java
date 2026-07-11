@@ -14,6 +14,8 @@ public interface RegistrationFormRepository extends JpaRepository<RegistrationFo
         List<RegistrationForm> findByRace_IdAndStatus(Integer raceId,
                         com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus status);
 
+        List<RegistrationForm> findByOwner_UserId(Integer ownerId);
+
         List<RegistrationForm> findByAdmin_IdAndStatus(Integer adminId, com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus status);
 
         List<RegistrationForm> findByRace_Id(Integer raceId);

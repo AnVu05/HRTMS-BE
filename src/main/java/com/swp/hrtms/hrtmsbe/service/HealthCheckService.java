@@ -13,5 +13,9 @@ public interface HealthCheckService {
     HealthCheckResponse getById(Integer id);
     HealthCheckResponse update(Integer id, HealthCheckRequest request);
     void delete(Integer id);
+    
+    java.util.List<HealthCheckResponse> getAssignedHealthChecks(Integer doctorId);
+    
+    HealthCheckResponse processHealthCheck(Integer id, com.swp.hrtms.hrtmsbe.dto.request.HealthCheckProcessRequest request);
 }
 

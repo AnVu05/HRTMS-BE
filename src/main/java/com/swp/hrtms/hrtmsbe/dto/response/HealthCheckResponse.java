@@ -17,5 +17,11 @@ public class HealthCheckResponse {
     private com.swp.hrtms.hrtmsbe.enums.HealthCheckStatus status;
     private String medicalNotes;
     private LocalDateTime checkDate;
+    
+    @com.fasterxml.jackson.annotation.JsonProperty("horse_name")
+    private String horseName;
+    
+    @com.fasterxml.jackson.annotation.JsonProperty("owner_name")
+    private String ownerName;
 }
 
