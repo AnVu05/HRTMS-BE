@@ -1,8 +1,12 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertCreateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
-import com.swp.hrtms.hrtmsbe.dto.response.JockeyVerificationRequestResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse;
+import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertResponse;
+import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 import com.swp.hrtms.hrtmsbe.service.VerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,31 +24,29 @@ public class VerificationController {
     private final VerificationService verificationService;
 
     @GetMapping("/jockey-certs")
-    public ResponseEntity<ApiResponse<List<JockeyVerificationRequestResponse>>> getJockeyVerificationRequests(
+    public ResponseEntity<ApiResponse<List<JockeyCert>>> getJockeyVerificationRequests(
             @RequestParam("recipientId") Integer recipientId) {
         
-        List<JockeyVerificationRequestResponse> responses = verificationService.getJockeyVerificationRequests(recipientId);
+        List<JockeyCert> responses = verificationService.getJockeyVerificationRequests(recipientId);
         return ResponseEntity.ok(ApiResponse.success(responses, "Fetched verification requests successfully"));
     }
 
+    //Lay toan bo cert dang PENDING tuog ung voi jockeyId (Thien)
     @GetMapping("/jockey-certs/{jockeyId}/images")
-    public ResponseEntity<ApiResponse<List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse>>> getPendingCertImages(
+    public ResponseEntity<ApiResponse<List<JockeyCertImageResponse>>> getPendingCertImages(
             @PathVariable("jockeyId") Integer jockeyId) {
         
-        List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> responses = verificationService.getPendingCertificateImages(jockeyId);
+        List<JockeyCertImageResponse> responses = verificationService.getPendingCertificateImages(jockeyId);
         return ResponseEntity.ok(ApiResponse.success(responses, "Fetched certificate images successfully"));
     }
 
-    // Khai: Save a Base64 certificate image directly as text with PENDING status.
-    @PostMapping("/jockey-certs/{jockeyId}")
-    public ResponseEntity<Map<String, String>> createJockeyCertificate(
-            @PathVariable Integer jockeyId,
+    // Khai: Save a certificate directly as entity data with PENDING status.
+    @PostMapping("/jockey-certs")
+    public ResponseEntity<ApiResponse<JockeyCert>> createJockeyCertificate(
             @RequestBody JockeyCertCreateRequest request) {
-        verificationService.createJockeyCertificate(jockeyId, request);
+        JockeyCert certificate = verificationService.createJockeyCertificate(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of(
-                        "status", "success",
-                        "message", "Certificate created successfully"));
+                .body(ApiResponse.success(certificate, "Certificate created successfully"));
     }
 
     // Khai: Create one verification notification and deliver it to every admin.
@@ -57,21 +59,23 @@ public class VerificationController {
     }
 
     @PutMapping("/jockey-certs/{jockeyId}/accept")
-    public ResponseEntity<ApiResponse<Void>> acceptJockeyCertificates(
+    public ResponseEntity<ApiResponse<List<JockeyCert>>> acceptJockeyCertificates(
             @PathVariable("jockeyId") Integer jockeyId,
             @RequestParam("adminId") Integer adminId) {
 
-        verificationService.acceptJockeyCertificates(jockeyId, adminId);
-        return ResponseEntity.ok(ApiResponse.success(null, "Certificates accepted successfully"));
+        List<JockeyCert> certs = verificationService.acceptJockeyCertificates(jockeyId, adminId);
+        return ResponseEntity.ok(ApiResponse.success(certs, "Certificates accepted successfully"));
     }
 
     @PutMapping("/jockey-certs/{jockeyId}/reject")
-    public ResponseEntity<ApiResponse<Void>> rejectJockeyCertificates(
+    public ResponseEntity<ApiResponse<List<JockeyCert>>> rejectJockeyCertificates(
             @PathVariable("jockeyId") Integer jockeyId,
             @RequestParam("adminId") Integer adminId,
-            @org.springframework.web.bind.annotation.RequestBody com.swp.hrtms.hrtmsbe.dto.request.RejectVerificationRequest request) {
+            @RequestBody com.swp.hrtms.hrtmsbe.dto.request.RejectVerificationRequest request) {
 
-        verificationService.rejectJockeyCertificates(jockeyId, adminId, request.getReason());
-        return ResponseEntity.ok(ApiResponse.success(null, "Certificates rejected successfully"));
+        List<JockeyCert> certs = verificationService.rejectJockeyCertificates(jockeyId, adminId, request.getReason());
+        return ResponseEntity.ok(ApiResponse.success(certs, "Certificates rejected successfully"));
     }
 }
+
+

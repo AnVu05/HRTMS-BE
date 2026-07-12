@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.dto.request;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,14 +25,15 @@ public class TournamentUpdateRequest {
     @JsonProperty("end_date")
     private LocalDate endDate;
 
-    @JsonProperty("allowed_horse_breed")
-    private String allowedBreed;
+    // khai
+    @JsonProperty("published_date")
+    private LocalDate publishedDate;
 
-    @JsonProperty("horse_age_requirement")
-    private Integer allowedHorseAge;
+    @JsonProperty("open_prediction_date")
+    private LocalDate openPredictionDate;
 
-    @JsonProperty("tournament_description")
-    private String description;
+    @JsonProperty("close_prediction_date")
+    private LocalDate closePredictionDate;
 
-    private String status;
+    private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status;
 }

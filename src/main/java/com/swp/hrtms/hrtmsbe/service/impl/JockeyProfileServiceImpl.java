@@ -9,6 +9,8 @@ import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 import com.swp.hrtms.hrtmsbe.exception.ResourceNotFoundException;
 import com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository;
 import com.swp.hrtms.hrtmsbe.repository.JockeyRepository;
+import com.swp.hrtms.hrtmsbe.repository.RacePlacementRepository;
+import com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository;
 import com.swp.hrtms.hrtmsbe.service.JockeyProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,17 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
 
     private final JockeyRepository jockeyRepository;
     private final JockeyCertRepository jockeyCertRepository;
+    private final RegistrationFormRepository registrationFormRepository;
+    private final RacePlacementRepository racePlacementRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<JockeyProfileResponse> getAllJockeys() {
+        return jockeyRepository.findByStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -41,7 +54,26 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
         return toResponse(updatedJockey);
     }
 
-    // Khai: Read all certificates without filtering out statuses updated by an admin.
+    @Override
+    @Transactional(readOnly = true)
+    public long getCompletedRaceCount(Integer jockeyId) {
+        findJockeyById(jockeyId);
+        return registrationFormRepository.countDistinctRacesByJockeyIdAndStatus(
+                jockeyId,
+                com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Double getAverageRankForCompletedRaces(Integer jockeyId) {
+        findJockeyById(jockeyId);
+        return racePlacementRepository.findAverageFinishPositionByJockeyIdAndRegistrationStatus(
+                jockeyId,
+                com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.COMPLETE);
+    }
+
+    // Khai: Read all certificates without filtering out statuses updated by an
+    // admin.
     @Override
     @Transactional(readOnly = true)
     public List<JockeyCertificateResponse> getCertificates(Integer jockeyId) {
@@ -53,7 +85,8 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
                 .toList();
     }
 
-    // Khai: Updating verified data resets the certificate to PENDING for admin review.
+    // Khai: Updating verified data resets the certificate to PENDING for admin
+    // review.
     @Override
     @Transactional
     public JockeyCertificateResponse updateCertificate(
@@ -64,8 +97,10 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
         JockeyCert certificate = findCertificateByIdAndJockeyId(certId, jockeyId);
 
         certificate.setCertName(request.getCertName().trim());
-        certificate.setCertImg(request.getCertImageBase64());
-        certificate.setStatus("PENDING");
+        certificate.setCertImageBase64(request.getCertImageBase64());
+        certificate.setIssuedAt(request.getIssuedAt());
+        // khai
+        certificate.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.PENDING);
 
         return toCertificateResponse(jockeyCertRepository.save(certificate));
     }
@@ -74,6 +109,7 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
     @Override
     @Transactional
     public void deleteCertificate(Integer jockeyId, Integer certId) {
+        // khai
         JockeyCert certificate = findCertificateByIdAndJockeyId(certId, jockeyId);
         jockeyCertRepository.delete(certificate);
     }
@@ -103,10 +139,10 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
             throw new IllegalArgumentException("Jockey name is required");
         }
 
-        if (request.getYearOfExperience() == null) {
+        if (request.getExperienceYears() == null) {
             throw new IllegalArgumentException("Years of experience is required");
         }
-        if (request.getYearOfExperience() < 0) {
+        if (request.getExperienceYears() < 0) {
             throw new IllegalArgumentException("Years of experience must be greater than or equal to 0");
         }
 
@@ -118,13 +154,35 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
         }
 
         jockey.setJockeyName(request.getJockeyName().trim());
-        jockey.setYearOfExperience(request.getYearOfExperience());
+        jockey.setExperienceYears(request.getExperienceYears());
         jockey.setAge(request.getAge());
 
         if (request.getProfessionalBio() != null) {
             jockey.setProfessionalBio(request.getProfessionalBio().trim());
         } else {
             jockey.setProfessionalBio(null);
+        }
+
+        if (request.getAvatar() != null && !request.getAvatar().isBlank()) {
+            jockey.setAvatar(request.getAvatar());
+        }
+        if (request.getUsername() != null && !request.getUsername().isBlank()) {
+            jockey.setUsername(request.getUsername());
+        }
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            jockey.setPassword(request.getPassword());
+        }
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            jockey.setEmail(request.getEmail());
+        }
+        if (request.getRole() != null && !request.getRole().isBlank()) {
+            jockey.setRole(request.getRole());
+        }
+        if (request.getCreatedAt() != null) {
+            jockey.setCreatedAt(request.getCreatedAt());
+        }
+        if (request.getStatus() != null) {
+            jockey.setStatus(request.getStatus());
         }
     }
 
@@ -136,10 +194,12 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
                 .role(jockey.getRole())
                 .createdAt(jockey.getCreatedAt())
                 .jockeyName(jockey.getJockeyName())
-                .yearOfExperience(jockey.getYearOfExperience())
+                .experienceYears(jockey.getExperienceYears())
                 .age(jockey.getAge())
                 .professionalBio(jockey.getProfessionalBio())
                 .status(jockey.getStatus())
+                .avatar(jockey.getAvatar())
+                .password(jockey.getPassword())
                 .build();
     }
 
@@ -147,7 +207,8 @@ public class JockeyProfileServiceImpl implements JockeyProfileService {
         return JockeyCertificateResponse.builder()
                 .certId(certificate.getId())
                 .certName(certificate.getCertName())
-                .certImageBase64(certificate.getCertImg())
+                .certImageBase64(certificate.getCertImageBase64())
+                .issuedAt(certificate.getIssuedAt())
                 .status(certificate.getStatus())
                 .build();
     }

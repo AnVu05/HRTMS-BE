@@ -1,9 +1,11 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;
 
@@ -17,5 +19,6 @@ public class TournamentDashboardResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private Long numRaces;
-    private String status;
+    private com.swp.hrtms.hrtmsbe.enums.TournamentStatus status;
 }
+

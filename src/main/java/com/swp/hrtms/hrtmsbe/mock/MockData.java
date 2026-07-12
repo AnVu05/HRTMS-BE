@@ -1,347 +1,210 @@
 package com.swp.hrtms.hrtmsbe.mock;
 
-import com.swp.hrtms.hrtmsbe.entity.Admin;
-import com.swp.hrtms.hrtmsbe.entity.Notification;
-import com.swp.hrtms.hrtmsbe.entity.NotificationRecipient;
-import com.swp.hrtms.hrtmsbe.entity.Race;
-import com.swp.hrtms.hrtmsbe.entity.Referee;
-import com.swp.hrtms.hrtmsbe.entity.Tournament;
-import com.swp.hrtms.hrtmsbe.entity.User;
-import com.swp.hrtms.hrtmsbe.entity.UserRole;
-import com.swp.hrtms.hrtmsbe.repository.AdminRepository;
-import com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository;
-import com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository;
-import com.swp.hrtms.hrtmsbe.repository.NotificationRepository;
-import com.swp.hrtms.hrtmsbe.repository.RaceRepository;
-import com.swp.hrtms.hrtmsbe.repository.RefereeRepository;
-import com.swp.hrtms.hrtmsbe.repository.TournamentRepository;
-import com.swp.hrtms.hrtmsbe.repository.UserRepository;
+import com.swp.hrtms.hrtmsbe.entity.*;
+import com.swp.hrtms.hrtmsbe.enums.NotificationStatus;
+import com.swp.hrtms.hrtmsbe.enums.NotificationType;
+import com.swp.hrtms.hrtmsbe.enums.RaceStatus;
+import com.swp.hrtms.hrtmsbe.enums.TournamentStatus;
+import com.swp.hrtms.hrtmsbe.enums.UserStatus;
+import com.swp.hrtms.hrtmsbe.repository.*;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Component
+@RequiredArgsConstructor
 public class MockData {
 
-        private final UserRepository userRepository;
-        private final AdminRepository adminRepository;
-        private final TournamentRepository tournamentRepository;
-        private final RaceRepository raceRepository;
-        private final RefereeRepository refereeRepository;
-        private final JockeyCertRepository jockeyCertRepository;
-        private final NotificationRepository notificationRepository;
-        private final NotificationRecipientRepository notificationRecipientRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.UserRepository userRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.AdminRepository adminRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.DoctorRepository doctorRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.JockeyRepository jockeyRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository horseOwnerRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.TournamentRepository tournamentRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.RaceRepository raceRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.RaceFormatRepository raceFormatRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.HorseRepository horseRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.RegistrationFormRepository registrationFormRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.JockeyCertRepository jockeyCertRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.NotificationRepository notificationRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.NotificationRecipientRepository notificationRecipientRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.RefereeRepository refereeRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.RaceResultRepository raceResultRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.RacePlacementRepository racePlacementRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.HealthCheckRepository healthCheckRepository;
 
-        public MockData(
-                        UserRepository userRepository,
-                        AdminRepository adminRepository,
-                        TournamentRepository tournamentRepository,
-                        RaceRepository raceRepository,
-                        RefereeRepository refereeRepository,
-                        JockeyCertRepository jockeyCertRepository,
-                        NotificationRepository notificationRepository,
-                        NotificationRecipientRepository notificationRecipientRepository) {
-                this.userRepository = userRepository;
-                this.adminRepository = adminRepository;
-                this.tournamentRepository = tournamentRepository;
-                this.raceRepository = raceRepository;
-                this.refereeRepository = refereeRepository;
-                this.jockeyCertRepository = jockeyCertRepository;
-                this.notificationRepository = notificationRepository;
-                this.notificationRecipientRepository = notificationRecipientRepository;
-        }
-
-        public void generateData() {
-                generateJockeyCertificateAndRaceFlowMockDataOnStartup();
-        }
-
-        public void generateJockeyCertificateAndRaceFlowMockDataOnStartup() {
-                System.out.println("Seeding mock data for jockey certificate flow and race creation flow...");
-
-                Admin admin = findOrCreateAdmin();
-                Referee refereeGregCarpenter = findOrCreateReferee("referee1", "ref1@test.com", "Greg Carpenter");
-                Referee refereeMichaelWrona = findOrCreateReferee("referee2", "ref2@test.com", "Michael Wrona");
-                com.swp.hrtms.hrtmsbe.entity.Jockey jockeyRyanMoore = findOrCreateJockey(
-                                "jockey1",
-                                "jockey1@test.com",
-                                "Ryan Moore",
-                                22,
-                                42,
-                                "Royal Ascot and international Group 1 winning jockey.");
-
-                Tournament royalAscot = findOrCreateTournament(admin);
-
-                Race queenAnneStakes = findOrCreateRace(
-                                royalAscot,
-                                refereeGregCarpenter,
-                                "Queen Anne Stakes",
-                                java.time.LocalDate.of(2026, 6, 23),
-                                java.time.LocalTime.of(9, 0),
-                                java.time.LocalTime.of(10, 0),
-                                "PENDING_REFEREE");
-
-                Race ascotGoldCup = findOrCreateRace(
-                                royalAscot,
-                                refereeMichaelWrona,
-                                "Ascot Gold Cup",
-                                java.time.LocalDate.of(2026, 6, 24),
-                                java.time.LocalTime.of(14, 0),
-                                java.time.LocalTime.of(15, 0),
-                                "PUBLISHED");
-
-                findOrCreateJockeyCertificate(
-                                jockeyRyanMoore,
-                                "Professional Racing License",
-                                "sdfsd",
-                                "PENDING");
-
-                findOrCreateJockeyCertificate(
-                                jockeyRyanMoore,
-                                "Safety Certificate",
-                                "sdfsd",
-                                "PENDING");
-
-                findOrCreateJockeyCertificate(
-                                jockeyRyanMoore,
-                                "Verified Racing Stewardship Training",
-"sdfsd",                                "VERIFIED");
-
-                findOrCreateNotificationRecipient(
-                                jockeyRyanMoore,
-                                admin,
-                                null,
-                                "Certificate Verification Request",
-                                "Jockey Ryan Moore has submitted certificates for verification.",
-                                "VERIFY_CERTIFICATE",
-                                "None",
-                                null);
-
-                findOrCreateNotificationRecipient(
-                                admin,
-                                jockeyRyanMoore,
-                                null,
-                                "Certificate Verified",
-                                "Your certificates have been verified successfully.",
-                                "ACCEPT_CERTIFICATE",
-                                "READ",
-                                java.time.LocalDateTime.now().minusDays(2));
-
-                findOrCreateNotificationRecipient(
-                                admin,
-                                jockeyRyanMoore,
-                                null,
-                                "Certificate Verification Rejected",
-                                "Certificate image is unclear.",
-                                "REJECT_CERTIFICATE",
-                                "None",
-                                java.time.LocalDateTime.now().minusDays(1));
-
-                findOrCreateNotificationRecipient(
-                                admin,
-                                refereeGregCarpenter,
-                                queenAnneStakes,
-                                "Referee Invitation",
-                                "You are invited to referee race Queen Anne Stakes.",
-                                "REFEREE_INVITATION",
-                                "None",
-                                null);
-
-                findOrCreateNotificationRecipient(
-                                admin,
-                                refereeMichaelWrona,
-                                ascotGoldCup,
-                                "Referee Invitation Accepted",
-                                "You accepted the invitation to referee race Ascot Gold Cup.",
-                                "REFEREE_INVITATION",
-                                "READ",
-                                java.time.LocalDateTime.now().minusHours(4));
-
-                System.out.println("Seeded mock data successfully.");
-                System.out.println("Admin: admin1 / password123, id=" + admin.getId());
-                System.out.println("Jockey: jockey1 / password123, id=" + jockeyRyanMoore.getId());
-                System.out.println("Referee 1: referee1 / password123, id=" + refereeGregCarpenter.getId());
-                System.out.println("Referee 2: referee2 / password123, id=" + refereeMichaelWrona.getId());
-                System.out.println("Tournament Royal Ascot id=" + royalAscot.getId());
-                System.out.println("Pending race Queen Anne Stakes id=" + queenAnneStakes.getId());
-                System.out.println("Published race Ascot Gold Cup id=" + ascotGoldCup.getId());
-        }
-
-        private Admin findOrCreateAdmin() {
-                java.util.Optional<User> existingAdminUser = userRepository.findByUsername("admin1");
-                if (existingAdminUser.isPresent()) {
-                        return (Admin) existingAdminUser.get();
-                }
-
-                Admin admin = new Admin();
-                admin.setUsername("admin1");
-                admin.setPassword("password123");
-                admin.setEmail("admin1@test.com");
-                admin.setRole(UserRole.ADMIN.name());
-                return adminRepository.save(admin);
-        }
-
-        private Referee findOrCreateReferee(String username, String email, String name) {
-                java.util.Optional<User> existingRefereeUser = userRepository.findByUsername(username);
-                if (existingRefereeUser.isPresent()) {
-                        Referee referee = (Referee) existingRefereeUser.get();
-                        referee.setName(name);
-                        return refereeRepository.save(referee);
-                }
-
-                Referee referee = new Referee();
-                referee.setUsername(username);
-                referee.setPassword("password123");
-                referee.setEmail(email);
-                referee.setRole(UserRole.REFEREE.name());
-                referee.setName(name);
-                return refereeRepository.save(referee);
-        }
-
-        private com.swp.hrtms.hrtmsbe.entity.Jockey findOrCreateJockey(
-                        String username,
-                        String email,
-                        String jockeyName,
-                        Integer yearsOfExperience,
-                        Integer age,
-                        String professionalBio) {
-                java.util.Optional<User> existingJockeyUser = userRepository.findByUsername(username);
-                if (existingJockeyUser.isPresent()) {
-                        com.swp.hrtms.hrtmsbe.entity.Jockey jockey = (com.swp.hrtms.hrtmsbe.entity.Jockey) existingJockeyUser
-                                        .get();
-                        jockey.setJockeyName(jockeyName);
-                        jockey.setYearOfExperience(yearsOfExperience);
-                        jockey.setAge(age);
-                        jockey.setProfessionalBio(professionalBio);
-                        jockey.setStatus(true);
-                        return (com.swp.hrtms.hrtmsbe.entity.Jockey) userRepository.save(jockey);
-                }
-
-                com.swp.hrtms.hrtmsbe.entity.Jockey jockey = new com.swp.hrtms.hrtmsbe.entity.Jockey();
-                jockey.setUsername(username);
-                jockey.setPassword("password123");
-                jockey.setEmail(email);
-                jockey.setRole(UserRole.JOCKEY.name());
-                jockey.setJockeyName(jockeyName);
-                jockey.setYearOfExperience(yearsOfExperience);
-                jockey.setAge(age);
-                jockey.setProfessionalBio(professionalBio);
-                jockey.setStatus(true);
-                return (com.swp.hrtms.hrtmsbe.entity.Jockey) userRepository.save(jockey);
-        }
-
-        private Tournament findOrCreateTournament(Admin admin) {
-                Tournament tournament = tournamentRepository.findAll()
-                                .stream()
-                                .filter(item -> "Royal Ascot".equals(item.getName()))
-                                .findFirst()
-                                .orElse(null);
-
-                if (tournament == null) {
-                        tournament = new Tournament();
-                }
-
-                tournament.setAdmin(admin);
-                tournament.setName("Royal Ascot");
-                tournament.setStartDate(java.time.LocalDate.of(2026, 6, 23));
-                tournament.setEndDate(java.time.LocalDate.of(2026, 6, 26));
-                tournament.setAllowedBreed("Thoroughbred");
-                tournament.setAllowedHorseAge(4);
-                tournament.setDescription("Royal Ascot mock tournament for race creation API flow.");
-                tournament.setStatus("DRAFT");
-                return tournamentRepository.save(tournament);
-        }
-
-        private Race findOrCreateRace(
-                        Tournament tournament,
-                        Referee referee,
-                        String raceName,
-                        java.time.LocalDate date,
-                        java.time.LocalTime startTime,
-                        java.time.LocalTime endTime,
-                        String status) {
-                Race race = raceRepository.findAll()
-                                .stream()
-                                .filter(item -> raceName.equals(item.getName()))
-                                .findFirst()
-                                .orElse(null);
-
-                if (race == null) {
-                        race = new Race();
-                }
-
-                race.setTournament(tournament);
-                race.setReferee(referee);
-                race.setName(raceName);
-                race.setDate(date);
-                race.setStartTime(startTime);
-                race.setEndTime(endTime);
-                // race.setLaps(4);
-                // race.setNumHorse(10);
-                race.setStatus(status);
-                race.setTrack("Ascot Racecourse");
-                return raceRepository.save(race);
-        }
-
-        private void findOrCreateJockeyCertificate(
-                        com.swp.hrtms.hrtmsbe.entity.Jockey jockey,
-                        String certName,
-                        String certImageBase64,
-                        String status) {
-                boolean exists = jockeyCertRepository.findAll()
-                                .stream()
-                                .anyMatch(cert -> cert.getJockey() != null
-                                                && cert.getJockey().getId().equals(jockey.getId())
-                                                && certName.equals(cert.getCertName()));
-
-                if (exists) {
+        @jakarta.annotation.PostConstruct
+        @Transactional
+        public void init() {
+                if (userRepository.count() > 0)
                         return;
-                }
 
-                com.swp.hrtms.hrtmsbe.entity.JockeyCert cert = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
-                cert.setJockey(jockey);
-                cert.setCertName(certName);
-                cert.setCertImg(certImageBase64);
-                cert.setStatus(status);
-                jockeyCertRepository.save(cert);
-        }
+                // 1. Create Admin
+                com.swp.hrtms.hrtmsbe.entity.Admin admin = new com.swp.hrtms.hrtmsbe.entity.Admin();
+                admin.setUsername("admin");
+                admin.setPassword("123456");
+                admin.setEmail("vudin@gmail.com");
+                admin.setRole("ADMIN");
+                admin.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                adminRepository.save(admin);
 
-        private void findOrCreateNotificationRecipient(
-                        User sender,
-                        User recipient,
-                        Race race,
-                        String title,
-                        String content,
-                        String type,
-                        String recipientStatus,
-                        java.time.LocalDateTime createdAt) {
-                boolean exists = notificationRepository.findAll()
-                                .stream()
-                                .anyMatch(notification -> type.equals(notification.getType())
-                                                && title.equals(notification.getTitle())
-                                                && content.equals(notification.getContent()));
+                // 2. Create Referee
+                com.swp.hrtms.hrtmsbe.entity.Referee referee1 = new com.swp.hrtms.hrtmsbe.entity.Referee();
+                referee1.setUsername("referee_paul");
+                referee1.setPassword("123456");
+                referee1.setEmail("paul@hrtms.com");
+                referee1.setRole("REFEREE");
+                referee1.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                refereeRepository.save(referee1);
 
-                if (exists) {
-                        return;
-                }
+                // 2.5 Create Doctor
+                com.swp.hrtms.hrtmsbe.entity.Doctor doctor1 = new com.swp.hrtms.hrtmsbe.entity.Doctor();
+                com.swp.hrtms.hrtmsbe.entity.User doctorUser = new com.swp.hrtms.hrtmsbe.entity.User();
+                doctorUser.setUsername("doctor_jane");
+                doctorUser.setPassword("123456");
+                doctorUser.setEmail("jane@hrtms.com");
+                doctorUser.setRole("DOCTOR");
+                doctorUser.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                doctorUser = userRepository.save(doctorUser);
+                doctor1.setUser(doctorUser);
+                doctorRepository.save(doctor1);
 
-                Notification notification = Notification.builder()
-                                .sender(sender)
-                                .title(title)
-                                .content(content)
-                                .type(type)
-                                .race(race)
-                                .createdAt(createdAt)
+                // 3. Create RaceFormat
+                com.swp.hrtms.hrtmsbe.entity.RaceFormat format1 = new com.swp.hrtms.hrtmsbe.entity.RaceFormat();
+                format1.setName("Derby 1000m");
+                format1.setDescription("Standard Derby");
+                format1.setEntryFee(100.0);
+                format1.setFirstPrizePercent(50.0);
+                format1.setSecondPrizePercent(30.0);
+                format1.setThirdPrizePercent(20.0);
+                format1.setAllowedHorseAge(3);
+                format1.setMinJockeyExperience(1);
+                format1.setMinWeight(40);
+                format1.setMaxWeight(60);
+                format1.setBaseWeight(50);
+                format1.setApplyFemaleAllowance(1);
+                raceFormatRepository.save(format1);
+
+                // 4. Create Tournament DRAFT
+                com.swp.hrtms.hrtmsbe.entity.Tournament t1 = new com.swp.hrtms.hrtmsbe.entity.Tournament();
+                t1.setName("Summer Cup 2026 DRAFT");
+                t1.setStartDate(LocalDate.now().plusDays(10));
+                t1.setEndDate(LocalDate.now().plusDays(20));
+                t1.setPublishedDate(LocalDate.now().plusDays(1));
+                t1.setOpenPredictionDate(LocalDate.now().plusDays(2));
+                t1.setClosePredictionDate(LocalDate.now().plusDays(8));
+                t1.setAdmin(admin);
+                t1.setStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED);
+                tournamentRepository.save(t1);
+
+                // 5. Create Race PENDING_REFEREE
+                com.swp.hrtms.hrtmsbe.entity.Race r1 = new com.swp.hrtms.hrtmsbe.entity.Race();
+                r1.setTournament(t1);
+                r1.setName("Race 1 - Qualifier");
+                r1.setRaceRules(format1);
+                r1.setDate(LocalDate.now().plusDays(11));
+                r1.setStartTime(LocalTime.of(10, 0));
+                r1.setEndTime(LocalTime.of(10, 30));
+                r1.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED);
+                raceRepository.save(r1);
+                // 6. Create Jockey
+                com.swp.hrtms.hrtmsbe.entity.Jockey jockey1 = new com.swp.hrtms.hrtmsbe.entity.Jockey();
+                jockey1.setUsername("jockey_mock");
+                jockey1.setPassword("123456");
+                jockey1.setEmail("jockey_mock@hrtms.com");
+                jockey1.setRole("JOCKEY");
+                jockey1.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                jockey1.setJockeyName("Mock Jockey");
+                jockey1.setExperienceYears(3);
+                jockey1.setAge(25);
+                jockeyRepository.save(jockey1);
+
+                // 6.5 Create Jockey Cert
+                com.swp.hrtms.hrtmsbe.entity.JockeyCert cert1 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
+                cert1.setCertName("Professional Riding License");
+                cert1.setCertImageBase64("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+
+                cert1.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.PENDING);
+                cert1.setJockey(jockey1);
+                jockeyCertRepository.save(cert1);
+
+                com.swp.hrtms.hrtmsbe.entity.JockeyCert cert2 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
+                cert2.setCertName("Advanced Riding License");
+                // A tiny 1x1 transparent GIF base64 string to keep mock data small
+                cert2.setCertImageBase64("ádasdasd");
+                cert2.setIssuedAt(LocalDate.now().minusMonths(6));
+                cert2.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.PENDING);
+                cert2.setJockey(jockey1);
+                jockeyCertRepository.save(cert2);
+
+                // 6.6 Send verification notification to Admin (matches VerificationServiceImpl)
+                com.swp.hrtms.hrtmsbe.entity.Notification certNotif = com.swp.hrtms.hrtmsbe.entity.Notification
+                                .builder()
+                                .sender(jockey1)
+                                .title("Certificate Verification Request")
+                                .content("A jockey has requested verification for all pending certificates.")
+                                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.VERIFI_CERTIFICATE)
+                                // Note: The real API does not link the specific certificate (jockeyCert) here
                                 .build();
-                notification = notificationRepository.save(notification);
+                notificationRepository.save(certNotif);
 
-                NotificationRecipient recipientRecord = NotificationRecipient.builder()
-                                .notification(notification)
-                                .recipient(recipient)
-                                .status(recipientStatus)
+                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient certNotifRec = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                                .builder()
+                                .notification(certNotif)
+                                .recipient(admin)
+                                .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
                                 .build();
+                notificationRecipientRepository.save(certNotifRec);
 
-                if (createdAt != null && "READ".equals(recipientStatus)) {
-                        recipientRecord.setReadAt(createdAt.plusHours(1));
-                }
+                // 7. Create Owner
+                com.swp.hrtms.hrtmsbe.entity.HorseOwner owner1 = new com.swp.hrtms.hrtmsbe.entity.HorseOwner();
+                com.swp.hrtms.hrtmsbe.entity.User ownerUser = new com.swp.hrtms.hrtmsbe.entity.User();
+                ownerUser.setUsername("owner_mock");
+                ownerUser.setPassword("123456");
+                ownerUser.setEmail("vudinhan2k5@gmail.com");
+                ownerUser.setRole("HORSE_OWNER");
+                ownerUser.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                ownerUser = userRepository.save(ownerUser);
+                owner1.setUser(ownerUser);
+                owner1.setOwnerName("Mock Owner");
+                horseOwnerRepository.save(owner1);
 
-                notificationRecipientRepository.save(recipientRecord);
+                // 8. Create Horse
+                com.swp.hrtms.hrtmsbe.entity.Horse horse1 = new com.swp.hrtms.hrtmsbe.entity.Horse();
+                horse1.setName("Mock Horse");
+                horse1.setSex("M");
+                horse1.setAge(3);
+                horse1.setWeightKg(BigDecimal.valueOf(450.0));
+                horse1.setOwner(owner1);
+                horseRepository.save(horse1);
+
+                // 9. Create Registration Form
+                com.swp.hrtms.hrtmsbe.entity.RegistrationForm form1 = new com.swp.hrtms.hrtmsbe.entity.RegistrationForm();
+                form1.setTournament(t1);
+                form1.setAdmin(admin);
+                form1.setRace(r1);
+                form1.setHorse(horse1);
+                form1.setJockey(jockey1);
+                form1.setOwner(owner1);
+                form1.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_ADMIN);
+                form1 = registrationFormRepository.save(form1);
+
+                // Create a second Registration Form with RACING status
+                com.swp.hrtms.hrtmsbe.entity.RegistrationForm form2 = new com.swp.hrtms.hrtmsbe.entity.RegistrationForm();
+                form2.setTournament(t1);
+                form2.setAdmin(admin);
+                form2.setRace(r1);
+                form2.setHorse(horse1);
+                form2.setJockey(jockey1);
+                form2.setOwner(owner1);
+                form2.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING);
+                form2 = registrationFormRepository.save(form2);
+
         }
 }

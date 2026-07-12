@@ -1,7 +1,11 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
 public enum HorseStatus {
-    ACTIVE,
+    WORK,
     INJURED,
     RETIRED
 }
+
+
+

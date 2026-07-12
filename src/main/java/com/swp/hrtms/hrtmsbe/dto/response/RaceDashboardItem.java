@@ -1,9 +1,12 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalTime;
 
@@ -13,13 +16,15 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class RaceDashboardItem {
     private Integer id;
+    @JsonProperty("tournament_id")
+    private Integer tournamentId;
     private String name;
     private java.time.LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
-    private Integer laps;
-    private String status;
+    private Integer distanceM;
+    private com.swp.hrtms.hrtmsbe.enums.RaceStatus status;
     private Integer refereeId;
     private String refereeName;
-    private String track;
 }
+

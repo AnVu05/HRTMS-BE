@@ -1,8 +1,12 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.LoginRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.RegisterRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.VerifyOtpRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.ForgotPasswordRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.ResetPasswordRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.LoginResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.UserResponse;
@@ -24,23 +28,24 @@ public class AuthController {
 
     private final UserService userService;
 
+    //Rewrite for authentication & authorization: Update success messages for the corrected flow
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(@RequestBody RegisterRequest request) {
         UserResponse userResponse = userService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(userResponse, "User registered successfully"));
+                .body(ApiResponse.success(userResponse, "User registered successfully. Please check your email for the verification code."));
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
         LoginResponse loginResponse = userService.login(request);
-        return ResponseEntity.ok(ApiResponse.success(loginResponse, "Verification code sent to your email"));
+        return ResponseEntity.ok(ApiResponse.success(loginResponse, "Login successful."));
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<ApiResponse<VerifyOtpResponse>> verifyOtp(@RequestBody VerifyOtpRequest request) {
         VerifyOtpResponse verifyOtpResponse = userService.verifyOtp(request);
-        return ResponseEntity.ok(ApiResponse.success(verifyOtpResponse, "Login successful"));
+        return ResponseEntity.ok(ApiResponse.success(verifyOtpResponse, "Account verified and activated successfully."));
     }
 
     @PostMapping("/logout")
@@ -48,4 +53,18 @@ public class AuthController {
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok(ApiResponse.success(null, "Logout successful"));
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        userService.forgotPassword(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Verification code sent to your email"));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody ResetPasswordRequest request) {
+        userService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Password reset successful"));
+    }
 }
+
+

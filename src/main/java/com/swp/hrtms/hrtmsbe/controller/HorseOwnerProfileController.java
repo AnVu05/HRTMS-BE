@@ -1,16 +1,13 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.HorseOwnerProfileUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.HorseOwnerProfileResponse;
 import com.swp.hrtms.hrtmsbe.service.HorseOwnerProfileService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 // Khải: Controller cung cấp API xem và cập nhật profile cho chủ ngựa.
 @RestController
@@ -38,4 +35,23 @@ public class HorseOwnerProfileController {
         HorseOwnerProfileResponse response = horseOwnerProfileService.updateProfile(ownerId, request);
         return ResponseEntity.ok(ApiResponse.success(response, "Horse owner profile updated successfully"));
     }
+
+    // Khải: API update avatar của chủ ngựa.
+    @PutMapping("/{ownerId}/avatar")
+    public ResponseEntity<ApiResponse<HorseOwnerProfileResponse>> updateAvatar(
+            @PathVariable Integer ownerId,
+            @RequestBody java.util.Map<String, String> request) {
+        String avatarBase64 = request.get("avatar");
+        HorseOwnerProfileResponse response = horseOwnerProfileService.updateAvatar(ownerId, avatarBase64);
+        return ResponseEntity.ok(ApiResponse.success(response, "Avatar updated successfully"));
+    }
+
+    // Khải: API vô hiệu hóa tài khoản chủ ngựa.
+    @DeleteMapping("/{ownerId}")
+    public ResponseEntity<ApiResponse<Void>> deactivateAccount(@PathVariable Integer ownerId) {
+        horseOwnerProfileService.deactivateAccount(ownerId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Account deactivated successfully"));
+    }
 }
+
+

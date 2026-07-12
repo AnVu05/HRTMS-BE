@@ -13,4 +13,7 @@ public class JockeyCertUpdateRequest {
     private String certName;
 
     private String certImageBase64;
+
+    private java.time.LocalDate issuedAt;
 }
+

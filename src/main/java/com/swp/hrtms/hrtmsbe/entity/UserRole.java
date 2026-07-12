@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
 public enum UserRole {
     ADMIN,
     SPECTATOR,
@@ -8,3 +9,6 @@ public enum UserRole {
     DOCTOR,
     REFEREE
 }
+
+
+

@@ -1,18 +1,23 @@
 package com.swp.hrtms.hrtmsbe.service;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.JockeyCertCreateRequest;
-import com.swp.hrtms.hrtmsbe.dto.response.JockeyVerificationRequestResponse;
-import com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse;
+import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
 
 import java.util.List;
 
+import com.swp.hrtms.hrtmsbe.entity.JockeyCert;
+
 public interface VerificationService {
-    List<JockeyVerificationRequestResponse> getJockeyVerificationRequests(Integer recipientId);
-    List<JockeyCertImageResponse> getPendingCertificateImages(Integer jockeyId);
+    List<JockeyCert> getJockeyVerificationRequests(Integer recipientId);
+    List<com.swp.hrtms.hrtmsbe.dto.response.JockeyCertImageResponse> getPendingCertificateImages(Integer jockeyId);
 
     // Khai: Jockey certificate submission and verification-request operations.
-    Integer createJockeyCertificate(Integer jockeyId, JockeyCertCreateRequest request);
+    JockeyCert createJockeyCertificate(JockeyCertCreateRequest request);
     Integer requestVerificationForAll(Integer jockeyId);
-    void acceptJockeyCertificates(Integer jockeyId, Integer adminId);
-    void rejectJockeyCertificates(Integer jockeyId, Integer adminId, String reason);
+    List<JockeyCert> acceptJockeyCertificates(Integer jockeyId, Integer adminId);
+    List<JockeyCert> rejectJockeyCertificates(Integer jockeyId, Integer adminId, String reason);
 }
+
+

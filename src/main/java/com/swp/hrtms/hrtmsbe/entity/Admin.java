@@ -1,8 +1,12 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Column;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -17,4 +21,11 @@ public class Admin extends User {
 
     // @Column(name = "employee_code", nullable = false, unique = true)
     // private String employeeCode;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String avatar;
 }
+
+
+

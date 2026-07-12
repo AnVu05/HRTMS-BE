@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Khai: Response DTO for a jockey to view a certificate and its current verification status.
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,5 +21,8 @@ public class JockeyCertificateResponse {
     @JsonProperty("cert_image_base64")
     private String certImageBase64;
 
-    private String status;
+    @JsonProperty("issued_at")
+    private java.time.LocalDate issuedAt;
+
+    private com.swp.hrtms.hrtmsbe.enums.CertificateStatus status;
 }

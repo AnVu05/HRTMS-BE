@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,15 +32,23 @@ public class Notification {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type")
     @Builder.Default
-    private String type = "VERIFY_CERTIFICATE";
+    private com.swp.hrtms.hrtmsbe.enums.NotificationType type = com.swp.hrtms.hrtmsbe.enums.NotificationType.VERIFI_CERTIFICATE;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "race_id")
     private Race race;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "registration_form_id")
+    private RegistrationForm registrationForm;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }
+
+
+

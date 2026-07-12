@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,10 +29,15 @@ public class NotificationRecipient {
     @JoinColumn(name = "recipient_id", nullable = false)
     private User recipient;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private String status = "None"; // "Accept", "Reject", "None"
+    private com.swp.hrtms.hrtmsbe.enums.NotificationStatus status = com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD;
 
     @Column(name = "read_at")
     private LocalDateTime readAt;
 }
+
+
+
+

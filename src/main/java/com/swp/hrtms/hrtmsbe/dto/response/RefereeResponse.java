@@ -1,5 +1,6 @@
 package com.swp.hrtms.hrtmsbe.dto.response;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,4 +13,6 @@ import lombok.NoArgsConstructor;
 public class RefereeResponse {
     private Integer id;
     private String name;
+    private String username;
 }
+

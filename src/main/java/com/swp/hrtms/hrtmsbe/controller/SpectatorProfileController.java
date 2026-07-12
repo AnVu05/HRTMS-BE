@@ -1,17 +1,14 @@
 package com.swp.hrtms.hrtmsbe.controller;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.SpectatorAvatarUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.request.SpectatorProfileUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.ApiResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.SpectatorProfileResponse;
 import com.swp.hrtms.hrtmsbe.service.SpectatorProfileService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/spectators")
@@ -45,3 +42,5 @@ public class SpectatorProfileController {
         return ResponseEntity.ok(ApiResponse.success(response, "Spectator avatar updated successfully"));
     }
 }
+
+

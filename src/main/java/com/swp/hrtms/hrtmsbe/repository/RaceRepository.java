@@ -24,6 +24,7 @@ public interface RaceRepository extends JpaRepository<Race, Integer> {
                                         @Param("startTime") LocalTime startTime, 
                                         @Param("endTime") LocalTime endTime);
 
+    //khai
     @Query("SELECT COUNT(r) > 0 FROM Race r WHERE r.tournament.id = :tournamentId AND r.id != :excludeRaceId AND r.date = :date AND r.startTime < :endTime AND r.endTime > :startTime AND r.status != 'CANCELLED'")
     boolean existsOverlappingInTournamentExcludingRace(@Param("tournamentId") Integer tournamentId, 
                                                        @Param("excludeRaceId") Integer excludeRaceId,
@@ -31,6 +32,7 @@ public interface RaceRepository extends JpaRepository<Race, Integer> {
                                                        @Param("startTime") LocalTime startTime, 
                                                        @Param("endTime") LocalTime endTime);
 
+    //khai
     @Query("SELECT COUNT(r) > 0 FROM Race r WHERE r.referee.id = :refereeId AND r.id != :excludeRaceId AND r.date = :date AND r.startTime < :endTime AND r.endTime > :startTime AND r.status != 'CANCELLED'")
     boolean existsOverlappingForRefereeExcludingRace(@Param("refereeId") Integer refereeId, 
                                                      @Param("excludeRaceId") Integer excludeRaceId,
@@ -40,6 +42,8 @@ public interface RaceRepository extends JpaRepository<Race, Integer> {
 
     java.util.List<Race> findByTournamentId(Integer tournamentId);
 
+    //khai
     @Query("SELECT r FROM Race r WHERE r.referee.id = :refereeId AND r.status = 'PUBLISHED'")
     java.util.List<Race> findScheduledRacesByRefereeId(@Param("refereeId") Integer refereeId);
 }
+

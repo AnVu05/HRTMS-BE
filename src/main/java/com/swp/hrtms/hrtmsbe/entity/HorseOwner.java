@@ -7,6 +7,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,8 +30,12 @@ public class HorseOwner {
     @JoinColumn(name = "user_id")
     private User user;
 
-    // @Column(name = "owner_name", nullable = false)
-    // private String ownerName;
+    @Column(name = "owner_name", nullable = true)
+    private String ownerName;
+
+    @jakarta.persistence.Lob
+    @Column(columnDefinition = "VARCHAR(MAX)", nullable = true)
+    private String avatar;
 
     // private String phone;
 }

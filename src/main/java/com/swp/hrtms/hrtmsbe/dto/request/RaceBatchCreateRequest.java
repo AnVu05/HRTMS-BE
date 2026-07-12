@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.dto.request;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,3 +21,4 @@ public class RaceBatchCreateRequest {
 
     private List<RaceCreateRequest> races;
 }
+

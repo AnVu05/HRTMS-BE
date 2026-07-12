@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.dto.request;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,4 +17,14 @@ public class HorseOwnerProfileUpdateRequest {
     private String email;
 
     private String password;
+
+    private String ownerName;
+
+    private String avatar;
+
+    private String role;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("created_at")
+    private java.time.LocalDateTime createdAt;
 }
+

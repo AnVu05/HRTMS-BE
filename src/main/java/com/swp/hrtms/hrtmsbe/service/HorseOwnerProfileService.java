@@ -1,5 +1,7 @@
 package com.swp.hrtms.hrtmsbe.service;
 
+
+// Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.dto.request.HorseOwnerProfileUpdateRequest;
 import com.swp.hrtms.hrtmsbe.dto.response.HorseOwnerProfileResponse;
 
@@ -9,4 +11,10 @@ public interface HorseOwnerProfileService {
     HorseOwnerProfileResponse getProfile(Integer ownerId);
 
     HorseOwnerProfileResponse updateProfile(Integer ownerId, HorseOwnerProfileUpdateRequest request);
+
+    HorseOwnerProfileResponse updateAvatar(Integer ownerId, String avatarBase64);
+
+    void deactivateAccount(Integer ownerId);
 }
+
+

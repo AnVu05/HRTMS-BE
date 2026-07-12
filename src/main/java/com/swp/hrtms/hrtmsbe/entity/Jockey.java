@@ -1,12 +1,9 @@
 package com.swp.hrtms.hrtmsbe.entity;
 
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
@@ -23,8 +20,8 @@ public class Jockey extends User {
     private String jockeyName;
 
     @Min(value = 0, message = "Years of experience must be greater than or equal to 0")
-    @Column(name = "year_of_experience")
-    private Integer yearOfExperience;
+    @Column(name = "experience_years")
+    private Integer experienceYears;
 
     @Min(value = 0, message = "Age must be greater than or equal to 0")
     private Integer age;
@@ -32,20 +29,16 @@ public class Jockey extends User {
     @Column(name = "professional_bio", columnDefinition = "TEXT")
     private String professionalBio;
 
-    @Column(columnDefinition = "bit")
-    private Boolean status;
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String avatar;
 
     @OneToMany(mappedBy = "jockey", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<JockeyCert> jockeyCerts;
-
-    public void setStatus(Boolean status) {
-        this.status = status;
-        if (Boolean.FALSE.equals(status) && this.jockeyCerts != null) {
-            for (JockeyCert cert : this.jockeyCerts) {
-                cert.setStatus("REJECTED");
-            }
-        }
-    }
 }
+
+
+
