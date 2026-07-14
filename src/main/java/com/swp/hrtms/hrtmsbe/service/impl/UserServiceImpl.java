@@ -184,7 +184,7 @@ public class UserServiceImpl implements UserService {
         otpCodeRepository.save(otpCode);
 
         // Gửi OTP qua mail
-        emailService.sendOtp(user.getEmail(), otp);
+        //emailService.sendOtp(user.getEmail(), otp);
 
         return LoginResponse.builder()
                 .otpRequired(true)
