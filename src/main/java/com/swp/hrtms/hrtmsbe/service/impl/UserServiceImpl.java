@@ -1,30 +1,17 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-import com.swp.hrtms.hrtmsbe.dto.request.LoginRequest;
-import com.swp.hrtms.hrtmsbe.dto.request.RegisterRequest;
-import com.swp.hrtms.hrtmsbe.dto.request.VerifyOtpRequest;
-import com.swp.hrtms.hrtmsbe.dto.request.ForgotPasswordRequest;
-import com.swp.hrtms.hrtmsbe.dto.request.ResetPasswordRequest;
+import com.swp.hrtms.hrtmsbe.dto.request.*;
 import com.swp.hrtms.hrtmsbe.dto.response.LoginResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.UserResponse;
 import com.swp.hrtms.hrtmsbe.dto.response.VerifyOtpResponse;
-import com.swp.hrtms.hrtmsbe.entity.HorseOwner;
-import com.swp.hrtms.hrtmsbe.entity.Jockey;
-import com.swp.hrtms.hrtmsbe.entity.OtpCode;
-import com.swp.hrtms.hrtmsbe.entity.Spectator;
-import com.swp.hrtms.hrtmsbe.entity.User;
-import com.swp.hrtms.hrtmsbe.entity.Wallet;
-import com.swp.hrtms.hrtmsbe.repository.HorseOwnerRepository;
-import com.swp.hrtms.hrtmsbe.repository.OtpCodeRepository;
-import com.swp.hrtms.hrtmsbe.repository.UserRepository;
-import com.swp.hrtms.hrtmsbe.repository.WalletRepository;
+import com.swp.hrtms.hrtmsbe.entity.*;
+import com.swp.hrtms.hrtmsbe.repository.*;
 import com.swp.hrtms.hrtmsbe.security.JwtUtil;
 import com.swp.hrtms.hrtmsbe.service.EmailService;
 import com.swp.hrtms.hrtmsbe.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.swp.hrtms.hrtmsbe.repository.DoctorRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -60,6 +47,10 @@ public class UserServiceImpl implements UserService {
         }
 
         String role = request.getRole().trim().toUpperCase();
+        if (!role.equals("SPECTATOR") && !role.equals("HORSE_OWNER") && !role.equals("JOCKEY")
+                && !role.equals("DOCTOR") && !role.equals("REFEREE")) {
+            throw new IllegalArgumentException("Registration is not allowed for role: " + role);
+        }
 
         // 2. Kiểm tra trùng lặp tài khoản
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -115,14 +106,7 @@ public class UserServiceImpl implements UserService {
             // Referee có trường name, nhưng RegisterRequest không có, ta tạm để null hoặc
             // username
             savedUser = userRepository.save(referee);
-        } else if (role.equals("ADMIN")) {
-            com.swp.hrtms.hrtmsbe.entity.Admin admin = new com.swp.hrtms.hrtmsbe.entity.Admin();
-            admin.setUsername(request.getUsername());
-            admin.setEmail(request.getEmail());
-            admin.setPassword(request.getPassword());
-            admin.setRole("ADMIN");
-            savedUser = userRepository.save(admin);
-        } else if (role.equals("DOCTOR")) {
+        } else if (role.equals("DOCTOR")) { // DOCTOR
             User user = new User();
             user.setUsername(request.getUsername());
             user.setEmail(request.getEmail());
@@ -138,13 +122,24 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Invalid role: " + role);
         }
 
+        // Rewrite for authentication & authorization: Generate and send OTP immediately
+        // upon registration
+        String otp = String.format("%06d", new Random().nextInt(1000000));
+        otpCodeRepository.deleteByEmail(savedUser.getEmail());
+        OtpCode otpCode = OtpCode.builder()
+                .email(savedUser.getEmail())
+                .code(otp)
+                .expiryTime(LocalDateTime.now().plusMinutes(5))
+                .build();
+        otpCodeRepository.save(otpCode);
+        emailService.sendOtp(savedUser.getEmail(), otp);
+
         // 4. Trả về kết quả sau khi đăng ký thành công
         return UserResponse.builder()
                 .id(savedUser.getId())
                 .username(savedUser.getUsername())
                 .email(savedUser.getEmail())
                 .role(savedUser.getRole())
-                .status(savedUser.getStatus().name())
                 .createdAt(savedUser.getCreatedAt())
                 .build();
     }
@@ -152,6 +147,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public LoginResponse login(LoginRequest request) {
+        // Rewrite for authentication & authorization: Login directly issues JWT token
+        // for ACTIVE users
         if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
             throw new IllegalArgumentException("Email cannot be empty");
         }
@@ -167,34 +164,31 @@ public class UserServiceImpl implements UserService {
         }
 
         if (user.getStatus() != com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE) {
-            throw new IllegalArgumentException("Account is locked or inactive");
+            throw new IllegalArgumentException("Account is not activated. Please verify your email first.");
         }
 
-        // Tạo mã OTP ngẫu nhiên gồm 6 chữ số
-        String otp = String.format("%06d", new Random().nextInt(1000000));
+        // Generate JWT Token immediately on login
+        String token = jwtUtil.generateToken(user.getUsername(), user.getEmail(), user.getRole(), user.getId());
 
-        // Xóa các OTP cũ của user này trước khi lưu mới
-        otpCodeRepository.deleteByEmail(user.getEmail());
-
-        OtpCode otpCode = OtpCode.builder()
+        UserResponse userResponse = UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
                 .email(user.getEmail())
-                .code(otp)
-                .expiryTime(LocalDateTime.now().plusMinutes(5))
+                .role(user.getRole())
+                .createdAt(user.getCreatedAt())
                 .build();
-        otpCodeRepository.save(otpCode);
-
-        // Gửi OTP qua mail
-        //emailService.sendOtp(user.getEmail(), otp);
 
         return LoginResponse.builder()
-                .otpRequired(true)
-                .email(user.getEmail())
+                .token(token)
+                .user(userResponse)
                 .build();
     }
 
     @Override
     @Transactional
     public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
+        // Rewrite for authentication & authorization: verifyOtp activates account, does
+        // not issue token
         if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
             throw new IllegalArgumentException("Email cannot be empty");
         }
@@ -213,31 +207,28 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("OTP code has expired");
         }
 
-        if (user.getStatus() != com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE) {
-            throw new IllegalArgumentException("Account is locked or inactive");
-        }
-
         // Xóa mã OTP sau khi xác thực thành công để không tái sử dụng
         otpCodeRepository.delete(otpCode);
 
-        // Tạo JWT Token
-        String token = jwtUtil.generateToken(user.getUsername(), user.getEmail(), user.getRole(), user.getId());
+        // Kích hoạt tài khoản
+        user.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+        userRepository.save(user);
 
         UserResponse userResponse = UserResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole())
-                .status(user.getStatus().name())
                 .createdAt(user.getCreatedAt())
                 .build();
 
         return VerifyOtpResponse.builder()
-                .token(token)
+                .message("Account verified and activated successfully.")
                 .user(userResponse)
                 .build();
     }
 
+    // Bo sung them Tinh Nang:
     @Override
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
@@ -394,4 +385,5 @@ public class UserServiceImpl implements UserService {
                 .createdAt(updatedUser.getCreatedAt())
                 .build();
     }
+
 }
