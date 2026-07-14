@@ -66,6 +66,10 @@ public class NotificationServiceImpl implements NotificationService {
                         NotificationType.REGISTRATION_APPROVED,
                         NotificationType.REGISTRATION_REJECTED);
 
+        private static final List<NotificationType> HORSE_OWNER_DOCTOR_NOTIFICATION_TYPES = List.of(
+                        NotificationType.READY_RACING,
+                        NotificationType.REGISTRATION_REJECTED);
+
         private static final List<NotificationType> HORSE_OWNER_JOCKEY_NOTIFICATION_TYPES = List.of(
                         NotificationType.JOCKEY_ACCEPTED,
                         NotificationType.JOCKEY_REJECTED);
@@ -211,6 +215,7 @@ public class NotificationServiceImpl implements NotificationService {
                                                 ownerId,
                                                 HORSE_OWNER_ADMIN_NOTIFICATION_TYPES,
                                                 HORSE_OWNER_JOCKEY_NOTIFICATION_TYPES,
+                                                HORSE_OWNER_DOCTOR_NOTIFICATION_TYPES,
                                                 pageable)
                                 .map(this::toHorseOwnerResponse);
         }

@@ -96,6 +96,23 @@ public class RaceResultServiceImpl implements RaceResultService {
         
         result = raceResultRepository.save(result);
 
+        if (request.getPlacements() != null && !request.getPlacements().isEmpty()) {
+            for (com.swp.hrtms.hrtmsbe.dto.request.RacePlacementRequest pr : request.getPlacements()) {
+                com.swp.hrtms.hrtmsbe.entity.RegistrationForm form = null;
+                if (pr.getRegistrationFormId() != null) {
+                    form = registrationFormRepository.findById(pr.getRegistrationFormId()).orElse(null);
+                }
+                com.swp.hrtms.hrtmsbe.entity.RacePlacement placement = com.swp.hrtms.hrtmsbe.entity.RacePlacement.builder()
+                        .raceResult(result)
+                        .registrationForm(form)
+                        .finishPosition(pr.getFinishPosition())
+                        .finishTime(pr.getFinishTime())
+                        .weighInWeight(pr.getWeighInWeight())
+                        .build();
+                racePlacementRepository.save(placement);
+            }
+        }
+
         //khai
         if (status == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL) {
             processRewards(result.getId(), request.getRaceId());
@@ -135,6 +152,28 @@ public class RaceResultServiceImpl implements RaceResultService {
             result.setCreatedAt(request.getCreatedAt());
         }
         result = raceResultRepository.save(result);
+
+        if (request.getPlacements() != null && !request.getPlacements().isEmpty()) {
+            // Xóa các placements cũ
+            java.util.List<com.swp.hrtms.hrtmsbe.entity.RacePlacement> oldPlacements = racePlacementRepository.findByRaceResult_Id(result.getId());
+            racePlacementRepository.deleteAll(oldPlacements);
+            
+            // Lưu các placements mới
+            for (com.swp.hrtms.hrtmsbe.dto.request.RacePlacementRequest pr : request.getPlacements()) {
+                com.swp.hrtms.hrtmsbe.entity.RegistrationForm form = null;
+                if (pr.getRegistrationFormId() != null) {
+                    form = registrationFormRepository.findById(pr.getRegistrationFormId()).orElse(null);
+                }
+                com.swp.hrtms.hrtmsbe.entity.RacePlacement placement = com.swp.hrtms.hrtmsbe.entity.RacePlacement.builder()
+                        .raceResult(result)
+                        .registrationForm(form)
+                        .finishPosition(pr.getFinishPosition())
+                        .finishTime(pr.getFinishTime())
+                        .weighInWeight(pr.getWeighInWeight())
+                        .build();
+                racePlacementRepository.save(placement);
+            }
+        }
 
         // If changed to OFFICIAL, process rewards
         if (status == com.swp.hrtms.hrtmsbe.enums.RaceResultStatus.OFFICIAL) {

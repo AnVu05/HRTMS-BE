@@ -1,6 +1,5 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-
 // Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.entity.Prediction;
 import com.swp.hrtms.hrtmsbe.entity.Race;
@@ -59,6 +58,15 @@ public class PredictionServiceImpl implements PredictionService {
 
         if (race.getStatus() != RaceStatus.PUBLISHED && race.getStatus() != RaceStatus.PREPARE) {
             throw new IllegalArgumentException("Predictions are only allowed before the race starts.");
+        }
+
+        java.util.List<com.swp.hrtms.hrtmsbe.entity.RegistrationForm> lineup = registrationFormRepository
+                .findByRace_Id(race.getId());
+        long activeCount = lineup.stream()
+                .filter(f -> f.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING)
+                .count();
+        if (activeCount <= 1) {
+            throw new IllegalArgumentException("Cannot place a prediction on a race with fewer than 2 active horses.");
         }
 
         if (!isHorseEligibleForPrediction(request.getRaceId(), request.getPredictedHorseId())) {

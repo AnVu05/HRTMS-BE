@@ -409,6 +409,32 @@ public class RaceServiceImpl implements RaceService {
                 }
                 notificationRecipientRepository.saveAll(recipients);
             }
+        } else {
+            java.util.List<com.swp.hrtms.hrtmsbe.entity.User> targetUsers = userRepository
+                    .findByRoleIn(java.util.Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR"));
+            if (!targetUsers.isEmpty()) {
+                com.swp.hrtms.hrtmsbe.entity.Notification notification = com.swp.hrtms.hrtmsbe.entity.Notification
+                        .builder()
+                        .sender(null) // System notification
+                        .title("Update Race: " + race.getName())
+                        .content("A race has been updated in the tournament.")
+                        .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.RACE_UPDATE)
+                        .race(race)
+                        .build();
+                notification = notificationRepository.save(notification);
+
+                java.util.List<com.swp.hrtms.hrtmsbe.entity.NotificationRecipient> recipients = new ArrayList<>();
+                for (com.swp.hrtms.hrtmsbe.entity.User user : targetUsers) {
+                    com.swp.hrtms.hrtmsbe.entity.NotificationRecipient recipient = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
+                            .builder()
+                            .notification(notification)
+                            .recipient(user)
+                            .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
+                            .build();
+                    recipients.add(recipient);
+                }
+                notificationRecipientRepository.saveAll(recipients);
+            }
         }
 
         return mapToRaceResponse(race);

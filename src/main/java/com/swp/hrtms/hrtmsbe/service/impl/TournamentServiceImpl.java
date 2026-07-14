@@ -284,6 +284,9 @@ public class TournamentServiceImpl implements TournamentService {
         }
         raceRepository.saveAll(races);
 
+        // Refund points for all predictions in the cancelled tournament
+        refundService.refundForTournament(tournamentId, "Tournament has been cancelled. Reason: " + request.getReason());
+
         // code moi (06/07)
         // Gửi thông báo TOURNAMENT_CANCELLED cho JOCKEY, HORSE_OWNER, SPECTATOR
         List<User> targetUsers = userRepository.findByRoleIn(Arrays.asList("JOCKEY", "HORSE_OWNER", "SPECTATOR","REFEREE"));

@@ -16,5 +16,6 @@ public class RaceResultRequest {
     private com.swp.hrtms.hrtmsbe.enums.RaceResultStatus status; // "TEMPORARY" or "OFFICIAL"
     private java.time.LocalDateTime createdAt;
     private String photoFinishImage;
+    private java.util.List<RacePlacementRequest> placements;
 }
 

@@ -105,6 +105,8 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
               (sender.role = 'ADMIN' AND n.type IN :adminTypes)
               OR
               (sender.role = 'JOCKEY' AND n.type IN :jockeyTypes)
+              OR
+              (sender.role = 'DOCTOR' AND n.type IN :doctorTypes)
             )
       ORDER BY n.createdAt DESC
       """, countQuery = """
@@ -117,12 +119,15 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
               (sender.role = 'ADMIN' AND n.type IN :adminTypes)
               OR
               (sender.role = 'JOCKEY' AND n.type IN :jockeyTypes)
+              OR
+              (sender.role = 'DOCTOR' AND n.type IN :doctorTypes)
             )
       """)
   Page<NotificationRecipient> findHorseOwnerNotifications(
       @Param("ownerId") Integer ownerId,
       @Param("adminTypes") Collection<NotificationType> adminTypes,
       @Param("jockeyTypes") Collection<NotificationType> jockeyTypes,
+      @Param("doctorTypes") Collection<NotificationType> doctorTypes,
       Pageable pageable);
 
   // Lấy lời mời trọng tài đang chờ: Trạng thái thông báo nhận là 'None' (chưa
