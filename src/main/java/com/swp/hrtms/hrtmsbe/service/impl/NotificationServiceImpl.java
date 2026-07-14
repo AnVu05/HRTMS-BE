@@ -438,10 +438,7 @@ public class NotificationServiceImpl implements NotificationService {
 
                         // Cập nhật trạng thái người nhận thành "None" (theo yêu cầu của hệ thống để hỗ
                         // trợ lọc thông báo chưa đọc sau này)
-                        // Cập nhật trạng thái cuộc đua thành PUBLISHED (đã xuất bản)
                         recipient.setStatus(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.READ);
-                        // khai
-                        race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED);
 
                         // Tạo thông báo phản hồi (Đồng ý) gửi ngược về lại cho Admin
                         createResponseNotification(referee, race, true);
