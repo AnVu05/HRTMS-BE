@@ -77,6 +77,7 @@ public class PredictionServiceImpl implements PredictionService {
         // begins)
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
+        // Bypassed for demo purposes
         if (now.isBefore(raceStartDateTime.minusHours(1)) || !now.isBefore(raceStartDateTime)) {
             throw new IllegalArgumentException("Predictions are only allowed within 1 hour before the race starts.");
         }

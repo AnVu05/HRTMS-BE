@@ -504,7 +504,7 @@ public class NotificationServiceImpl implements NotificationService {
                                 .sender(referee)
                                 .title(title)
                                 .content(content)
-                                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.SYSTEM)
+                                .type(isAccepted ? com.swp.hrtms.hrtmsbe.enums.NotificationType.REFEREE_ACCEPTED : com.swp.hrtms.hrtmsbe.enums.NotificationType.REFEREE_REJECTED)
                                 .race(race)
                                 .createdAt(java.time.LocalDateTime.now())
                                 .build();

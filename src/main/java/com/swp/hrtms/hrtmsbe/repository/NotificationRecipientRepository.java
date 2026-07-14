@@ -99,9 +99,11 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
       SELECT nr
       FROM NotificationRecipient nr
       JOIN FETCH nr.notification n
-      JOIN FETCH n.sender sender
+      LEFT JOIN FETCH n.sender sender
       WHERE nr.recipient.id = :ownerId
         AND (
+              (sender IS NULL AND n.type IN :adminTypes)
+              OR
               (sender.role = 'ADMIN' AND n.type IN :adminTypes)
               OR
               (sender.role = 'JOCKEY' AND n.type IN :jockeyTypes)
@@ -113,9 +115,11 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
       SELECT count(nr)
       FROM NotificationRecipient nr
       JOIN nr.notification n
-      JOIN n.sender sender
+      LEFT JOIN n.sender sender
       WHERE nr.recipient.id = :ownerId
         AND (
+              (sender IS NULL AND n.type IN :adminTypes)
+              OR
               (sender.role = 'ADMIN' AND n.type IN :adminTypes)
               OR
               (sender.role = 'JOCKEY' AND n.type IN :jockeyTypes)
@@ -140,7 +144,7 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
       JOIN nr.notification n
       JOIN n.race r
       WHERE nr.recipient.id = :refereeId
-        AND nr.status = 'None'
+        AND nr.status = 'UNREAD'
         AND n.type = 'REFEREE_INVITATION'
         AND r.referee.id = :refereeId
         AND r.status = 'PENDING_REFEREE'

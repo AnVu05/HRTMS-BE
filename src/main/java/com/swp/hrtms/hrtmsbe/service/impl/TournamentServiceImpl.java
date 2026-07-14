@@ -54,9 +54,7 @@ public class TournamentServiceImpl implements TournamentService {
         if (request.getOpenPredictionDate().isAfter(request.getClosePredictionDate())) {
             throw new IllegalArgumentException("Open prediction date cannot be after close prediction date");
         }
-        if (!request.getClosePredictionDate().isBefore(request.getStartDate())) {
-            throw new IllegalArgumentException("Close prediction date must be before tournament start date");
-        }
+
         if (request.getStartDate().isAfter(request.getEndDate())) {
             throw new IllegalArgumentException("Tournament start date cannot be after end date");
         }
