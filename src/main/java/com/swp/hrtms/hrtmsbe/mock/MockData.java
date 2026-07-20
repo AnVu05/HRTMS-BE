@@ -38,173 +38,289 @@ public class MockData {
         private final com.swp.hrtms.hrtmsbe.repository.RaceResultRepository raceResultRepository;
         private final com.swp.hrtms.hrtmsbe.repository.RacePlacementRepository racePlacementRepository;
         private final com.swp.hrtms.hrtmsbe.repository.HealthCheckRepository healthCheckRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.SpectatorRepository spectatorRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.WalletRepository walletRepository;
+        private final com.swp.hrtms.hrtmsbe.repository.PredictionRepository predictionRepository;
 
         @jakarta.annotation.PostConstruct
         @Transactional
         public void init() {
-                if (userRepository.count() > 0)
-                        return;
+                if (!userRepository.existsByUsername("admin")) {
+                        // 1. Create Admin
+                        com.swp.hrtms.hrtmsbe.entity.Admin admin = new com.swp.hrtms.hrtmsbe.entity.Admin();
+                        admin.setUsername("admin");
+                        admin.setPassword("123456");
+                        admin.setEmail("vudin@gmail.com");
+                        admin.setRole("ADMIN");
+                        admin.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                        adminRepository.save(admin);
 
-                // 1. Create Admin
-                com.swp.hrtms.hrtmsbe.entity.Admin admin = new com.swp.hrtms.hrtmsbe.entity.Admin();
-                admin.setUsername("admin");
-                admin.setPassword("123456");
-                admin.setEmail("vudin@gmail.com");
-                admin.setRole("ADMIN");
-                admin.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
-                adminRepository.save(admin);
+                        // 2. Create Referee
+                        com.swp.hrtms.hrtmsbe.entity.Referee referee1 = new com.swp.hrtms.hrtmsbe.entity.Referee();
+                        referee1.setUsername("referee_paul");
+                        referee1.setPassword("123456");
+                        referee1.setEmail("paul@hrtms.com");
+                        referee1.setRole("REFEREE");
+                        referee1.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                        refereeRepository.save(referee1);
 
-                // 2. Create Referee
-                com.swp.hrtms.hrtmsbe.entity.Referee referee1 = new com.swp.hrtms.hrtmsbe.entity.Referee();
-                referee1.setUsername("referee_paul");
-                referee1.setPassword("123456");
-                referee1.setEmail("paul@hrtms.com");
-                referee1.setRole("REFEREE");
-                referee1.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
-                refereeRepository.save(referee1);
+                        // 2.5 Create Doctor
+                        com.swp.hrtms.hrtmsbe.entity.Doctor doctor1 = new com.swp.hrtms.hrtmsbe.entity.Doctor();
+                        com.swp.hrtms.hrtmsbe.entity.User doctorUser = new com.swp.hrtms.hrtmsbe.entity.User();
+                        doctorUser.setUsername("doctor_jane");
+                        doctorUser.setPassword("123456");
+                        doctorUser.setEmail("jane@hrtms.com");
+                        doctorUser.setRole("DOCTOR");
+                        doctorUser.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                        doctorUser = userRepository.save(doctorUser);
+                        doctor1.setUser(doctorUser);
+                        doctorRepository.save(doctor1);
 
-                // 2.5 Create Doctor
-                com.swp.hrtms.hrtmsbe.entity.Doctor doctor1 = new com.swp.hrtms.hrtmsbe.entity.Doctor();
-                com.swp.hrtms.hrtmsbe.entity.User doctorUser = new com.swp.hrtms.hrtmsbe.entity.User();
-                doctorUser.setUsername("doctor_jane");
-                doctorUser.setPassword("123456");
-                doctorUser.setEmail("jane@hrtms.com");
-                doctorUser.setRole("DOCTOR");
-                doctorUser.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
-                doctorUser = userRepository.save(doctorUser);
-                doctor1.setUser(doctorUser);
-                doctorRepository.save(doctor1);
+                        // Create Jockey
+                        com.swp.hrtms.hrtmsbe.entity.Jockey jockey1 = new com.swp.hrtms.hrtmsbe.entity.Jockey();
+                        jockey1.setUsername("jockey_mock");
+                        jockey1.setPassword("123456");
+                        jockey1.setEmail("jockey_mock@hrtms.com");
+                        jockey1.setRole("JOCKEY");
+                        jockey1.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                        jockey1.setJockeyName("Mock Jockey");
+                        jockey1.setExperienceYears(3);
+                        jockey1.setAge(25);
+                        jockeyRepository.save(jockey1);
 
-                // 3. Create RaceFormat
-                com.swp.hrtms.hrtmsbe.entity.RaceFormat format1 = new com.swp.hrtms.hrtmsbe.entity.RaceFormat();
-                format1.setName("Derby 1000m");
-                format1.setDescription("Standard Derby");
-                format1.setEntryFee(100.0);
-                format1.setFirstPrizePercent(50.0);
-                format1.setSecondPrizePercent(30.0);
-                format1.setThirdPrizePercent(20.0);
-                format1.setAllowedHorseAge(3);
-                format1.setMinJockeyExperience(1);
-                format1.setMinWeight(40);
-                format1.setMaxWeight(60);
-                format1.setBaseWeight(50);
-                format1.setApplyFemaleAllowance(1);
-                raceFormatRepository.save(format1);
+                        // Create Owner
+                        com.swp.hrtms.hrtmsbe.entity.HorseOwner owner1 = new com.swp.hrtms.hrtmsbe.entity.HorseOwner();
+                        com.swp.hrtms.hrtmsbe.entity.User ownerUser = new com.swp.hrtms.hrtmsbe.entity.User();
+                        ownerUser.setUsername("owner_mock");
+                        ownerUser.setPassword("123456");
+                        ownerUser.setEmail("owner_mock@hrtms.com");
+                        ownerUser.setRole("HORSE_OWNER");
+                        ownerUser.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                        ownerUser = userRepository.save(ownerUser);
+                        owner1.setUser(ownerUser);
+                        owner1.setOwnerName("Mock Owner");
+                        horseOwnerRepository.save(owner1);
 
-                // 4. Create Tournament DRAFT
-                com.swp.hrtms.hrtmsbe.entity.Tournament t1 = new com.swp.hrtms.hrtmsbe.entity.Tournament();
-                t1.setName("Summer Cup 2026 DRAFT");
-                t1.setStartDate(LocalDate.now().plusDays(10));
-                t1.setEndDate(LocalDate.now().plusDays(20));
-                t1.setPublishedDate(LocalDate.now().plusDays(1));
-                t1.setOpenPredictionDate(LocalDate.now().plusDays(2));
-                t1.setClosePredictionDate(LocalDate.now().plusDays(8));
-                t1.setAdmin(admin);
-                t1.setStatus(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED);
-                tournamentRepository.save(t1);
+                        // Create Spectator
+                        com.swp.hrtms.hrtmsbe.entity.Spectator spectator1 = new com.swp.hrtms.hrtmsbe.entity.Spectator();
+                        spectator1.setUsername("spectator_mock");
+                        spectator1.setPassword("123456");
+                        spectator1.setEmail("spectator_mock@hrtms.com");
+                        spectator1.setRole("SPECTATOR");
+                        spectator1.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                        spectator1.setDisplayName("Mock Spectator");
+                        spectatorRepository.save(spectator1);
+                }
 
-                // 5. Create Race PENDING_REFEREE
-                com.swp.hrtms.hrtmsbe.entity.Race r1 = new com.swp.hrtms.hrtmsbe.entity.Race();
-                r1.setTournament(t1);
-                r1.setName("Race 1 - Qualifier");
-                r1.setRaceRules(format1);
-                r1.setDate(LocalDate.now().plusDays(11));
-                r1.setStartTime(LocalTime.of(10, 0));
-                r1.setEndTime(LocalTime.of(10, 30));
-                r1.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED);
-                raceRepository.save(r1);
-                // 6. Create Jockey
-                com.swp.hrtms.hrtmsbe.entity.Jockey jockey1 = new com.swp.hrtms.hrtmsbe.entity.Jockey();
-                jockey1.setUsername("jockey_mock");
-                jockey1.setPassword("123456");
-                jockey1.setEmail("jockey_mock@hrtms.com");
-                jockey1.setRole("JOCKEY");
-                jockey1.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
-                jockey1.setJockeyName("Mock Jockey");
-                jockey1.setExperienceYears(3);
-                jockey1.setAge(25);
-                jockeyRepository.save(jockey1);
+                if (!userRepository.existsByUsername("jockey_mock2")) {
+                        // Create Jockey 2
+                        com.swp.hrtms.hrtmsbe.entity.Jockey jockey2 = new com.swp.hrtms.hrtmsbe.entity.Jockey();
+                        jockey2.setUsername("jockey_mock2");
+                        jockey2.setPassword("123456");
+                        jockey2.setEmail("jockey_mock2@hrtms.com");
+                        jockey2.setRole("JOCKEY");
+                        jockey2.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                        jockey2.setJockeyName("Mock Jockey 2");
+                        jockey2.setExperienceYears(4);
+                        jockey2.setAge(26);
+                        jockey2 = jockeyRepository.save(jockey2);
 
-                // 6.5 Create Jockey Cert
-                com.swp.hrtms.hrtmsbe.entity.JockeyCert cert1 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
-                cert1.setCertName("Professional Riding License");
-                cert1.setCertImageBase64("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+                        JockeyCert cert2 = JockeyCert.builder()
+                                        .certName("Thoroughbred")
+                                        .jockey(jockey2)
+                                        .status(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.VERIFIED)
+                                        .issuedAt(LocalDate.now())
+                                        .build();
+                        jockeyCertRepository.save(cert2);
 
-                cert1.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.PENDING);
-                cert1.setJockey(jockey1);
-                jockeyCertRepository.save(cert1);
+                        // Create Jockey 3
+                        com.swp.hrtms.hrtmsbe.entity.Jockey jockey3 = new com.swp.hrtms.hrtmsbe.entity.Jockey();
+                        jockey3.setUsername("jockey_mock3");
+                        jockey3.setPassword("123456");
+                        jockey3.setEmail("jockey_mock3@hrtms.com");
+                        jockey3.setRole("JOCKEY");
+                        jockey3.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                        jockey3.setJockeyName("Mock Jockey 3");
+                        jockey3.setExperienceYears(5);
+                        jockey3.setAge(27);
+                        jockey3 = jockeyRepository.save(jockey3);
 
-                com.swp.hrtms.hrtmsbe.entity.JockeyCert cert2 = new com.swp.hrtms.hrtmsbe.entity.JockeyCert();
-                cert2.setCertName("Advanced Riding License");
-                // A tiny 1x1 transparent GIF base64 string to keep mock data small
-                cert2.setCertImageBase64("ádasdasd");
-                cert2.setIssuedAt(LocalDate.now().minusMonths(6));
-                cert2.setStatus(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.PENDING);
-                cert2.setJockey(jockey1);
-                jockeyCertRepository.save(cert2);
+                        JockeyCert cert3 = JockeyCert.builder()
+                                        .certName("Thoroughbred")
+                                        .jockey(jockey3)
+                                        .status(com.swp.hrtms.hrtmsbe.enums.CertificateStatus.VERIFIED)
+                                        .issuedAt(LocalDate.now())
+                                        .build();
+                        jockeyCertRepository.save(cert3);
 
-                // 6.6 Send verification notification to Admin (matches VerificationServiceImpl)
-                com.swp.hrtms.hrtmsbe.entity.Notification certNotif = com.swp.hrtms.hrtmsbe.entity.Notification
-                                .builder()
-                                .sender(jockey1)
-                                .title("Certificate Verification Request")
-                                .content("A jockey has requested verification for all pending certificates.")
-                                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.VERIFI_CERTIFICATE)
-                                // Note: The real API does not link the specific certificate (jockeyCert) here
-                                .build();
-                notificationRepository.save(certNotif);
+                        // Create Owner 2
+                        com.swp.hrtms.hrtmsbe.entity.HorseOwner owner2 = new com.swp.hrtms.hrtmsbe.entity.HorseOwner();
+                        com.swp.hrtms.hrtmsbe.entity.User ownerUser2 = new com.swp.hrtms.hrtmsbe.entity.User();
+                        ownerUser2.setUsername("owner_mock2");
+                        ownerUser2.setPassword("123456");
+                        ownerUser2.setEmail("owner_mock2@hrtms.com");
+                        ownerUser2.setRole("HORSE_OWNER");
+                        ownerUser2.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                        ownerUser2 = userRepository.save(ownerUser2);
+                        owner2.setUser(ownerUser2);
+                        owner2.setOwnerName("Mock Owner 2");
+                        owner2 = horseOwnerRepository.save(owner2);
 
-                com.swp.hrtms.hrtmsbe.entity.NotificationRecipient certNotifRec = com.swp.hrtms.hrtmsbe.entity.NotificationRecipient
-                                .builder()
-                                .notification(certNotif)
-                                .recipient(admin)
-                                .status(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.UNREAD)
-                                .build();
-                notificationRecipientRepository.save(certNotifRec);
+                        Horse horse2 = Horse.builder()
+                                        .name("Thoroughbred Horse 2")
+                                        .breed("Thoroughbred")
+                                        .owner(owner2)
+                                        .age(5)
+                                        .sex("Stallion")
+                                        .weightKg(new java.math.BigDecimal("500.0"))
+                                        .status(com.swp.hrtms.hrtmsbe.entity.HorseStatus.WORK)
+                                        .build();
+                        horseRepository.save(horse2);
 
-                // 7. Create Owner
-                com.swp.hrtms.hrtmsbe.entity.HorseOwner owner1 = new com.swp.hrtms.hrtmsbe.entity.HorseOwner();
-                com.swp.hrtms.hrtmsbe.entity.User ownerUser = new com.swp.hrtms.hrtmsbe.entity.User();
-                ownerUser.setUsername("owner_mock");
-                ownerUser.setPassword("123456");
-                ownerUser.setEmail("vudinhan2k5@gmail.com");
-                ownerUser.setRole("HORSE_OWNER");
-                ownerUser.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
-                ownerUser = userRepository.save(ownerUser);
-                owner1.setUser(ownerUser);
-                owner1.setOwnerName("Mock Owner");
-                horseOwnerRepository.save(owner1);
+                        // Create Owner 3
+                        com.swp.hrtms.hrtmsbe.entity.HorseOwner owner3 = new com.swp.hrtms.hrtmsbe.entity.HorseOwner();
+                        com.swp.hrtms.hrtmsbe.entity.User ownerUser3 = new com.swp.hrtms.hrtmsbe.entity.User();
+                        ownerUser3.setUsername("owner_mock3");
+                        ownerUser3.setPassword("123456");
+                        ownerUser3.setEmail("owner_mock3@hrtms.com");
+                        ownerUser3.setRole("HORSE_OWNER");
+                        ownerUser3.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                        ownerUser3 = userRepository.save(ownerUser3);
+                        owner3.setUser(ownerUser3);
+                        owner3.setOwnerName("Mock Owner 3");
+                        owner3 = horseOwnerRepository.save(owner3);
 
-                // 8. Create Horse
-                com.swp.hrtms.hrtmsbe.entity.Horse horse1 = new com.swp.hrtms.hrtmsbe.entity.Horse();
-                horse1.setName("Mock Horse");
-                horse1.setSex("M");
-                horse1.setAge(3);
-                horse1.setWeightKg(BigDecimal.valueOf(450.0));
-                horse1.setOwner(owner1);
-                horseRepository.save(horse1);
+                        Horse horse3 = Horse.builder()
+                                        .name("Thoroughbred Horse 3")
+                                        .breed("Thoroughbred")
+                                        .owner(owner3)
+                                        .age(6)
+                                        .sex("Mare")
+                                        .weightKg(new java.math.BigDecimal("480.0"))
+                                        .status(com.swp.hrtms.hrtmsbe.entity.HorseStatus.WORK)
+                                        .build();
+                        horseRepository.save(horse3);
+                }
 
-                // 9. Create Registration Form
-                com.swp.hrtms.hrtmsbe.entity.RegistrationForm form1 = new com.swp.hrtms.hrtmsbe.entity.RegistrationForm();
-                form1.setTournament(t1);
-                form1.setAdmin(admin);
-                form1.setRace(r1);
-                form1.setHorse(horse1);
-                form1.setJockey(jockey1);
-                form1.setOwner(owner1);
-                form1.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_ADMIN);
-                form1 = registrationFormRepository.save(form1);
+                if (tournamentRepository.count() == 0) {
+                        com.swp.hrtms.hrtmsbe.entity.User adminUser = userRepository.findByUsername("admin")
+                                        .orElse(null);
+                        com.swp.hrtms.hrtmsbe.entity.Admin admin = adminUser != null
+                                        ? adminRepository.findById(adminUser.getId()).orElse(null)
+                                        : null;
 
-                // Create a second Registration Form with RACING status
-                com.swp.hrtms.hrtmsbe.entity.RegistrationForm form2 = new com.swp.hrtms.hrtmsbe.entity.RegistrationForm();
-                form2.setTournament(t1);
-                form2.setAdmin(admin);
-                form2.setRace(r1);
-                form2.setHorse(horse1);
-                form2.setJockey(jockey1);
-                form2.setOwner(owner1);
-                form2.setStatus(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING);
-                form2 = registrationFormRepository.save(form2);
+                        com.swp.hrtms.hrtmsbe.entity.User refUser = userRepository.findByUsername("referee_paul")
+                                        .orElse(null);
+                        com.swp.hrtms.hrtmsbe.entity.Referee referee = refUser != null
+                                        ? refereeRepository.findById(refUser.getId()).orElse(null)
+                                        : null;
 
+                        if (admin != null && referee != null) {
+                                // Create RaceFormat
+                                RaceFormat format = RaceFormat.builder()
+                                                .name("Demo Thoroughbred Format")
+                                                .description("Valid rules for mock thoroughbreds")
+                                                .entryFee(100.0)
+                                                .firstPrizePercent(50.0)
+                                                .secondPrizePercent(30.0)
+                                                .thirdPrizePercent(20.0)
+                                                .allowedBreed("Thoroughbred")
+                                                .allowedHorseAge(4) // Cho phep ngua tu 4 tuoi tro len (minh co ngua 5,
+                                                                    // 6)
+                                                .minJockeyExperience(2) // Cho phep nai co 2 nam KN tro len (minh co 3,
+                                                                        // 4, 5)
+                                                .minWeight(0)
+                                                .maxWeight(1000)
+                                                .baseWeight(50)
+                                                .applyFemaleAllowance(0)
+                                                .predictionTimeBefore(2)
+                                                .healthCheckTimeBefore(48)
+                                                .status(com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus.ACTIVE)
+                                                .build();
+                                format = raceFormatRepository.save(format);
+
+                                // Create Tournament
+                                Tournament tournament = Tournament.builder()
+                                                .name("Demo Grand Prix")
+                                                .admin(admin)
+                                                .createdAt(LocalDateTime.now())
+                                                .startDate(LocalDate.now())
+                                                .endDate(LocalDate.now().plusDays(7))
+                                                .publishedDate(LocalDate.now().minusDays(1))
+                                                .openPredictionDate(LocalDate.now().minusDays(1))
+                                                .closePredictionDate(LocalDate.now().plusDays(7))
+                                                .status(com.swp.hrtms.hrtmsbe.enums.TournamentStatus.PUBLISHED)
+                                                .build();
+                                tournament = tournamentRepository.save(tournament);
+
+                                Race race = Race.builder()
+                                                .tournament(tournament)
+                                                .name("Demo Grand Race 1")
+                                                .date(LocalDate.now())
+                                                .startTime(LocalTime.now().plusMinutes(10)) // Bat dau trong 10 phut nua
+                                                                                            // (hop le cho du doan)
+                                                .endTime(LocalTime.now().plusMinutes(40))
+                                                .numHorse(10)
+                                                .distanceM(1200)
+                                                .referee(referee)
+                                                .status(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED)
+                                                .raceRules(format)
+                                                .expectedDurationMinutes(30)
+                                                .breakTimeMinutes(10)
+                                                .build();
+                                raceRepository.save(race);
+
+                                Race race2 = Race.builder()
+                                                .tournament(tournament)
+                                                .name("Demo Grand Race 2")
+                                                .date(LocalDate.now())
+                                                .startTime(LocalTime.now().plusHours(3)) // Bat dau sau 3 tieng (chua mo
+                                                                                         // du doan)
+                                                .endTime(LocalTime.now().plusHours(3).plusMinutes(30))
+                                                .numHorse(10)
+                                                .distanceM(1200)
+                                                .referee(referee)
+                                                .status(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED)
+                                                .raceRules(format)
+                                                .expectedDurationMinutes(30)
+                                                .breakTimeMinutes(10)
+                                                .build();
+                                raceRepository.save(race2);
+
+                                Race race3 = Race.builder()
+                                                .tournament(tournament)
+                                                .name("Demo Grand Race 3")
+                                                .date(LocalDate.now())
+                                                .startTime(LocalTime.now().minusHours(1)) // Da bat dau 1 tieng (dong du
+                                                                                          // doan)
+                                                .endTime(LocalTime.now().minusMinutes(30))
+                                                .numHorse(10)
+                                                .distanceM(1200)
+                                                .referee(referee)
+                                                .status(com.swp.hrtms.hrtmsbe.enums.RaceStatus.COMPLETE)
+                                                .raceRules(format)
+                                                .expectedDurationMinutes(30)
+                                                .breakTimeMinutes(10)
+                                                .build();
+                                raceRepository.save(race3);
+                        }
+                }
         }
 }
+// nhớ comment doan này lại ở healthCheckServiceImpl để demo,
+// đoạn 178 đến 191 vì nó sẽ không có dữ liệu khi mới tạo DB
+// Bypassed for demo purposes
+// if (now.isAfter(raceStartDateTime.minusHours(24))) {
+// throw new IllegalArgumentException(
+// "Health checks must be updated no later than 24 hours before the race
+// begins.");
+// }
+
+// Tương tự với PredictServiceImpl, comment doan 80-83 khi demo
+// Bypassed for demo purposes
+// if (now.isBefore(raceStartDateTime.minusHours(1)) ||
+// !now.isBefore(raceStartDateTime)) {
+// throw new IllegalArgumentException("Predictions are only allowed within 1
+// hour before the race starts.");
+// }
+// Thoroughbred

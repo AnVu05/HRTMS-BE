@@ -1,6 +1,5 @@
 package com.swp.hrtms.hrtmsbe.service.impl;
 
-
 // Copied by Kháº£i from HRTMS_BE_on_time-main
 import com.swp.hrtms.hrtmsbe.entity.Prediction;
 import com.swp.hrtms.hrtmsbe.entity.Race;
@@ -61,6 +60,15 @@ public class PredictionServiceImpl implements PredictionService {
             throw new IllegalArgumentException("Predictions are only allowed before the race starts.");
         }
 
+        java.util.List<com.swp.hrtms.hrtmsbe.entity.RegistrationForm> lineup = registrationFormRepository
+                .findByRace_Id(race.getId());
+        long activeCount = lineup.stream()
+                .filter(f -> f.getStatus() == com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING)
+                .count();
+        if (activeCount <= 1) {
+            throw new IllegalArgumentException("Cannot place a prediction on a race with fewer than 2 active horses.");
+        }
+
         if (!isHorseEligibleForPrediction(request.getRaceId(), request.getPredictedHorseId())) {
             throw new IllegalArgumentException("This horse is not eligible for prediction in this race.");
         }
@@ -69,8 +77,16 @@ public class PredictionServiceImpl implements PredictionService {
         // begins)
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
-        if (now.isBefore(raceStartDateTime.minusHours(1)) || !now.isBefore(raceStartDateTime)) {
-            throw new IllegalArgumentException("Predictions are only allowed within 1 hour before the race starts.");
+        
+        Integer predictionOpenHoursBefore = 1;
+        if (race.getRaceRules() != null && race.getRaceRules().getPredictionTimeBefore() != null) {
+            predictionOpenHoursBefore = race.getRaceRules().getPredictionTimeBefore();
+        }
+
+        // Bypassed for demo purposes
+        if (now.isBefore(raceStartDateTime.minusHours(predictionOpenHoursBefore)) ||
+                !now.isBefore(raceStartDateTime)) {
+            throw new IllegalArgumentException("Predictions are only allowed within " + predictionOpenHoursBefore + " hour(s) before the race starts.");
         }
 
         // BR_10: Ticket Limit (1 prediction per spectator and race)

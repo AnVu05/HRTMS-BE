@@ -57,5 +57,8 @@ public class RaceResponse {
 
     @JsonProperty("canceled_at")
     private java.time.LocalDateTime canceledAt;
+
+    @JsonProperty("prediction_time_before")
+    private Integer predictionTimeBefore;
 }
 

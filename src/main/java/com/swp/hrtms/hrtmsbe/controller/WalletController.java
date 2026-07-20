@@ -27,9 +27,9 @@ public class WalletController {
         return ResponseEntity.ok(ApiResponse.success(service.getAll(), null));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<WalletResponse>> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok(ApiResponse.success(service.getById(id), null));
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<ApiResponse<WalletResponse>> getByUserId(@PathVariable Integer userId) {
+        return ResponseEntity.ok(ApiResponse.success(service.getByUserId(userId), null));
     }
 
     @PutMapping("/{id}")

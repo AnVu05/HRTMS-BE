@@ -66,6 +66,10 @@ public class NotificationServiceImpl implements NotificationService {
                         NotificationType.REGISTRATION_APPROVED,
                         NotificationType.REGISTRATION_REJECTED);
 
+        private static final List<NotificationType> HORSE_OWNER_DOCTOR_NOTIFICATION_TYPES = List.of(
+                        NotificationType.READY_RACING,
+                        NotificationType.REGISTRATION_REJECTED);
+
         private static final List<NotificationType> HORSE_OWNER_JOCKEY_NOTIFICATION_TYPES = List.of(
                         NotificationType.JOCKEY_ACCEPTED,
                         NotificationType.JOCKEY_REJECTED);
@@ -211,6 +215,7 @@ public class NotificationServiceImpl implements NotificationService {
                                                 ownerId,
                                                 HORSE_OWNER_ADMIN_NOTIFICATION_TYPES,
                                                 HORSE_OWNER_JOCKEY_NOTIFICATION_TYPES,
+                                                HORSE_OWNER_DOCTOR_NOTIFICATION_TYPES,
                                                 pageable)
                                 .map(this::toHorseOwnerResponse);
         }
@@ -433,10 +438,7 @@ public class NotificationServiceImpl implements NotificationService {
 
                         // Cập nhật trạng thái người nhận thành "None" (theo yêu cầu của hệ thống để hỗ
                         // trợ lọc thông báo chưa đọc sau này)
-                        // Cập nhật trạng thái cuộc đua thành PUBLISHED (đã xuất bản)
                         recipient.setStatus(com.swp.hrtms.hrtmsbe.enums.NotificationStatus.READ);
-                        // khai
-                        race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED);
 
                         // Tạo thông báo phản hồi (Đồng ý) gửi ngược về lại cho Admin
                         createResponseNotification(referee, race, true);
@@ -502,7 +504,7 @@ public class NotificationServiceImpl implements NotificationService {
                                 .sender(referee)
                                 .title(title)
                                 .content(content)
-                                .type(com.swp.hrtms.hrtmsbe.enums.NotificationType.SYSTEM)
+                                .type(isAccepted ? com.swp.hrtms.hrtmsbe.enums.NotificationType.REFEREE_ACCEPTED : com.swp.hrtms.hrtmsbe.enums.NotificationType.REFEREE_REJECTED)
                                 .race(race)
                                 .createdAt(java.time.LocalDateTime.now())
                                 .build();

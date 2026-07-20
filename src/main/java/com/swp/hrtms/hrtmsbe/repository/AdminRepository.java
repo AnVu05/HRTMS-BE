@@ -15,9 +15,9 @@ public interface AdminRepository extends JpaRepository<Admin, Integer> {
     @Query("""
             SELECT a
             FROM Admin a
-            LEFT JOIN RegistrationForm rf ON rf.admin = a AND rf.status = com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_ADMIN
-            GROUP BY a
-            ORDER BY COUNT(rf) ASC
+            ORDER BY (
+                SELECT COUNT(rf) FROM RegistrationForm rf WHERE rf.admin = a AND rf.status = com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.PENDING_ADMIN
+            ) ASC
             """)
     Page<Admin> findLeastLoadedAdmin(Pageable pageable);
 }

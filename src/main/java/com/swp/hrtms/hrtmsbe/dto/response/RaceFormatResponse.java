@@ -18,6 +18,8 @@ public class RaceFormatResponse {
     private Integer maxWeight;
     private Integer baseWeight;
     private Integer applyFemaleAllowance;
+    private Integer predictionTimeBefore;
+    private Integer healthCheckTimeBefore;
     private com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus status;
 }
 

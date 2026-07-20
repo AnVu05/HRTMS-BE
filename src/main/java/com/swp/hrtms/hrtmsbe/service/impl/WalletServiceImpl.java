@@ -46,9 +46,9 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional(readOnly = true)
-    public WalletResponse getById(Integer id) {
-        Wallet wallet = walletRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Wallet not found with id: " + id));
+    public WalletResponse getByUserId(Integer userId) {
+        Wallet wallet = walletRepository.findByUser_Id(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Wallet not found with user id: " + userId));
         return toResponse(wallet);
     }
 

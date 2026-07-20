@@ -54,9 +54,7 @@ public class TournamentServiceImpl implements TournamentService {
         if (request.getOpenPredictionDate().isAfter(request.getClosePredictionDate())) {
             throw new IllegalArgumentException("Open prediction date cannot be after close prediction date");
         }
-        if (!request.getClosePredictionDate().isBefore(request.getStartDate())) {
-            throw new IllegalArgumentException("Close prediction date must be before tournament start date");
-        }
+
         if (request.getStartDate().isAfter(request.getEndDate())) {
             throw new IllegalArgumentException("Tournament start date cannot be after end date");
         }
@@ -283,6 +281,9 @@ public class TournamentServiceImpl implements TournamentService {
             race.setStatus(com.swp.hrtms.hrtmsbe.enums.RaceStatus.CANCELLED);
         }
         raceRepository.saveAll(races);
+
+        // Refund points for all predictions in the cancelled tournament
+        refundService.refundForTournament(tournamentId, "Tournament has been cancelled. Reason: " + request.getReason());
 
         // code moi (06/07)
         // Gửi thông báo TOURNAMENT_CANCELLED cho JOCKEY, HORSE_OWNER, SPECTATOR

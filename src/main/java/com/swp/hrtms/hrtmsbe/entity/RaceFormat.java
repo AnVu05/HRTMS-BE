@@ -32,6 +32,10 @@ public class RaceFormat {
     private Integer maxWeight;
     private Integer baseWeight;
     private Integer applyFemaleAllowance;
+    @Column(name = "prediction_time_before")
+    private Integer predictionTimeBefore;
+    @Column(name = "health_check_time_before")
+    private Integer healthCheckTimeBefore;
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus status = com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus.ACTIVE;

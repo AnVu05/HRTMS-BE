@@ -88,8 +88,8 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
             if (horse.getAge() == null || horse.getWeightKg() == null) {
                 throw new IllegalArgumentException("Horse age and weight must be fully updated.");
             }
-            if (rules.getAllowedHorseAge() != null && horse.getAge() > rules.getAllowedHorseAge()) {
-                throw new IllegalArgumentException("Horse age exceeds allowed age for this race.");
+            if (rules.getAllowedHorseAge() != null && horse.getAge() < rules.getAllowedHorseAge()) {
+                throw new IllegalArgumentException("Horse age is below the allowed age for this race.");
             }
 
             // New logic: 1. allowedBreed
@@ -122,7 +122,7 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
             boolean hasValidCert = false;
             if (jockey.getJockeyCerts() != null) {
                 for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : jockey.getJockeyCerts()) {
-                    if (com.swp.hrtms.hrtmsbe.enums.CertificateStatus.VERIFIED.name().equals(cert.getStatus())
+                    if (com.swp.hrtms.hrtmsbe.enums.CertificateStatus.VERIFIED == cert.getStatus()
                             && cert.getCertName() != null
                             && cert.getCertName().trim().equalsIgnoreCase(horse.getBreed().trim())) {
                         hasValidCert = true;

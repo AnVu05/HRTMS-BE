@@ -99,30 +99,39 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
       SELECT nr
       FROM NotificationRecipient nr
       JOIN FETCH nr.notification n
-      JOIN FETCH n.sender sender
+      LEFT JOIN FETCH n.sender sender
       WHERE nr.recipient.id = :ownerId
         AND (
+              (sender IS NULL AND n.type IN :adminTypes)
+              OR
               (sender.role = 'ADMIN' AND n.type IN :adminTypes)
               OR
               (sender.role = 'JOCKEY' AND n.type IN :jockeyTypes)
+              OR
+              (sender.role = 'DOCTOR' AND n.type IN :doctorTypes)
             )
       ORDER BY n.createdAt DESC
       """, countQuery = """
       SELECT count(nr)
       FROM NotificationRecipient nr
       JOIN nr.notification n
-      JOIN n.sender sender
+      LEFT JOIN n.sender sender
       WHERE nr.recipient.id = :ownerId
         AND (
+              (sender IS NULL AND n.type IN :adminTypes)
+              OR
               (sender.role = 'ADMIN' AND n.type IN :adminTypes)
               OR
               (sender.role = 'JOCKEY' AND n.type IN :jockeyTypes)
+              OR
+              (sender.role = 'DOCTOR' AND n.type IN :doctorTypes)
             )
       """)
   Page<NotificationRecipient> findHorseOwnerNotifications(
       @Param("ownerId") Integer ownerId,
       @Param("adminTypes") Collection<NotificationType> adminTypes,
       @Param("jockeyTypes") Collection<NotificationType> jockeyTypes,
+      @Param("doctorTypes") Collection<NotificationType> doctorTypes,
       Pageable pageable);
 
   // Lấy lời mời trọng tài đang chờ: Trạng thái thông báo nhận là 'None' (chưa
@@ -135,7 +144,7 @@ public interface NotificationRecipientRepository extends JpaRepository<Notificat
       JOIN nr.notification n
       JOIN n.race r
       WHERE nr.recipient.id = :refereeId
-        AND nr.status = 'None'
+        AND nr.status = 'UNREAD'
         AND n.type = 'REFEREE_INVITATION'
         AND r.referee.id = :refereeId
         AND r.status = 'PENDING_REFEREE'

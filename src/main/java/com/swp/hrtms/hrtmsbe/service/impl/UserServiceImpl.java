@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
 
         String role = request.getRole().trim().toUpperCase();
         if (!role.equals("SPECTATOR") && !role.equals("HORSE_OWNER") && !role.equals("JOCKEY")
-                && !role.equals("DOCTOR") && !role.equals("REFEREE")) {
+                && !role.equals("DOCTOR") && !role.equals("REFEREE") && !role.equals("ADMIN")) {
             throw new IllegalArgumentException("Registration is not allowed for role: " + role);
         }
 
@@ -106,7 +106,7 @@ public class UserServiceImpl implements UserService {
             // Referee có trường name, nhưng RegisterRequest không có, ta tạm để null hoặc
             // username
             savedUser = userRepository.save(referee);
-        } else if (role.equals("DOCTOR")){ // DOCTOR
+        } else if (role.equals("DOCTOR")) { // DOCTOR
             User user = new User();
             user.setUsername(request.getUsername());
             user.setEmail(request.getEmail());
@@ -118,21 +118,30 @@ public class UserServiceImpl implements UserService {
                     .user(savedUser)
                     .build();
             doctorRepository.save(doctor);
-        }else {
+        } else if (role.equals("ADMIN")) {
+            User user = new User();
+            user.setUsername(request.getUsername());
+            user.setEmail(request.getEmail());
+            user.setPassword(request.getPassword());
+            user.setRole("ADMIN");
+            savedUser = userRepository.save(user);
+        } else {
             throw new IllegalArgumentException("Invalid role: " + role);
         }
 
-
-        // Rewrite for authentication & authorization: Generate and send OTP immediately upon registration
-        String otp = String.format("%06d", new Random().nextInt(1000000));
-        otpCodeRepository.deleteByEmail(savedUser.getEmail());
-        OtpCode otpCode = OtpCode.builder()
-                .email(savedUser.getEmail())
-                .code(otp)
-                .expiryTime(LocalDateTime.now().plusMinutes(5))
-                .build();
-        otpCodeRepository.save(otpCode);
-        emailService.sendOtp(savedUser.getEmail(), otp);
+        // Rewrite for authentication & authorization: Generate and send OTP immediately
+        // upon registration for specific roles
+        if (role.equals("SPECTATOR") || role.equals("HORSE_OWNER") || role.equals("JOCKEY")) {
+            String otp = String.format("%06d", new Random().nextInt(1000000));
+            otpCodeRepository.deleteByEmail(savedUser.getEmail());
+            OtpCode otpCode = OtpCode.builder()
+                    .email(savedUser.getEmail())
+                    .code(otp)
+                    .expiryTime(LocalDateTime.now().plusMinutes(5))
+                    .build();
+            otpCodeRepository.save(otpCode);
+            emailService.sendOtp(savedUser.getEmail(), otp);
+        }
 
         // 4. Trả về kết quả sau khi đăng ký thành công
         return UserResponse.builder()
@@ -147,7 +156,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        // Rewrite for authentication & authorization: Login directly issues JWT token for ACTIVE users
+        // Rewrite for authentication & authorization: Login directly issues JWT token
+        // for ACTIVE users
         if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
             throw new IllegalArgumentException("Email cannot be empty");
         }
@@ -186,7 +196,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
-        // Rewrite for authentication & authorization: verifyOtp activates account, does not issue token
+        // Rewrite for authentication & authorization: verifyOtp activates account, does
+        // not issue token
         if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
             throw new IllegalArgumentException("Email cannot be empty");
         }
@@ -226,7 +237,7 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    //Bo sung them Tinh Nang:
+    // Bo sung them Tinh Nang:
     @Override
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
@@ -275,7 +286,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         OtpCode otpCode = otpCodeRepository.findTopByEmailAndCodeOrderByExpiryTimeDesc(
-                        request.getEmail().trim(), request.getOtpCode().trim())
+                request.getEmail().trim(), request.getOtpCode().trim())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid OTP code"));
 
         if (otpCode.getExpiryTime().isBefore(LocalDateTime.now())) {
@@ -383,6 +394,5 @@ public class UserServiceImpl implements UserService {
                 .createdAt(updatedUser.getCreatedAt())
                 .build();
     }
-
 
 }

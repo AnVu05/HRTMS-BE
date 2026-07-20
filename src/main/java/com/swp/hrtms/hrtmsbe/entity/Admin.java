@@ -23,7 +23,7 @@ public class Admin extends User {
     // private String employeeCode;
 
     @Lob
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String avatar;
 }
 
