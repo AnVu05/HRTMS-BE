@@ -77,10 +77,16 @@ public class PredictionServiceImpl implements PredictionService {
         // begins)
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
+        
+        Integer predictionOpenHoursBefore = 1;
+        if (race.getRaceRules() != null && race.getRaceRules().getPredictionTimeBefore() != null) {
+            predictionOpenHoursBefore = race.getRaceRules().getPredictionTimeBefore();
+        }
+
         // Bypassed for demo purposes
-        if (now.isBefore(raceStartDateTime.minusHours(1)) ||
+        if (now.isBefore(raceStartDateTime.minusHours(predictionOpenHoursBefore)) ||
                 !now.isBefore(raceStartDateTime)) {
-            throw new IllegalArgumentException("Predictions are only allowed within 1 hour before the race starts.");
+            throw new IllegalArgumentException("Predictions are only allowed within " + predictionOpenHoursBefore + " hour(s) before the race starts.");
         }
 
         // BR_10: Ticket Limit (1 prediction per spectator and race)

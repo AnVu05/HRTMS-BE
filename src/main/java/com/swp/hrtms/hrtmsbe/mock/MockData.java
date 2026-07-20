@@ -100,6 +100,16 @@ public class MockData {
                         owner1.setUser(ownerUser);
                         owner1.setOwnerName("Mock Owner");
                         horseOwnerRepository.save(owner1);
+
+                        // Create Spectator
+                        com.swp.hrtms.hrtmsbe.entity.Spectator spectator1 = new com.swp.hrtms.hrtmsbe.entity.Spectator();
+                        spectator1.setUsername("spectator_mock");
+                        spectator1.setPassword("123456");
+                        spectator1.setEmail("spectator_mock@hrtms.com");
+                        spectator1.setRole("SPECTATOR");
+                        spectator1.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
+                        spectator1.setDisplayName("Mock Spectator");
+                        spectatorRepository.save(spectator1);
                 }
 
                 if (!userRepository.existsByUsername("jockey_mock2")) {
@@ -223,6 +233,8 @@ public class MockData {
                                                 .maxWeight(1000)
                                                 .baseWeight(50)
                                                 .applyFemaleAllowance(0)
+                                                .predictionTimeBefore(2)
+                                                .healthCheckTimeBefore(48)
                                                 .status(com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus.ACTIVE)
                                                 .build();
                                 format = raceFormatRepository.save(format);
@@ -241,7 +253,6 @@ public class MockData {
                                                 .build();
                                 tournament = tournamentRepository.save(tournament);
 
-                                // Create Race
                                 Race race = Race.builder()
                                                 .tournament(tournament)
                                                 .name("Demo Grand Race 1")
@@ -258,6 +269,40 @@ public class MockData {
                                                 .breakTimeMinutes(10)
                                                 .build();
                                 raceRepository.save(race);
+
+                                Race race2 = Race.builder()
+                                                .tournament(tournament)
+                                                .name("Demo Grand Race 2")
+                                                .date(LocalDate.now())
+                                                .startTime(LocalTime.now().plusHours(3)) // Bat dau sau 3 tieng (chua mo
+                                                                                         // du doan)
+                                                .endTime(LocalTime.now().plusHours(3).plusMinutes(30))
+                                                .numHorse(10)
+                                                .distanceM(1200)
+                                                .referee(referee)
+                                                .status(com.swp.hrtms.hrtmsbe.enums.RaceStatus.PUBLISHED)
+                                                .raceRules(format)
+                                                .expectedDurationMinutes(30)
+                                                .breakTimeMinutes(10)
+                                                .build();
+                                raceRepository.save(race2);
+
+                                Race race3 = Race.builder()
+                                                .tournament(tournament)
+                                                .name("Demo Grand Race 3")
+                                                .date(LocalDate.now())
+                                                .startTime(LocalTime.now().minusHours(1)) // Da bat dau 1 tieng (dong du
+                                                                                          // doan)
+                                                .endTime(LocalTime.now().minusMinutes(30))
+                                                .numHorse(10)
+                                                .distanceM(1200)
+                                                .referee(referee)
+                                                .status(com.swp.hrtms.hrtmsbe.enums.RaceStatus.COMPLETE)
+                                                .raceRules(format)
+                                                .expectedDurationMinutes(30)
+                                                .breakTimeMinutes(10)
+                                                .build();
+                                raceRepository.save(race3);
                         }
                 }
         }

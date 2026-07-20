@@ -276,6 +276,7 @@ public class RaceServiceImpl implements RaceService {
                 .expectedDurationMinutes(race.getExpectedDurationMinutes())
                 .breakTimeMinutes(race.getBreakTimeMinutes())
                 .canceledAt(race.getCanceledAt())
+                .predictionTimeBefore(race.getRaceRules() != null ? race.getRaceRules().getPredictionTimeBefore() : null)
                 .build();
     }
 

@@ -78,10 +78,16 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         // Temporarily disabled for Swagger testing with manually entered checkDate.
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
+        
+        Integer healthCheckOpenHoursBefore = 24;
+        if (race.getRaceRules() != null && race.getRaceRules().getHealthCheckTimeBefore() != null) {
+            healthCheckOpenHoursBefore = race.getRaceRules().getHealthCheckTimeBefore();
+        }
+
         // Bypassed for demo purposes
-        if (now.isAfter(raceStartDateTime.minusHours(24))) {
+        if (now.isAfter(raceStartDateTime.minusHours(healthCheckOpenHoursBefore))) {
             throw new IllegalArgumentException(
-                    "Health checks must be updated no later than 24 hours before the race begins.");
+                    "Health checks must be updated no later than " + healthCheckOpenHoursBefore + " hour(s) before the race begins.");
         }
 
         HealthCheckStatus status = resolveCreateStatus(request);
