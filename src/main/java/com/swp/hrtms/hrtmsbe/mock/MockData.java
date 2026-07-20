@@ -110,6 +110,13 @@ public class MockData {
                         spectator1.setStatus(com.swp.hrtms.hrtmsbe.enums.UserStatus.ACTIVE);
                         spectator1.setDisplayName("Mock Spectator");
                         spectatorRepository.save(spectator1);
+
+                        Wallet spectator1Wallet = Wallet.builder()
+                                .user(spectator1)
+                                .balance(1000)
+                                .updatedAt(LocalDateTime.now())
+                                .build();
+                        walletRepository.save(spectator1Wallet);
                 }
 
                 if (!userRepository.existsByUsername("jockey_mock2")) {
