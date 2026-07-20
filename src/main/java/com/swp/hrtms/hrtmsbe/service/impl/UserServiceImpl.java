@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
 
         String role = request.getRole().trim().toUpperCase();
         if (!role.equals("SPECTATOR") && !role.equals("HORSE_OWNER") && !role.equals("JOCKEY")
-                && !role.equals("DOCTOR") && !role.equals("REFEREE")) {
+                && !role.equals("DOCTOR") && !role.equals("REFEREE") && !role.equals("ADMIN")) {
             throw new IllegalArgumentException("Registration is not allowed for role: " + role);
         }
 
@@ -118,21 +118,30 @@ public class UserServiceImpl implements UserService {
                     .user(savedUser)
                     .build();
             doctorRepository.save(doctor);
+        } else if (role.equals("ADMIN")) {
+            User user = new User();
+            user.setUsername(request.getUsername());
+            user.setEmail(request.getEmail());
+            user.setPassword(request.getPassword());
+            user.setRole("ADMIN");
+            savedUser = userRepository.save(user);
         } else {
             throw new IllegalArgumentException("Invalid role: " + role);
         }
 
         // Rewrite for authentication & authorization: Generate and send OTP immediately
-        // upon registration
-        String otp = String.format("%06d", new Random().nextInt(1000000));
-        otpCodeRepository.deleteByEmail(savedUser.getEmail());
-        OtpCode otpCode = OtpCode.builder()
-                .email(savedUser.getEmail())
-                .code(otp)
-                .expiryTime(LocalDateTime.now().plusMinutes(5))
-                .build();
-        otpCodeRepository.save(otpCode);
-        emailService.sendOtp(savedUser.getEmail(), otp);
+        // upon registration for specific roles
+        if (role.equals("SPECTATOR") || role.equals("HORSE_OWNER") || role.equals("JOCKEY")) {
+            String otp = String.format("%06d", new Random().nextInt(1000000));
+            otpCodeRepository.deleteByEmail(savedUser.getEmail());
+            OtpCode otpCode = OtpCode.builder()
+                    .email(savedUser.getEmail())
+                    .code(otp)
+                    .expiryTime(LocalDateTime.now().plusMinutes(5))
+                    .build();
+            otpCodeRepository.save(otpCode);
+            emailService.sendOtp(savedUser.getEmail(), otp);
+        }
 
         // 4. Trả về kết quả sau khi đăng ký thành công
         return UserResponse.builder()
