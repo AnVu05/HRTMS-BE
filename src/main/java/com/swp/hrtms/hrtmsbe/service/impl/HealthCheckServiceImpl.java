@@ -79,11 +79,10 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
         // Bypassed for demo purposes
-        // if (now.isAfter(raceStartDateTime.minusHours(24))) {
-        // throw new IllegalArgumentException(
-        // "Health checks must be updated no later than 24 hours before the race
-        // begins.");
-        // }
+        if (now.isAfter(raceStartDateTime.minusHours(24))) {
+            throw new IllegalArgumentException(
+                    "Health checks must be updated no later than 24 hours before the race begins.");
+        }
 
         HealthCheckStatus status = resolveCreateStatus(request);
         HealthCheck check;
@@ -189,10 +188,11 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime raceStartDateTime = LocalDateTime.of(race.getDate(), race.getStartTime());
         // Bypassed for demo purposes
-        if (now.isAfter(raceStartDateTime.minusHours(24))) {
-            throw new IllegalArgumentException(
-                    "Health checks must be updated no later than 24 hours before the race begins.");
-        }
+        // if (now.isAfter(raceStartDateTime.minusHours(24))) {
+        // throw new IllegalArgumentException(
+        // "Health checks must be updated no later than 24 hours before the race
+        // begins.");
+        // }
 
         if ("DECLINE_INVITATION".equalsIgnoreCase(request.getStatus() == null ? "" : request.getStatus().name())) {
             check.setDoctor(null);

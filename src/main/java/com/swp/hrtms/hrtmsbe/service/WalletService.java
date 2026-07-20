@@ -9,7 +9,7 @@ import java.util.List;
 public interface WalletService {
     WalletResponse create(WalletRequest request);
     List<WalletResponse> getAll();
-    WalletResponse getById(Integer id);
+    WalletResponse getByUserId(Integer userId);
     WalletResponse update(Integer id, WalletRequest request);
     void delete(Integer id);
 }

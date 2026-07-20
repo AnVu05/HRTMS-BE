@@ -265,10 +265,10 @@ public class MockData {
 // nhớ comment doan này lại ở healthCheckServiceImpl để demo,
 // đoạn 178 đến 191 vì nó sẽ không có dữ liệu khi mới tạo DB
 // Bypassed for demo purposes
-// if (now.isBefore(raceStartDateTime.minusHours(1)) ||
-// !now.isBefore(raceStartDateTime)) {
-// throw new IllegalArgumentException("Predictions are only allowed within 1
-// hour before the race starts.");
+// if (now.isAfter(raceStartDateTime.minusHours(24))) {
+// throw new IllegalArgumentException(
+// "Health checks must be updated no later than 24 hours before the race
+// begins.");
 // }
 
 // Tương tự với PredictServiceImpl, comment doan 80-83 khi demo
