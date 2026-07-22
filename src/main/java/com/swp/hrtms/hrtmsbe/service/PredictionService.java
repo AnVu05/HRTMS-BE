@@ -9,7 +9,7 @@ import java.util.List;
 public interface PredictionService {
     PredictionResponse create(PredictionRequest request);
     List<PredictionResponse> getAll();
-    PredictionResponse getById(Integer id);
+    List<PredictionResponse> getByUserId(Integer userId);
     PredictionResponse update(Integer id, PredictionRequest request);
     void delete(Integer id);
 }

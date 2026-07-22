@@ -277,6 +277,31 @@ public class MockData {
                                                 .build();
                                 raceRepository.save(race);
 
+                                // Add RegistrationForm for horse2 and horse3 to Demo Grand Race 1 so predictions can be placed
+                                com.swp.hrtms.hrtmsbe.entity.Horse horse2Entity = horseRepository.findAll().stream().filter(h -> "Thoroughbred Horse 2".equals(h.getName())).findFirst().orElse(null);
+                                com.swp.hrtms.hrtmsbe.entity.Jockey jockey2Entity = jockeyRepository.findAll().stream().filter(j -> "jockey_mock2".equals(j.getUsername())).findFirst().orElse(null);
+                                
+                                com.swp.hrtms.hrtmsbe.entity.RegistrationForm form1 = com.swp.hrtms.hrtmsbe.entity.RegistrationForm.builder()
+                                                .race(race)
+                                                .horse(horse2Entity)
+                                                .jockey(jockey2Entity)
+                                                .status(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING)
+                                                .createdAt(LocalDateTime.now().minusDays(1))
+                                                .build();
+                                registrationFormRepository.save(form1);
+
+                                com.swp.hrtms.hrtmsbe.entity.Horse horse3Entity = horseRepository.findAll().stream().filter(h -> "Thoroughbred Horse 3".equals(h.getName())).findFirst().orElse(null);
+                                com.swp.hrtms.hrtmsbe.entity.Jockey jockey3Entity = jockeyRepository.findAll().stream().filter(j -> "jockey_mock3".equals(j.getUsername())).findFirst().orElse(null);
+
+                                com.swp.hrtms.hrtmsbe.entity.RegistrationForm form2 = com.swp.hrtms.hrtmsbe.entity.RegistrationForm.builder()
+                                                .race(race)
+                                                .horse(horse3Entity)
+                                                .jockey(jockey3Entity)
+                                                .status(com.swp.hrtms.hrtmsbe.enums.RegistrationFormStatus.RACING)
+                                                .createdAt(LocalDateTime.now().minusDays(1))
+                                                .build();
+                                registrationFormRepository.save(form2);
+
                                 Race race2 = Race.builder()
                                                 .tournament(tournament)
                                                 .name("Demo Grand Race 2")

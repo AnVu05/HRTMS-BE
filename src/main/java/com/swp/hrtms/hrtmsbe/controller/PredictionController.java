@@ -30,9 +30,9 @@ public class PredictionController {
         return ResponseEntity.ok(ApiResponse.success(service.getAll(), null));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<PredictionResponse>> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok(ApiResponse.success(service.getById(id), null));
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<List<PredictionResponse>>> getByUserId(@PathVariable Integer userId) {
+        return ResponseEntity.ok(ApiResponse.success(service.getByUserId(userId), null));
     }
 
     @PutMapping("/{id}")

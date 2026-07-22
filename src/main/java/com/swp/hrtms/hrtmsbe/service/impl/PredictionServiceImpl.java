@@ -148,14 +148,10 @@ public class PredictionServiceImpl implements PredictionService {
     }
 
     @Override
-    public PredictionResponse getById(Integer id) {
-        Prediction prediction = predictionRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Prediction not found."));
-        // khai
-        if (isDeleted(prediction)) {
-            throw new IllegalArgumentException("Prediction not found.");
-        }
-        return toResponse(prediction);
+    public List<PredictionResponse> getByUserId(Integer userId) {
+        return predictionRepository.findBySpectator_Id(userId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
