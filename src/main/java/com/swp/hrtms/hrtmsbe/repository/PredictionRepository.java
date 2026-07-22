@@ -10,4 +10,6 @@ public interface PredictionRepository extends JpaRepository<Prediction, Integer>
     List<Prediction> findByRace_Id(Integer raceId);
 
     List<Prediction> findByRace_Tournament_Id(Integer tournamentId);
+
+    List<Prediction> findBySpectator_Id(Integer spectatorId);
 }
