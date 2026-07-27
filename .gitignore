@@ -34,3 +34,10 @@ Thumbs.db
 # Bỏ qua các file cấu hình chứa thông tin nhạy cảm (nếu cậu có tách riêng)
 # application-secret.yml
 # application-dev.yml
+
+# Postman collections (for local testing only)
+postman/
+
+# Bỏ qua thư mục project info và skills
+info_PROJECT/
+skills/
