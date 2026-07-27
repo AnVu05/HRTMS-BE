@@ -124,7 +124,7 @@ public class RegistrationFormServiceImpl implements RegistrationFormService {
                 for (com.swp.hrtms.hrtmsbe.entity.JockeyCert cert : jockey.getJockeyCerts()) {
                     if (com.swp.hrtms.hrtmsbe.enums.CertificateStatus.VERIFIED == cert.getStatus()
                             && cert.getCertName() != null
-                            && cert.getCertName().trim().equalsIgnoreCase(horse.getBreed().trim())) {
+                            && cert.getCertName().toLowerCase().contains(horse.getBreed().trim().toLowerCase())) {
                         hasValidCert = true;
                         break;
                     }
