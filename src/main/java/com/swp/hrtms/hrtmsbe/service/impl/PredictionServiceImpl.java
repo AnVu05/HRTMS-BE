@@ -139,6 +139,7 @@ public class PredictionServiceImpl implements PredictionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PredictionResponse> getAll() {
         // khai
         return predictionRepository.findAll().stream()
@@ -148,6 +149,7 @@ public class PredictionServiceImpl implements PredictionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PredictionResponse> getByUserId(Integer userId) {
         return predictionRepository.findBySpectator_Id(userId).stream()
                 .map(this::toResponse)
@@ -195,12 +197,17 @@ public class PredictionServiceImpl implements PredictionService {
     }
 
     private PredictionResponse toResponse(Prediction prediction) {
+        String raceName = prediction.getRace() != null ? prediction.getRace().getName() : null;
+        String horseName = prediction.getPredictedHorse() != null ? prediction.getPredictedHorse().getName() : null;
+
         return PredictionResponse.builder()
                 .id(prediction.getId())
                 .spectatorId(prediction.getSpectator() != null ? prediction.getSpectator().getId() : null)
                 .raceId(prediction.getRace() != null ? prediction.getRace().getId() : null)
                 .predictedHorseId(
                         prediction.getPredictedHorse() != null ? prediction.getPredictedHorse().getId() : null)
+                .raceName(raceName)
+                .predictedHorseName(horseName)
                 .pointsInvested(prediction.getPointsInvested())
                 .status(prediction.getStatus())
                 .createdAt(prediction.getCreatedAt())
