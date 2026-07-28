@@ -218,10 +218,26 @@ public class RacePlacementServiceImpl implements RacePlacementService {
     }
 
     private RacePlacementResponse toResponse(RacePlacement placement) {
+        RegistrationForm form = placement.getRegistrationForm();
+        String jockeyName = null;
+        String horseName = null;
+        if (form != null) {
+            if (form.getJockey() != null) {
+                jockeyName = form.getJockey().getJockeyName() != null
+                        ? form.getJockey().getJockeyName()
+                        : form.getJockey().getUsername();
+            }
+            if (form.getHorse() != null) {
+                horseName = form.getHorse().getName();
+            }
+        }
+
         return RacePlacementResponse.builder()
                 .id(placement.getId())
                 .raceResultId(placement.getRaceResult() != null ? placement.getRaceResult().getId() : null)
-                .registrationFormId(placement.getRegistrationForm() != null ? placement.getRegistrationForm().getId() : null)
+                .registrationFormId(form != null ? form.getId() : null)
+                .jockeyName(jockeyName)
+                .horseName(horseName)
                 .finishPosition(placement.getFinishPosition())
                 .finishTime(placement.getFinishTime())
                 .weighInWeight(placement.getWeighInWeight())

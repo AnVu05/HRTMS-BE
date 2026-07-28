@@ -238,7 +238,7 @@ public class MockData {
                                                 .maxWeight(600)
                                                 .baseWeight(50)
                                                 .applyFemaleAllowance(0)
-                                                .predictionTimeBefore(1) // Prediction opens 1 hour before start
+                                                .predictionTimeBefore(2) // Prediction opens 1 hour before start
                                                 .healthCheckTimeBefore(48)
                                                 .status(com.swp.hrtms.hrtmsbe.enums.RaceFormatStatus.ACTIVE)
                                                 .build();
@@ -275,19 +275,28 @@ public class MockData {
                                                 .build();
                                 race = raceRepository.save(race);
 
-                                // 4. Create 7 RegistrationForms with status RACING using realistic world-class entity data
-                                String[] jockeyUsernames = {"jockey_frankie", "jockey_ryan", "jockey_christophe", "jockey_irad", "jockey_yutaka", "jockey_william", "jockey_joel"};
-                                String[] jockeyNames = {"Frankie Dettori", "Ryan Moore", "Christophe Lemaire", "Irad Ortiz Jr.", "Yutaka Take", "William Buick", "Joel Rosario"};
-                                int[] jockeyExp = {25, 20, 22, 12, 35, 18, 17};
-                                int[] jockeyAges = {53, 40, 44, 31, 55, 35, 39};
+                                // 4. Create 7 RegistrationForms with status RACING using realistic world-class
+                                // entity data
+                                String[] jockeyUsernames = { "jockey_frankie", "jockey_ryan", "jockey_christophe",
+                                                "jockey_irad", "jockey_yutaka", "jockey_william", "jockey_joel" };
+                                String[] jockeyNames = { "Frankie Dettori", "Ryan Moore", "Christophe Lemaire",
+                                                "Irad Ortiz Jr.", "Yutaka Take", "William Buick", "Joel Rosario" };
+                                int[] jockeyExp = { 25, 20, 22, 12, 35, 18, 17 };
+                                int[] jockeyAges = { 53, 40, 44, 31, 55, 35, 39 };
 
-                                String[] ownerUsernames = {"owner_mohammed", "owner_stewart", "owner_coolmore", "owner_godolphin", "owner_shadwell", "owner_juddmonte", "owner_winstar"};
-                                String[] ownerNames = {"Sheikh Mohammed", "John Stewart", "Coolmore Stud Owner", "Godolphin Stable", "Shadwell Estate", "Juddmonte Racing", "WinStar Farm"};
+                                String[] ownerUsernames = { "owner_mohammed", "owner_stewart", "owner_coolmore",
+                                                "owner_godolphin", "owner_shadwell", "owner_juddmonte",
+                                                "owner_winstar" };
+                                String[] ownerNames = { "Sheikh Mohammed", "John Stewart", "Coolmore Stud Owner",
+                                                "Godolphin Stable", "Shadwell Estate", "Juddmonte Racing",
+                                                "WinStar Farm" };
 
-                                String[] horseNames = {"Flightline", "Secretariat", "Justify", "American Pharoah", "City of Troy", "Enable", "Golden Sixty"};
-                                int[] horseAges = {5, 4, 6, 5, 4, 6, 7};
-                                String[] horseSexes = {"Stallion", "Stallion", "Stallion", "Stallion", "Colt", "Mare", "Gelding"};
-                                double[] horseWeights = {520.0, 535.0, 510.0, 500.0, 490.0, 480.0, 495.0};
+                                String[] horseNames = { "Flightline", "Secretariat", "Justify", "American Pharoah",
+                                                "City of Troy", "Enable", "Golden Sixty" };
+                                int[] horseAges = { 5, 4, 6, 5, 4, 6, 7 };
+                                String[] horseSexes = { "Stallion", "Stallion", "Stallion", "Stallion", "Colt", "Mare",
+                                                "Gelding" };
+                                double[] horseWeights = { 520.0, 535.0, 510.0, 500.0, 490.0, 480.0, 495.0 };
 
                                 for (int i = 0; i < 7; i++) {
                                         final String uJockey = jockeyUsernames[i];
@@ -318,8 +327,10 @@ public class MockData {
                                         }
 
                                         final String uOwner = ownerUsernames[i];
-                                        com.swp.hrtms.hrtmsbe.entity.HorseOwner owner = horseOwnerRepository.findAll().stream()
-                                                        .filter(o -> o.getUser() != null && uOwner.equals(o.getUser().getUsername()))
+                                        com.swp.hrtms.hrtmsbe.entity.HorseOwner owner = horseOwnerRepository.findAll()
+                                                        .stream()
+                                                        .filter(o -> o.getUser() != null
+                                                                        && uOwner.equals(o.getUser().getUsername()))
                                                         .findFirst()
                                                         .orElse(null);
 
