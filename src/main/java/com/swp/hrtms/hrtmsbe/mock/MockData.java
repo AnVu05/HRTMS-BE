@@ -261,7 +261,7 @@ public class MockData {
                                 // 3. Create Race starting in 30 minutes (within the 1-hour prediction window)
                                 Race race = Race.builder()
                                                 .tournament(tournament)
-                                                .name("Pegasus Sprint Championship - Heat 1")
+                                                .name("Dubai race Sprint Championship - Heat 1")
                                                 .date(LocalDate.now())
                                                 .startTime(LocalTime.now().plusMinutes(60))
                                                 .endTime(LocalTime.now().plusMinutes(120))
